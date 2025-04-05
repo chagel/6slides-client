@@ -1,3 +1,9 @@
+/**
+ * Notion to Slides - Background Script
+ * 
+ * Handles communication between popup and content scripts.
+ */
+
 // Listen for messages from popup or content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("Background script received message:", request);

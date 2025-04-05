@@ -1,14 +1,36 @@
+/**
+ * Notion to Slides - Popup Script
+ * 
+ * Handles the popup UI and initiates the content extraction process.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
   const convertBtn = document.getElementById('convertBtn');
   const statusEl = document.getElementById('status');
+  const toggleFormatBtn = document.getElementById('toggleFormat');
+  const formatShort = document.getElementById('format-short');
+  const formatDetailed = document.getElementById('format-detailed');
   
-  // Update status message
+  // Toggle format details
+  toggleFormatBtn.addEventListener('click', () => {
+    const isHidden = formatDetailed.style.display === 'none';
+    formatDetailed.style.display = isHidden ? 'block' : 'none';
+    toggleFormatBtn.textContent = isHidden ? 'Show less details' : 'Show more details';
+  });
+  
+  /**
+   * Update status message in the popup
+   * @param {string} message - Message to display
+   */
   function updateStatus(message) {
     statusEl.textContent = message;
     console.log('Status:', message);
   }
   
-  // Check if we're on a Notion page or other supported page
+  /**
+   * Check if we're on a Notion page or other supported page
+   * @returns {Promise<Object>} Object with compatible flag and page type
+   */
   async function checkIsCompatiblePage() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
@@ -17,12 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return { compatible: true, type: 'notion' };
     }
     
-    // Could add other supported sites here
+    // Could add other compatible site checks here
     
     return { compatible: false };
   }
   
-  // Try to inject content script if not already there
+  /**
+   * Try to inject content script if not already there
+   * @param {Object} tab - The active tab object
+   * @returns {Promise<boolean>} Whether content script is loaded
+   */
   async function ensureContentScriptLoaded(tab) {
     try {
       // First try to send a ping message to see if content script is loaded
@@ -67,12 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const pageInfo = await checkIsCompatiblePage();
       
       if (!pageInfo.compatible) {
-        updateStatus('Error: Unsupported page. Please navigate to a Notion page.');
+        updateStatus('Error: Please navigate to a Notion page.');
         convertBtn.disabled = false;
         return;
       }
       
-      updateStatus('Preparing to extract content...');
+      updateStatus('Checking template format...');
       
       // Make sure content script is loaded
       const contentScriptLoaded = await ensureContentScriptLoaded(tab);
@@ -97,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (response && response.slides && response.slides.length > 0) {
-          updateStatus(`Found ${response.slides.length} slides. Creating presentation...`);
+          updateStatus(`Found ${response.slides.length} slides! Creating presentation...`);
           
           // Store debug info
           const debugInfo = {
@@ -114,9 +140,17 @@ document.addEventListener('DOMContentLoaded', () => {
           // Open viewer in a new tab
           chrome.tabs.create({ url: chrome.runtime.getURL('viewer.html') });
         } else if (response && response.error) {
+          console.error('Extraction error details:', response);
           updateStatus(`Error: ${response.error}`);
+          
+          // Store error info for debugging
+          localStorage.setItem('slideError', JSON.stringify({
+            error: response.error,
+            stack: response.stack,
+            timestamp: new Date().toISOString()
+          }));
         } else {
-          updateStatus('Error: No content found. Try scrolling through the page first.');
+          updateStatus('Error: No slides found. Make sure your page follows the template format and has at least one H1 heading.');
         }
         
         convertBtn.disabled = false;
@@ -128,13 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // Initial check
+  // Initial page check
   checkIsCompatiblePage().then(pageInfo => {
     if (!pageInfo.compatible) {
-      updateStatus('Not on a supported page. Navigate to a Notion page to convert.');
+      updateStatus('Not on a Notion page. Please navigate to a Notion page.');
       convertBtn.disabled = true;
     } else {
-      updateStatus('Ready to convert page to slides.');
+      updateStatus('Ready! Ensure your page uses H1 headings for slides.');
     }
   });
 });

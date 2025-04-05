@@ -1,295 +1,272 @@
+/**
+ * Notion to Slides - Content Script
+ * 
+ * This script extracts content from Notion pages using a specific template format
+ * and converts it into markdown for reveal.js to render as slides.
+ * 
+ * Template Format:
+ * - H1 elements (#) define slide titles and start new slides
+ * - H2 elements (##) are section titles within slides
+ * - H3 elements (###) are subsection titles
+ * - Bullet points (- or *) are preserved as lists
+ * - Paragraphs become regular text
+ * - Content between H1s belongs to the previous H1
+ */
+
+/**
+ * Main function to extract content from a Notion page
+ * @returns {string[]} Array of markdown strings, one per slide
+ */
 function extractNotionContent() {
-  const blocks = [];
+  console.log("Extracting content using template format...");
   
-  // Debug DOM structure to help identify Notion structure
-  console.log("Searching for Notion content structure...");
+  // Build slides directly as markdown strings
+  const slides = extractSlidesAsMarkdown();
   
-  // Log potential Notion content containers
-  console.log("Main elements:", document.querySelectorAll('main').length);
-  console.log("Elements with notion in class:", document.querySelectorAll('[class*="notion"]').length);
-  
-  // Try common Notion DOM patterns
-  const selectors = [
-    'main.notion-frame',
-    'div.notion-frame',
-    'div.notion-page-content',
-    'div.notion-scroller',
-    'div[data-content-editable-root="true"]',
-    'div.notion-page-block'
-  ];
-  
-  // Log what selectors we find
-  selectors.forEach(selector => {
-    const els = document.querySelectorAll(selector);
-    console.log(`Found ${els.length} elements matching: ${selector}`);
-  });
-  
-  // Get the main Notion content area
-  const notionFrame = document.querySelector('main.notion-frame');
-  if (!notionFrame) {
-    console.warn("Could not find main.notion-frame");
+  // Debug output - log the full markdown content
+  console.log("=== EXTRACTED MARKDOWN CONTENT ===");
+  slides.forEach((slide, index) => {
+    console.log(`\n--- SLIDE ${index + 1} ---\n`);
+    console.log(slide);
     
-    // Try alternative selectors for Notion's main content
-    const altContainers = [
-      document.querySelector('div.notion-frame'),
-      document.querySelector('div.notion-page-block'),
-      document.querySelector('div[data-content-editable-root="true"]'),
-      ...document.querySelectorAll('[class*="notion-page"]')
-    ].filter(Boolean);
+    // Count heading types
+    const h1Count = (slide.match(/^# /gm) || []).length;
+    const h2Count = (slide.match(/^## /gm) || []).length;
+    const h3Count = (slide.match(/^### /gm) || []).length;
     
-    if (altContainers.length > 0) {
-      console.log(`Found ${altContainers.length} alternative Notion containers`);
-      return extractFromElement(altContainers[0]);
+    console.log(`  Heading counts: H1=${h1Count}, H2=${h2Count}, H3=${h3Count}`);
+    
+    // Check for issues
+    if (h1Count !== 1) {
+      console.warn(`Slide ${index + 1} has ${h1Count} H1 headings (should have exactly 1)`);
     }
     
-    // Fallback to body if specific frame not found
-    return extractFromBody();
-  }
-  
-  // Find the actual page content in the frame
-  const pageContent = notionFrame.querySelector('.notion-page-content');
-  if (!pageContent) {
-    console.warn("Could not find .notion-page-content");
-    // Fallback to the frame itself
-    return extractFromElement(notionFrame);
-  }
-  
-  return extractFromElement(pageContent);
-}
-
-// Extract content from body as fallback
-function extractFromBody() {
-  console.log("Falling back to body content extraction");
-  const blocks = [];
-  
-  // Try to find headings first for slides
-  const headings = document.querySelectorAll('h1, h2, h3');
-  if (headings.length > 0) {
-    headings.forEach(heading => {
-      const text = heading.innerText.trim();
-      if (text) blocks.push(text);
-    });
-    return blocks;
-  }
-  
-  // If no headings, try paragraphs
-  const paragraphs = document.querySelectorAll('p');
-  paragraphs.forEach(p => {
-    const text = p.innerText.trim();
-    if (text) blocks.push(text);
-  });
-  
-  return blocks;
-}
-
-// Extract content from a specific element
-function extractFromElement(element) {
-  const blocks = [];
-  
-  // First try: Look for Notion blocks with content using data-block-id
-  let notionBlocks = element.querySelectorAll('[data-block-id]');
-  
-  // If no data-block-id elements found, try various Notion block patterns
-  if (notionBlocks.length === 0) {
-    console.log("No data-block-id elements found, trying alternative Notion selectors");
-    
-    // Try modern Notion blocks (new UI)
-    const modernSelectors = [
-      // Common selectors for latest Notion
-      'div[contenteditable="true"]',
-      'div[class*="notionBlock"]',
-      'div[class*="block"]'
-    ];
-    
-    for (const selector of modernSelectors) {
-      const elements = element.querySelectorAll(selector);
-      if (elements.length > 0) {
-        console.log(`Found ${elements.length} elements matching: ${selector}`);
-        notionBlocks = elements;
-        break;
+    // Log the specific content structure with proper heading identification
+    const lines = slide.split('\n').filter(l => l.trim());
+    console.log(`  Content structure: ${lines.length} lines`);
+    lines.forEach((line, lineIndex) => {
+      if (line.startsWith('# ')) {
+        console.log(`  Line ${lineIndex + 1}: H1 Heading - ${line}`);
+      } else if (line.startsWith('## ')) {
+        console.log(`  Line ${lineIndex + 1}: H2 Heading - ${line}`);
+      } else if (line.startsWith('### ')) {
+        console.log(`  Line ${lineIndex + 1}: H3 Heading - ${line}`);
+      } else if (line.startsWith('-')) {
+        console.log(`  Line ${lineIndex + 1}: List item - ${line}`);
+      } else {
+        console.log(`  Line ${lineIndex + 1}: Paragraph - ${line.substring(0, 30)}${line.length > 30 ? '...' : ''}`);
       }
-    }
-  }
-  
-  // If we still don't have blocks, try headings and paragraphs
-  if (notionBlocks.length === 0) {
-    console.log("No Notion blocks found, looking for headings and paragraphs");
-    
-    // Find headings for slide titles
-    const headings = element.querySelectorAll('h1, h2, h3, [class*="heading"], [class*="title"]');
-    headings.forEach(heading => {
-      const text = heading.innerText.trim();
-      if (text) blocks.push({ type: 'heading', text });
     });
-    
-    // Find paragraphs for content
-    const paragraphs = element.querySelectorAll('p, [class*="paragraph"], [class*="text-block"]');
-    paragraphs.forEach(p => {
-      const text = p.innerText.trim();
-      if (text) blocks.push({ type: 'paragraph', text });
-    });
-    
-    // If we found typed content, format it properly
-    if (blocks.length > 0) {
-      return formatBlocks(blocks);
-    }
-    
-    // Try div elements with substantial text content
-    const contentDivs = Array.from(element.querySelectorAll('div')).filter(div => {
-      const text = div.innerText.trim();
-      // Only consider divs with substantial text that are likely content blocks
-      return text.length > 30 && text.length < 1000 && 
-             !div.querySelector('div') && // Not containing other divs
-             !div.parentElement.classList.contains('notion-selectable'); // Not selectable containers
-    });
-    
-    if (contentDivs.length > 0) {
-      console.log(`Found ${contentDivs.length} content divs`);
-      contentDivs.forEach(div => {
-        blocks.push({ type: 'paragraph', text: div.innerText.trim() });
-      });
-      return formatBlocks(blocks);
-    }
-    
-    // Last resort: just get text nodes with some content
-    console.log("No structured content found, extracting text nodes");
-    return extractTextContent(element);
-  }
-  
-  // Process Notion blocks
-  console.log(`Found ${notionBlocks.length} potential Notion blocks`);
-  const typedBlocks = [];
-  
-  notionBlocks.forEach(block => {
-    const text = block.innerText.trim();
-    if (!text) return;
-    
-    // Try to determine block type
-    const isHeading = 
-      block.querySelector('[class*="heading"]') || 
-      block.querySelector('[class*="title"]') ||
-      block.classList.contains('notion-header-block') ||
-      block.tagName === 'H1' || block.tagName === 'H2' || block.tagName === 'H3' ||
-      text.length < 50; // Short text blocks are likely headings
-        
-    if (isHeading) {
-      typedBlocks.push({ type: 'heading', text });
-    } else {
-      typedBlocks.push({ type: 'paragraph', text });
-    }
   });
-  
-  return formatBlocks(typedBlocks);
-}
-
-// Format blocks into slide content
-function formatBlocks(blocks) {
-  // If we have no blocks, return empty array
-  if (!blocks || blocks.length === 0) {
-    return [];
-  }
-  
-  // If we have very few blocks, make them all separate slides
-  if (blocks.length <= 3) {
-    return blocks.map(b => b.text || b);
-  }
-  
-  const slides = [];
-  let currentSlide = null;
-  let slideContent = [];
-  
-  // Group blocks into slides
-  blocks.forEach(block => {
-    const blockText = block.text || block;
-    const blockType = block.type || (blockText.length < 50 ? 'heading' : 'paragraph');
-    
-    if (blockType === 'heading') {
-      // Start a new slide if we already have content
-      if (slideContent.length > 0) {
-        slides.push(slideContent.join('\n'));
-        slideContent = [];
-      }
-      // Add heading as first element of new slide
-      slideContent.push(blockText);
-    } else {
-      // Add paragraph to current slide
-      // If we don't have a slide yet, start one with this paragraph
-      slideContent.push(blockText);
-      
-      // If we have a lot of content already, finish this slide
-      // This prevents slides from getting too big
-      if (slideContent.length >= 4) {
-        slides.push(slideContent.join('\n'));
-        slideContent = [];
-      }
-    }
-  });
-  
-  // Add any remaining content as the last slide
-  if (slideContent.length > 0) {
-    slides.push(slideContent.join('\n'));
-  }
-  
-  // If we still have no slides, try a different approach - make each block a slide
-  if (slides.length === 0) {
-    return blocks.map(b => b.text || b);
-  }
-  
-  // If we have very few slides but many blocks, we might need to split them further
-  if (slides.length === 1 && blocks.length > 8) {
-    // Split the one large slide into multiple slides
-    const content = slides[0].split('\n');
-    const splitSlides = [];
-    
-    // Group every 3-4 lines into a slide
-    for (let i = 0; i < content.length; i += 3) {
-      const slideContent = content.slice(i, i + 3).join('\n');
-      if (slideContent.trim()) {
-        splitSlides.push(slideContent);
-      }
-    }
-    
-    return splitSlides;
-  }
+  console.log("=== END OF MARKDOWN CONTENT ===");
   
   return slides;
 }
 
-// Extract plain text as last resort
-function extractTextContent(element) {
-  const blocks = [];
-  const textNodes = [];
+/**
+ * Extract slides directly as markdown strings
+ * @returns {string[]} Array of markdown-formatted slide strings
+ */
+function extractSlidesAsMarkdown() {
+  // Find all H1 headings to identify slide boundaries
+  const h1Elements = findHeadingsOfLevel(1);
   
-  // Get all text nodes
-  const walker = document.createTreeWalker(
-    element,
-    NodeFilter.SHOW_TEXT,
-    { acceptNode: node => node.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT },
-    false
-  );
-  
-  while (walker.nextNode()) {
-    const text = walker.currentNode.textContent.trim();
-    if (text && text.length > 20) { // Only consider substantial content
-      textNodes.push(text);
-    }
+  if (h1Elements.length === 0) {
+    console.warn("No H1 headings found. Template format requires H1 headings to define slides.");
+    return [];
   }
   
-  // Group text into potential slides (every 3-4 items)
-  for (let i = 0; i < textNodes.length; i += 3) {
-    const slideContent = textNodes.slice(i, i + 3).join('\n');
-    if (slideContent) {
-      blocks.push(slideContent);
-    }
-  }
+  console.log(`Found ${h1Elements.length} H1 headings for slides`);
   
-  return blocks;
+  const slides = [];
+  
+  // Process each H1 heading to create a slide
+  h1Elements.forEach((h1, index) => {
+    // Get the content for this slide - everything until the next H1 or end of document
+    const nextH1 = h1Elements[index + 1] || null;
+    const slideMarkdown = extractSlideContent(h1, nextH1);
+    
+    if (slideMarkdown.trim()) {
+      slides.push(slideMarkdown);
+    }
+  });
+  
+  console.log(`Created ${slides.length} slides from template format`);
+  return slides;
 }
 
-// Listen for content script messages
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("Content script received message:", request);
+/**
+ * Find all headings of a specific level (h1, h2, h3)
+ * @param {number} level - Heading level to find (1, 2, or 3)
+ * @returns {Element[]} Array of heading elements
+ */
+function findHeadingsOfLevel(level) {
+  // Build selectors for both HTML and Notion-specific headings
+  let selectors = [];
   
+  // Standard HTML selector
+  selectors.push(`h${level}`);
+  
+  // Notion-specific selectors
+  if (level === 1) {
+    selectors.push('.notion-header-block');
+    selectors.push('[class*="notion-h1"]');
+  } else if (level === 2) {
+    selectors.push('[class*="notion-h2"]');
+  } else if (level === 3) {
+    selectors.push('[class*="notion-h3"]');
+  }
+  
+  // Query all matching elements
+  return Array.from(document.querySelectorAll(selectors.join(', ')));
+}
+
+/**
+ * Extract content for a slide as markdown
+ * @param {Element} h1Element - The H1 heading element for this slide
+ * @param {Element|null} nextH1 - The next H1 heading element (or null if last slide)
+ * @returns {string} Markdown content for the slide
+ */
+function extractSlideContent(h1Element, nextH1) {
+  // Start with the H1 text as the slide title - format as markdown H1
+  const title = h1Element.innerText.trim();
+  let slideContent = `# ${title}`;
+  
+  // Get all subsequent elements until the next H1
+  let currentElement = h1Element.nextElementSibling;
+  
+  // Process content until we reach the next H1 or run out of elements
+  while (currentElement && currentElement !== nextH1) {
+    // Skip empty elements
+    if (!currentElement.innerText.trim()) {
+      currentElement = currentElement.nextElementSibling;
+      continue;
+    }
+    
+    // Process based on element type
+    const elementContent = processElementForMarkdown(currentElement);
+    
+    // Add content if it exists and isn't duplicated
+    if (elementContent && elementContent.trim() && !slideContent.includes(elementContent)) {
+      slideContent += `\n\n${elementContent}`;
+    }
+    
+    currentElement = currentElement.nextElementSibling;
+  }
+  
+  return slideContent;
+}
+
+/**
+ * Process an element to extract its markdown content
+ * @param {Element} element - The DOM element to process
+ * @returns {string} Markdown content or empty string
+ */
+function processElementForMarkdown(element) {
+  // Skip elements without content
+  if (!element || !element.innerText || !element.innerText.trim()) {
+    return '';
+  }
+
+  // Check for headings (H2, H3)
+  if (isHeadingElement(element, 2)) {
+    return `## ${element.innerText.trim()}`;
+  }
+  
+  if (isHeadingElement(element, 3)) {
+    return `### ${element.innerText.trim()}`;
+  }
+  
+  // Check for lists
+  if (isListElement(element)) {
+    return processListElement(element);
+  }
+  
+  // Regular paragraph
+  const text = element.innerText.trim();
+  
+  // Skip empty paragraphs or ones that look like markdown headings (to avoid duplication)
+  if (!text || text.startsWith('#')) {
+    return '';
+  }
+  
+  // Check if this is actually a list item in a paragraph
+  if (text.startsWith('-') || text.startsWith('*')) {
+    // Single list item - just return as-is
+    return text;
+  }
+  
+  // Regular paragraph
+  return text;
+}
+
+/**
+ * Check if an element is a heading of a specific level
+ * @param {Element} element - Element to check
+ * @param {number} level - Heading level (1, 2, or 3)
+ * @returns {boolean} True if element is a heading of the specified level
+ */
+function isHeadingElement(element, level) {
+  // Standard HTML heading
+  if (element.tagName === `H${level}`) {
+    return true;
+  }
+  
+  // Notion-specific heading classes
+  const className = element.className || '';
+  
+  if (level === 1 && (
+    className.includes('notion-header-block') || 
+    className.includes('notion-h1')
+  )) {
+    return true;
+  }
+  
+  if (level === 2 && className.includes('notion-h2')) {
+    return true;
+  }
+  
+  if (level === 3 && className.includes('notion-h3')) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Check if an element is a list (ul, ol, or Notion list)
+ * @param {Element} element - Element to check
+ * @returns {boolean} True if element is a list
+ */
+function isListElement(element) {
+  return element.tagName === 'UL' || 
+         element.tagName === 'OL' || 
+         (element.className && (
+           element.className.includes('notion-bulleted_list') ||
+           element.className.includes('notion-numbered_list')
+         ));
+}
+
+/**
+ * Process a list element and convert to markdown
+ * @param {Element} listElement - The list element (ul, ol)
+ * @returns {string} Markdown formatted list
+ */
+function processListElement(listElement) {
+  const items = Array.from(listElement.querySelectorAll('li'))
+    .map(li => li.innerText.trim())
+    .filter(text => text); // Filter out empty items
+  
+  if (items.length === 0) {
+    return '';
+  }
+  
+  // Convert to markdown bullet list
+  return items.map(item => `- ${item}`).join('\n');
+}
+
+// Listen for messages from popup or background script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // Ping action to check if content script is loaded
   if (request.action === "ping") {
     sendResponse({ status: "content_script_ready" });
@@ -298,36 +275,43 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   // Extract content action
   if (request.action === "extract_content") {
-    console.log("Extracting content from page...");
+    console.log("Extracting content from Notion page...");
     
     try {
-      // Add delay to ensure DOM is fully loaded
+      // Use setTimeout to ensure the DOM is fully loaded and accessible
       setTimeout(() => {
         try {
           const slides = extractNotionContent();
-          console.log(`Extracted ${slides.length} slides`);
           
-          if (slides.length === 0) {
+          if (!slides || slides.length === 0) {
             sendResponse({ 
-              error: "No content found. The page may still be loading or has a structure we can't parse." 
+              error: "No slides found. Make sure your page has H1 headings to define slides." 
             });
           } else {
+            console.log(`Successfully extracted ${slides.length} slides`);
             sendResponse({ slides });
           }
-        } catch (innerError) {
-          console.error("Error during extraction:", innerError);
-          sendResponse({ error: innerError.message });
+        } catch (error) {
+          console.error("Error during extraction:", error);
+          console.error("Stack trace:", error.stack);
+          
+          // Create a detailed error response
+          sendResponse({ 
+            error: "Error extracting slides: " + (error.message || "Unknown error"),
+            stack: error.stack
+          });
         }
-      }, 500); // Small delay to ensure DOM is ready
+      }, 300); // Short delay to ensure DOM is accessible
       
-      // Return true for async response
+      // Return true to indicate we'll respond asynchronously
       return true;
     } catch (error) {
       console.error("Error setting up extraction:", error);
-      sendResponse({ error: error.message });
+      sendResponse({ error: "Failed to initialize content extraction." });
+      return false;
     }
   }
   
-  // Return true to indicate we'll send a response asynchronously
+  // Always return true for async response
   return true;
 });
