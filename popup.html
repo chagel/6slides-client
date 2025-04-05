@@ -13,6 +13,12 @@
       font-size: 16px;
       margin-bottom: 8px;
     }
+    h2 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 12px;
+      margin-bottom: 10px;
+    }
     .template-info {
       background-color: #f7f6f3;
       border-radius: 4px;
@@ -63,19 +69,33 @@
       margin-top: 10px;
       font-size: 12px;
       color: #666;
+      display: flex;
+      align-items: center;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status-indicator.ready {
+      background-color: #27ae60;
+    }
+    .status-indicator.not-ready {
+      background-color: #e74c3c;
     }
   </style>
 </head>
 <body>
   <h1>Notion to Slides</h1>
-  
   <div class="template-info">
-    <h2>Create Slides from Notion</h2>
+    <h2>Simple, elegant and secure. </h2>
     <p>Convert your Notion page to a presentation:</p>
     <ul>
       <li>Organize content with H1 headings</li>
       <li>Each H1 heading becomes a new slide</li>
-      <li>All Notion blocks are supported</li>
+      <li>Major Notion blocks are supported</li>
     </ul>
     <p style="margin-top: 8px; font-size: 11px;">
       <a href="#" id="instructionsLink" style="color: #2eaadc; text-decoration: none;">View detailed instructions</a>
@@ -94,7 +114,9 @@
   <button id="convertBtn">Present</button>
   <div id="status"></div>
   
-  <div style="margin-top: 12px; text-align: center; font-size: 11px;">
+  <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+    <div style="width: 30px;"></div>
+    <span style="color: #666;">v1.0.0</span>
     <a href="#" id="aboutLink" style="color: #666; text-decoration: none;">About</a>
   </div>
   <script src="popup.js"></script>
