@@ -182,7 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // About link functionality
   document.getElementById('aboutLink').addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('about.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#about') });
+  });
+  
+  // Settings link functionality
+  document.getElementById('settingsLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#settings') });
   });
   
   // Check if current tab is viewer.html

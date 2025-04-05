@@ -3,11 +3,16 @@
 <head>
   <title>Notion to Slides</title>
   <style>
+    html {
+      font-size: 100% !important;
+    }
+    
     body {
       width: 300px;
       padding: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: #37352f;
+      font-size: 100% !important;
     }
     h1 {
       font-size: 16px;
@@ -109,10 +114,13 @@
   <button id="convertBtn">Present</button>
   <div id="status"></div>
   
-  <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
-    <div style="width: 30px;"></div>
-    <span style="color: #666;">v1.0.0</span>
-    <a href="#" id="aboutLink" style="color: #666; text-decoration: none;">About</a>
+  <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <a href="#" id="settingsLink" style="color: #666; text-decoration: none; display: flex; align-items: center; font-size: 13px;">
+      <img src="icons/ui/gear.svg" alt="Settings" width="12" height="12" style="margin-right: 4px;">
+      Settings
+    </a>
+    <span style="color: #666; font-size: 11px;">v1.0.0</span>
+    <a href="#" id="aboutLink" style="color: #666; text-decoration: none; font-size: 13px;">About</a>
   </div>
   <script src="popup.js"></script>
 </body>

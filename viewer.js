@@ -8,8 +8,11 @@
 const slides = JSON.parse(localStorage.getItem("slides") || "[]");
 const container = document.getElementById("slideContainer");
 
-// Set default theme
-const theme = "default";
+// Get settings from localStorage
+const settings = JSON.parse(localStorage.getItem('notionSlidesSettings') || '{}');
+
+// Use saved theme or default
+const theme = settings.theme || "default";
 
 // Set document title
 document.title = "Notion Slides";
@@ -99,17 +102,24 @@ function initReveal() {
   
   console.log("Initializing reveal.js with markdown plugin...");
   
+  // Get presentation settings
+  const transition = settings.transition || 'slide';
+  const slideNumber = settings.slideNumber === 'true';
+  const center = settings.center !== 'false';
+  
+  console.log('Using presentation settings:', { theme, transition, slideNumber, center });
+  
   // Configure and initialize reveal.js
   Reveal.initialize({
     // Presentation features
     controls: true,
     progress: true,
-    center: true,
+    center: center,
     hash: true,
-    transition: 'slide',
+    transition: transition,
     
     // Display
-    slideNumber: false,
+    slideNumber: slideNumber,
     
     // Behavior
     keyboard: true,

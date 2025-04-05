@@ -1,43 +1,209 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>About Notion to Slides</title>
+  <title>About - Notion to Slides</title>
   <style>
-    body {
-      width: 500px;
-      padding: 20px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #333;
-      line-height: 1.5;
+    :root {
+      --sidebar-width: 200px;
+      --primary-color: #3F51B5;
+      --hover-color: #303F9F;
+      --bg-color: #f9f9f9;
+      --border-color: #e0e0e0;
+      --text-color: #333;
+      --sidebar-text: #555;
+      --active-item: #f0f0f0;
     }
+    
+    html {
+      font-size: 16px !important;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-color);
+      line-height: 1.5;
+      display: flex;
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      font-size: 16px !important;
+    }
+    
+    /* Sidebar styles */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: white;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    .sidebar-header {
+      padding: 20px 15px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+    }
+    
+    .sidebar-logo {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+    }
+    
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    
+    .sidebar-nav {
+      flex-grow: 1;
+      padding: 15px 0;
+    }
+    
+    .nav-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+    
+    .nav-item:hover {
+      background-color: var(--active-item);
+    }
+    
+    .nav-item.active {
+      background-color: var(--active-item);
+      border-left: 3px solid var(--primary-color);
+      font-weight: 500;
+      color: var(--primary-color);
+    }
+    
+    .sidebar-footer {
+      padding: 15px;
+      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+    }
+    
+    /* Content area */
+    .content {
+      flex-grow: 1;
+      margin-left: var(--sidebar-width);
+      padding: 30px;
+      max-width: calc(100% - var(--sidebar-width));
+    }
+    
+    .page-section {
+      display: none;
+    }
+    
+    .page-section.active {
+      display: block;
+    }
+    
     h1 {
       font-size: 24px;
-      margin-bottom: 12px;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
     }
+    
     h2 {
       font-size: 18px;
-      margin-top: 20px;
-      margin-bottom: 10px;
+      margin-top: 25px;
+      margin-bottom: 15px;
     }
-    h3 {
-      font-size: 16px;
-      margin-top: 16px;
-      margin-bottom: 8px;
+    
+    button {
+      padding: 8px 16px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: 500;
     }
-    p {
-      margin: 0 0 12px 0;
+    
+    button:hover {
+      background-color: var(--hover-color);
     }
+    
+    /* Settings specific styles */
+    .setting-section {
+      background-color: white;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+    
+    .setting-label {
+      font-weight: 500;
+    }
+    
+    .setting-description {
+      color: #666;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    
+    .setting-control {
+      min-width: 150px;
+    }
+    
+    select, input {
+      padding: 8px;
+      border-radius: 3px;
+      border: 1px solid var(--border-color);
+      font-family: inherit;
+      font-size: 14px;
+      width: 100%;
+    }
+    
+    /* About specific styles */
+    .about-section {
+      background-color: white;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
     .license-section {
-      margin-top: 20px;
+      margin-top: 15px;
       padding: 15px;
       background-color: #f5f5f5;
       border-radius: 4px;
       font-size: 13px;
     }
+    
     .license-text {
       max-height: 150px;
       overflow-y: auto;
-      padding: 8px;
+      padding: 10px;
       background-color: #fff;
       border: 1px solid #ddd;
       border-radius: 3px;
@@ -45,119 +211,319 @@
       font-size: 12px;
       margin-top: 10px;
     }
+    
+    /* Help specific styles */
+    .help-section {
+      background-color: white;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .help-item {
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+    
+    .help-item:last-child {
+      border-bottom: none;
+    }
+    
+    .help-question {
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    
+    .help-answer {
+      color: #444;
+    }
   </style>
 </head>
 <body>
-  <div style="display: flex; align-items: center; margin-bottom: 16px;">
-    <img src="icons/icon128.png" width="64" height="64" alt="Notion to Slides icon" style="margin-right: 16px;">
-    <div>
-      <h1 style="margin-top: 0;">Notion to Slides</h1>
-      <p style="margin-top: 4px;">Version 1.0</p>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="icons/icon128.png" alt="Notion to Slides" class="sidebar-logo">
+      <div class="sidebar-title">Notion to Slides</div>
     </div>
-  </div>
-  <p>Present your Notion pages as simple, elegant, and secure slides</p>
-  
-  <h2>Features</h2>
-  <ul>
-    <li>Extract content from Notion pages using a template format</li>
-    <li>Convert to presentations with markdown support</li>
-    <li>Multiple themes and light/dark mode, or self-customized. </li>
-    <li>Support for lists, code blocks, tables, quotes, and more</li>
-  </ul>
-  
-  <h2 id="instructions">Instructions</h2>
-  <div style="background-color: #f7f6f3; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
-    <h3>Template Format</h3>
-    <p>Your Notion page must use this structure:</p>
-    <ul>
-      <li>H1 (#) elements start new slides</li>
-      <li>H2 (##) elements are section titles</li>
-      <li>H3 (###) elements are subsections</li>
-      <li>Content between H1s belongs to the previous H1</li>
-      <li>Lines starting with - or * become bullet points</li>
-      <li>Regular text becomes paragraphs</li>
-    </ul>
     
-    <h3>Supported Notion Blocks</h3>
-    <ul>
-      <li>Code blocks</li>
-      <li>Quote blocks</li>
-      <li>Images (with captions)</li>
-      <li>Tables</li>
-      <li>Dividers (horizontal rules)</li>
-      <li>To-do and toggle lists</li>
-      <li>Others</li>
-    </ul>
+    <nav class="sidebar-nav">
+      <a href="#about" class="nav-item" id="nav-about">About</a>
+      <a href="#settings" class="nav-item" id="nav-settings">Settings</a>
+      <a href="#instructions" class="nav-item" id="nav-instructions">Instructions</a>
+      <a href="#help" class="nav-item" id="nav-help">Help</a>
+    </nav>
     
-    <h3>How to Use</h3>
-    <ol>
-      <li>Navigate to a Notion page</li>
-      <li>Click the extension icon</li>
-      <li>Select your preferred theme</li>
-      <li>Click "Convert This Page"</li>
-      <li>The slides will open in a new tab</li>
-    </ol>
-  </div>
-
-  <h2>Support</h2>
-  We'd love to hear from you. Email: hi@flakes.ai
-  
-  <h2>Open Source Components</h2>
-  
-  <div class="license-section">
-    <h3>reveal.js</h3>
-    <p>This extension includes <a href="https://revealjs.com" target="_blank">reveal.js</a>, a framework for creating presentations, which is licensed under the MIT License.</p>
-    <div class="license-text">
-      MIT License
-      Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
-
-      Permission is hereby granted, free of charge, to any person obtaining a copy
-      of this software and associated documentation files (the "Software"), to deal
-      in the Software without restriction, including without limitation the rights
-      to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-      copies of the Software, and to permit persons to whom the Software is
-      furnished to do so, subject to the following conditions:
-
-      The above copyright notice and this permission notice shall be included in
-      all copies or substantial portions of the Software.
-
-      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-      THE SOFTWARE.
+    <div class="sidebar-footer">
+      Version 1.0.0
     </div>
   </div>
   
-  <div class="license-section">
-    <h3>Catppuccin Color Palette</h3>
-    <p>This extension includes themes based on the <a href="https://github.com/catppuccin/catppuccin" target="_blank">Catppuccin</a> color palette, which is licensed under the MIT License.</p>
-    <div class="license-text">
-      MIT License
+  <!-- Content area -->
+  <div class="content">
+    <!-- About Section -->
+    <section id="about" class="page-section">
+      <h1>About</h1>
+      
+      <div class="about-section">
+        <p>Notion to Slides is a Chrome extension that lets you present your Notion pages as beautiful slides.</p>
+        <p>Present your Notion pages as simple, elegant, and secure slides without any external dependencies or cloud services.</p>
+        
+        <h2>Features</h2>
+        <ul>
+          <li>Extract content from Notion pages using a template format</li>
+          <li>Convert to presentations with markdown support</li>
+          <li>Multiple themes and light/dark mode options</li>
+          <li>Support for lists, code blocks, tables, quotes, and more</li>
+          <li>Completely secure - no data leaves your browser</li>
+        </ul>
+        
+      </div>
+      
+      <h2>Open Source Components</h2>
+      
+      <div class="license-section">
+        <h3>reveal.js</h3>
+        <p>This extension includes <a href="https://revealjs.com" target="_blank">reveal.js</a>, a framework for creating presentations, which is licensed under the MIT License.</p>
+        <div class="license-text">
+          MIT License
+          Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
 
-      Copyright (c) 2021 Catppuccin
+          Permission is hereby granted, free of charge, to any person obtaining a copy
+          of this software and associated documentation files (the "Software"), to deal
+          in the Software without restriction, including without limitation the rights
+          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+          copies of the Software, and to permit persons to whom the Software is
+          furnished to do so, subject to the following conditions:
 
-      Permission is hereby granted, free of charge, to any person obtaining a copy
-      of this software and associated documentation files (the "Software"), to deal
-      in the Software without restriction, including without limitation the rights
-      to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-      copies of the Software, and to permit persons to whom the Software is
-      furnished to do so, subject to the following conditions:
+          The above copyright notice and this permission notice shall be included in
+          all copies or substantial portions of the Software.
 
-      The above copyright notice and this permission notice shall be included in all
-      copies or substantial portions of the Software.
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+          THE SOFTWARE.
+        </div>
+      </div>
+      
+      <div class="license-section">
+        <h3>Catppuccin Color Palette</h3>
+        <p>This extension includes themes based on the <a href="https://github.com/catppuccin/catppuccin" target="_blank">Catppuccin</a> color palette, which is licensed under the MIT License.</p>
+        <div class="license-text">
+          MIT License
 
-      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-      SOFTWARE.
-    </div>
+          Copyright (c) 2021 Catppuccin
+
+          Permission is hereby granted, free of charge, to any person obtaining a copy
+          of this software and associated documentation files (the "Software"), to deal
+          in the Software without restriction, including without limitation the rights
+          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+          copies of the Software, and to permit persons to whom the Software is
+          furnished to do so, subject to the following conditions:
+
+          The above copyright notice and this permission notice shall be included in all
+          copies or substantial portions of the Software.
+
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+          SOFTWARE.
+        </div>
+      </div>
+    </section>
+    
+    <!-- Settings Section -->
+    <section id="settings" class="page-section">
+      <h1>Settings</h1>
+      
+      <div class="setting-section">
+        <h2>Appearance</h2>
+        
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Theme</div>
+            <div class="setting-description">Choose the presentation theme</div>
+          </div>
+          <div class="setting-control">
+            <select id="themeSelector">
+              <option value="default">Default (Dark)</option>
+              <option value="catppuccin-latte">Catppuccin Latte (Light)</option>
+              <option value="catppuccin-mocha">Catppuccin Mocha (Dark)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Transition</div>
+            <div class="setting-description">Animation between slides</div>
+          </div>
+          <div class="setting-control">
+            <select id="transitionSelector">
+              <option value="slide">Slide</option>
+              <option value="fade">Fade</option>
+              <option value="convex">Convex</option>
+              <option value="concave">Concave</option>
+              <option value="zoom">Zoom</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="setting-section">
+        <h2>Presentation</h2>
+        
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Show slide numbers</div>
+            <div class="setting-description">Display slide numbers in the corner</div>
+          </div>
+          <div class="setting-control">
+            <select id="slideNumberSelector">
+              <option value="true">Show</option>
+              <option value="false">Hide</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Center content</div>
+            <div class="setting-description">Center slide content vertically</div>
+          </div>
+          <div class="setting-control">
+            <select id="centerSelector">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <button id="saveSettingsBtn">Save Settings</button>
+      <span id="saveStatus" style="margin-left: 10px; color: green; display: none;">Settings saved!</span>
+    </section>
+    
+    <!-- Instructions Section -->
+    <section id="instructions" class="page-section">
+      <h1>Instructions</h1>
+      
+      <div class="about-section">
+        <h2>Template Format</h2>
+        <p>Your Notion page must use this structure:</p>
+        <ul>
+          <li>H1 (#) elements start new slides</li>
+          <li>H2 (##) elements are section titles</li>
+          <li>H3 (###) elements are subsections</li>
+          <li>Content between H1s belongs to the previous H1</li>
+          <li>Lines starting with - or * become bullet points</li>
+          <li>Regular text becomes paragraphs</li>
+        </ul>
+        
+        <h3>Example Format</h3>
+        <div style="background-color: #f0f0f0; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-line; margin-top: 10px; margin-bottom: 15px; font-size: 14px;">
+# Slide 1 Title
+This paragraph will appear on slide 1.
+- This is a bullet point on slide 1
+- Another bullet on slide 1
+
+## Section on Slide 1
+More content for slide 1...
+
+# Slide 2 Title
+This paragraph will appear on slide 2.
+- Bullet on slide 2
+
+```
+// Some code block
+function helloWorld() {
+  console.log("Hello from slide 2!");
+}
+```
+
+# Slide 3 Title
+> This is a quote block on slide 3
+
+### Subsection on Slide 3
+Final slide content...
+        </div>
+        
+        <h2>Supported Notion Blocks</h2>
+        <ul>
+          <li>Code blocks</li>
+          <li>Quote blocks</li>
+          <li>Images (with captions)</li>
+          <li>Tables</li>
+          <li>Dividers (horizontal rules)</li>
+          <li>To-do and toggle lists</li>
+          <li>Others</li>
+        </ul>
+        
+        <h2>How to Use</h2>
+        <ol>
+          <li>Navigate to a Notion page</li>
+          <li>Click the extension icon</li>
+          <li>Click "Present"</li>
+          <li>The slides will open in the current tab</li>
+        </ol>
+      </div>
+    </section>
+    
+    <!-- Help Section -->
+    <section id="help" class="page-section">
+      <h1>Help</h1>
+      
+      <div class="help-section">
+        <div class="help-item">
+          <div class="help-question">Why isn't my Notion page converting correctly?</div>
+          <div class="help-answer">
+            <p>Make sure your Notion page follows the template format:</p>
+            <ul>
+              <li>Each H1 heading creates a new slide</li>
+              <li>You need at least one H1 heading to generate slides</li>
+              <li>Check if you have proper permissions for the Notion page</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="help-item">
+          <div class="help-question">How do I customize my presentation?</div>
+          <div class="help-answer">
+            <p>You can customize your presentation in several ways:</p>
+            <ul>
+              <li>Visit the Settings page to change the theme, transitions, and more</li>
+              <li>Use Markdown formatting in your Notion page for text styling</li>
+              <li>Add images and other rich content in Notion</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="help-item">
+          <div class="help-question">Is my data secure?</div>
+          <div class="help-answer">
+            <p>Yes! Notion to Slides processes everything locally in your browser. No data is sent to external servers or stored anywhere except in your browser's local storage.</p>
+          </div>
+        </div>
+        
+        <div class="help-item">
+          <div class="help-question">How do I report a bug or request a feature?</div>
+          <div class="help-answer">
+            <p>Please email us at <a href="mailto:hello@flakes.ai">hello@flakes.ai</a> with any bugs, feature requests, or feedback. We're constantly working to improve the extension!</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
-  
+
+  <script src="navigation.js"></script>
 </body>
 </html>
