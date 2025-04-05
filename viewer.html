@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notion Slides</title>
+  <link rel="stylesheet" href="lib/reveal.js/reveal.css">
+  <style>
+    :root {
+      --notion-blue: #2eaadc;
+      --notion-black: #37352f;
+      --notion-gray: #9b9a97;
+      --notion-bg: #ffffff;
+      --notion-text: #37352f;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--notion-text);
+      background-color: var(--notion-bg);
+    }
+    
+    .reveal h1, .reveal h2, .reveal h3 {
+      color: var(--notion-black);
+      font-weight: 600;
+      margin-bottom: 0.5em;
+    }
+    
+    .reveal h1 {
+      font-size: 2.6em;
+    }
+    
+    .reveal h2 {
+      font-size: 2.2em;
+    }
+    
+    .reveal h3 {
+      font-size: 1.8em;
+      color: var(--notion-blue);
+    }
+    
+    .reveal .content {
+      text-align: left;
+      font-size: 1.2em;
+      margin-top: 1em;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .reveal .content p {
+      margin-bottom: 0.8em;
+      line-height: 1.5;
+    }
+    
+    .reveal ul {
+      display: block;
+      text-align: left;
+      margin: 0 auto 0.5em;
+      width: 90%;
+    }
+    
+    .reveal li {
+      margin-bottom: 0.5em;
+      line-height: 1.5;
+    }
+    
+    .reveal .title-slide h1 {
+      font-size: 3em;
+      margin-bottom: 0.3em;
+    }
+    
+    .reveal .title-slide .subtitle {
+      font-size: 1.5em;
+      color: var(--notion-gray);
+      margin-bottom: 2em;
+    }
+    
+    .reveal .title-slide .instructions {
+      font-size: 0.9em;
+      color: var(--notion-gray);
+      margin-top: 3em;
+    }
+    
+    .reveal .ending-slide {
+      text-align: center;
+    }
+    
+    .reveal .ending-slide .created-date {
+      font-size: 0.9em;
+      color: var(--notion-gray);
+      margin-top: 2em;
+    }
+    
+    /* Slide transitions */
+    .reveal .slides section {
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    
+    /* Slide numbers */
+    .reveal .slide-number {
+      background-color: rgba(0, 0, 0, 0.1);
+      color: var(--notion-text);
+      padding: 5px 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides" id="slideContainer"></div>
+  </div>
+  <script src="lib/reveal.js/reveal.js"></script>
+  <script src="viewer.js"></script>
+</body>
+</html>

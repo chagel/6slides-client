@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Notion to Slides",
+  "version": "1.0",
+  "description": "Convert Notion pages to presentations using Reveal.js",
+  "permissions": ["scripting", "activeTab", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.notion.so/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["viewer.html", "lib/reveal.js/**"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
