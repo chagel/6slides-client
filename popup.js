@@ -8,22 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const convertBtn = document.getElementById('convertBtn');
   const statusEl = document.getElementById('status');
   const instructionsLink = document.getElementById('instructionsLink');
-  const themeSelector = document.getElementById('themeSelector');
   
   // Instructions link functionality
   instructionsLink.addEventListener('click', (e) => {
     e.preventDefault();
     chrome.tabs.create({ url: chrome.runtime.getURL('about.html#instructions') });
-  });
-  
-  // Set theme selector to saved value or default
-  const savedTheme = localStorage.getItem('selectedTheme') || 'default';
-  themeSelector.value = savedTheme;
-  
-  // Save theme selection
-  themeSelector.addEventListener('change', () => {
-    localStorage.setItem('selectedTheme', themeSelector.value);
-    console.log(`Theme changed to: ${themeSelector.value}`);
   });
   
   /**
@@ -159,8 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
           localStorage.setItem('slides', JSON.stringify(response.slides));
           localStorage.setItem('slideDebugInfo', JSON.stringify(debugInfo));
           
-          // Make sure selected theme is saved (in case it was just changed)
-          localStorage.setItem('selectedTheme', themeSelector.value);
+          // No theme selection anymore - using default theme
           
           // Open viewer in a new tab
           chrome.tabs.create({ url: chrome.runtime.getURL('viewer.html') });

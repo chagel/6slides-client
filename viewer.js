@@ -8,8 +8,8 @@
 const slides = JSON.parse(localStorage.getItem("slides") || "[]");
 const container = document.getElementById("slideContainer");
 
-// Get theme from localStorage or default to "default"
-const theme = localStorage.getItem("selectedTheme") || "default";
+// Set default theme
+const theme = "default";
 
 // Set document title
 document.title = "Notion Slides";
