@@ -10,12 +10,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleFormatBtn = document.getElementById('toggleFormat');
   const formatShort = document.getElementById('format-short');
   const formatDetailed = document.getElementById('format-detailed');
+  const themeSelector = document.getElementById('themeSelector');
   
   // Toggle format details
   toggleFormatBtn.addEventListener('click', () => {
     const isHidden = formatDetailed.style.display === 'none';
     formatDetailed.style.display = isHidden ? 'block' : 'none';
     toggleFormatBtn.textContent = isHidden ? 'Show less details' : 'Show more details';
+  });
+  
+  // Set theme selector to saved value or default
+  const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+  themeSelector.value = savedTheme;
+  
+  // Save theme selection
+  themeSelector.addEventListener('change', () => {
+    localStorage.setItem('selectedTheme', themeSelector.value);
+    console.log(`Theme changed to: ${themeSelector.value}`);
   });
   
   /**
@@ -133,9 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
             slideCount: response.slides.length
           };
           
-          // Store slides and debug info
+          // Store slides, debug info, and ensure theme is saved
           localStorage.setItem('slides', JSON.stringify(response.slides));
           localStorage.setItem('slideDebugInfo', JSON.stringify(debugInfo));
+          
+          // Make sure selected theme is saved (in case it was just changed)
+          localStorage.setItem('selectedTheme', themeSelector.value);
           
           // Open viewer in a new tab
           chrome.tabs.create({ url: chrome.runtime.getURL('viewer.html') });

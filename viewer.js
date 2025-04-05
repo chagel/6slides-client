@@ -8,11 +8,17 @@
 const slides = JSON.parse(localStorage.getItem("slides") || "[]");
 const container = document.getElementById("slideContainer");
 
+// Get theme from localStorage or default to "default"
+const theme = localStorage.getItem("selectedTheme") || "default";
+
 // Set document title
 document.title = "Notion Slides";
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+  // Load the selected theme
+  document.getElementById("theme-stylesheet").href = `lib/reveal.js/theme/${theme}.css`;
+  console.log(`Loading theme: ${theme}`);
   // Check if we have slides
   if (!Array.isArray(slides) || slides.length === 0) {
     console.error("No slides data found in localStorage");
@@ -88,6 +94,9 @@ function initReveal() {
     return;
   }
   
+  // Define plugins to use
+  let plugins = [RevealMarkdown];
+  
   console.log("Initializing reveal.js with markdown plugin...");
   
   // Configure and initialize reveal.js
@@ -107,7 +116,9 @@ function initReveal() {
     touch: true,
     
     // Plugins
-    plugins: [ RevealMarkdown ]
+    plugins: plugins,
+    
+    // Theme is now handled via separate CSS file with id="theme-stylesheet"
   }).then(() => {
     console.log("Reveal.js initialization complete");
   });

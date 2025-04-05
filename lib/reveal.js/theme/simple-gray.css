@@ -1,0 +1,219 @@
+/**
+ * Simple Gray theme for reveal.js
+ * A clean, minimalist theme with only black, gray, and white colors
+ */
+
+:root {
+  /* Minimalist Grayscale Palette */
+  --background: #2d2d2d;   /* Dark gray background */
+  --slide-bg: #2d2d2d;     /* Same as background */
+  --text: #ffffff;         /* White text */
+  --light-text: #cccccc;   /* Light gray text */
+  --gray-100: #f5f5f5;     /* Lightest gray */
+  --gray-200: #eeeeee;     /* Lighter gray */
+  --gray-300: #e0e0e0;     /* Light gray */
+  --gray-400: #bdbdbd;     /* Medium light gray */
+  --gray-500: #9e9e9e;     /* Medium gray */
+  --gray-600: #757575;     /* Medium dark gray */
+  --gray-700: #616161;     /* Dark gray */
+  --gray-800: #424242;     /* Darker gray */
+  --code-bg: #f5f5f5;      /* Light gray code background */
+  --code-text: #333333;    /* Dark gray code text */
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  background-color: var(--background) !important;
+}
+
+.reveal {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 42px;
+  font-weight: normal;
+  color: var(--text);
+}
+
+.reveal-viewport {
+  background-color: var(--background);
+}
+
+.reveal .slides section,
+.reveal .slides section > section {
+  line-height: 1.3;
+  font-weight: inherit;
+  color: var(--text);
+  background-color: var(--slide-bg);
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  margin: 0 0 20px 0;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+}
+
+.reveal h1 {
+  font-size: 2.5em;
+  color: var(--text);
+}
+
+.reveal h2 {
+  font-size: 1.6em;
+  color: var(--light-text);
+}
+
+.reveal h3 {
+  font-size: 1.3em;
+  color: var(--gray-400);
+}
+
+.reveal h4 {
+  font-size: 1em;
+  color: var(--gray-500);
+}
+
+.reveal p {
+  margin: 20px 0;
+  line-height: 1.5;
+}
+
+.reveal a {
+  color: #9e9e9e;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.reveal a:hover {
+  color: #ffffff;
+  text-shadow: none;
+  border: none;
+}
+
+.reveal code {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  text-transform: none;
+  background-color: #222222;
+  padding: 2px 4px;
+  border-radius: 2px;
+  color: #dddddd;
+}
+
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  line-height: 1.4em;
+  word-wrap: break-word;
+}
+
+.reveal pre code {
+  display: block;
+  padding: 15px;
+  overflow: auto;
+  max-height: 600px;
+  word-wrap: normal;
+  background-color: #222222;
+  color: #dddddd;
+  border-radius: 2px;
+}
+
+/* No syntax highlighting - using plain code blocks */
+
+.reveal table {
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.reveal table th {
+  font-weight: bold;
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  padding: 0.2em 0.5em;
+  border-bottom: 1px solid #444444;
+  color: #dddddd;
+}
+
+.reveal blockquote {
+  display: block;
+  position: relative;
+  width: 70%;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-style: italic;
+  background-color: #333333;
+  color: #bbbbbb;
+  border-left: 2px solid #555555;
+}
+
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin: 0 0 0 1em;
+}
+
+.reveal ol {
+  display: inline-block;
+  text-align: left;
+  margin: 0 0 0 1em;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-left: 40px;
+}
+
+.reveal ul li,
+.reveal ol li {
+  margin-bottom: 0.5em;
+}
+
+.reveal img,
+.reveal video,
+.reveal iframe {
+  max-width: 95%;
+  max-height: 95%;
+}
+
+.reveal .controls {
+  color: #fff;
+}
+
+.reveal .progress {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.reveal section img {
+  margin: 15px 0px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.reveal .slide-number {
+  color: #fff;
+}

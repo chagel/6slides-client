@@ -1,0 +1,232 @@
+/**
+ * Catppuccin Mocha theme for reveal.js
+ * Based on https://github.com/catppuccin/catppuccin
+ * Mocha is a dark, cozy warm theme
+ */
+
+:root {
+  /* Catppuccin Mocha Palette */
+  --rosewater: #f5e0dc;
+  --flamingo: #f2cdcd;
+  --pink: #f5c2e7;
+  --mauve: #cba6f7;
+  --red: #f38ba8;
+  --maroon: #eba0ac;
+  --peach: #fab387;
+  --yellow: #f9e2af;
+  --green: #a6e3a1;
+  --teal: #94e2d5;
+  --sky: #89dceb;
+  --sapphire: #74c7ec;
+  --blue: #89b4fa;
+  --lavender: #b4befe;
+  --text: #cdd6f4;
+  --subtext1: #bac2de;
+  --subtext0: #a6adc8;
+  --overlay2: #9399b2;
+  --overlay1: #7f849c;
+  --overlay0: #6c7086;
+  --surface2: #585b70;
+  --surface1: #45475a;
+  --surface0: #313244;
+  --base: #1e1e2e;
+  --mantle: #181825;
+  --crust: #11111b;
+}
+
+body {
+  background: var(--base);
+  color: var(--text);
+  background-color: var(--base) !important;
+}
+
+.reveal {
+  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  font-size: 42px;
+  font-weight: normal;
+  color: var(--text);
+  background-color: var(--base);
+}
+
+.reveal-viewport {
+  background-color: var(--base);
+}
+
+.reveal .slides section,
+.reveal .slides section > section {
+  line-height: 1.3;
+  font-weight: inherit;
+  color: var(--text);
+  background-color: transparent;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  margin: 0 0 20px 0;
+  color: var(--mauve);
+  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+}
+
+.reveal h1 {
+  font-size: 2.5em;
+  color: var(--blue);
+}
+
+.reveal h2 {
+  font-size: 1.6em;
+  color: var(--mauve);
+}
+
+.reveal h3 {
+  font-size: 1.3em;
+  color: var(--teal);
+}
+
+.reveal h4 {
+  font-size: 1em;
+  color: var(--lavender);
+}
+
+.reveal p {
+  margin: 20px 0;
+  line-height: 1.3;
+}
+
+.reveal a {
+  color: var(--blue);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.reveal a:hover {
+  color: var(--sky);
+  text-shadow: none;
+  border: none;
+}
+
+.reveal code {
+  font-family: monospace;
+  text-transform: none;
+  background-color: var(--crust);
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--maroon);
+}
+
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  line-height: 1.2em;
+  word-wrap: break-word;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.reveal pre code {
+  display: block;
+  padding: 15px;
+  overflow: auto;
+  max-height: 600px;
+  word-wrap: normal;
+  background-color: var(--crust);
+  color: var(--text);
+  border-radius: 6px;
+}
+
+/* No syntax highlighting - using plain code blocks */
+
+.reveal table {
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.reveal table th {
+  font-weight: bold;
+  background-color: var(--surface0);
+}
+
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  padding: 0.2em 0.5em;
+  border-bottom: 1px solid var(--overlay1);
+}
+
+.reveal blockquote {
+  display: block;
+  position: relative;
+  width: 70%;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-style: italic;
+  background-color: var(--surface0);
+  border-left: 4px solid var(--lavender);
+  color: var(--subtext0);
+}
+
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin: 0 0 0 1em;
+}
+
+.reveal ol {
+  display: inline-block;
+  text-align: left;
+  margin: 0 0 0 1em;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-left: 40px;
+}
+
+.reveal ul li,
+.reveal ol li {
+  margin-bottom: 0.5em;
+}
+
+.reveal img,
+.reveal video,
+.reveal iframe {
+  max-width: 95%;
+  max-height: 95%;
+}
+
+.reveal .controls {
+  color: var(--blue);
+}
+
+.reveal .progress {
+  background: var(--surface0);
+  color: var(--blue);
+}
+
+.reveal section img {
+  margin: 15px 0px;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+.reveal .slide-number {
+  color: var(--text);
+}
