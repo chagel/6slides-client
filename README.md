@@ -44,20 +44,86 @@ Full license details can be found in LICENSE.md.
 
 ## Development
 
+### Project Structure
+
+The project now uses a modular component-based architecture:
+
+```
+src/
+  ├── common/           # Shared utilities and services
+  │   ├── utils.js      # Utility functions
+  │   ├── storage.js    # Data persistence (IndexedDB/localStorage)
+  │   └── messaging.js  # Communication between components
+  ├── content/          # Content script modules
+  │   ├── extractors/   # Specialized content extractors
+  │   │   ├── baseExtractor.js
+  │   │   ├── headingExtractor.js
+  │   │   ├── listExtractor.js
+  │   │   └── codeBlockExtractor.js
+  │   └── index.js      # Main content script entry point
+  ├── presentation/     # Presentation rendering
+  │   └── renderer.js   # reveal.js integration
+  ├── background/       # Background script
+  │   └── index.js      # Service worker
+  └── ui/               # User interface components
+      ├── popup/        # Extension popup
+      ├── settings/     # Settings page
+      └── viewer/       # Presentation viewer
+```
+
 ### Setup
 
 1. Clone this repository
-2. Load the extension in Chrome using "Load unpacked" in developer mode
-3. Navigate to a Notion page and test the extension
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Build the extension:
+   ```
+   npm run build
+   ```
+4. Load the extension in Chrome:
+   - Open Chrome and navigate to `chrome://extensions`
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select the `dist` directory
+5. Navigate to a Notion page and test the extension
+
+### Development Workflow
+
+1. Make changes to the source files in the `src` directory
+2. Run `npm run build` to build the extension
+3. Reload the extension in Chrome to test the changes
+4. Use `npm run lint` to check for code style issues
 
 ### Building for Production
 
 When building for production, make sure to:
-- Minify JavaScript files
+- Minify JavaScript files (build script will handle this)
 - Include all necessary attribution and license information
 - Update the version number in manifest.json
 
+### Adding New Features
+
+- For new content types, add a new extractor in `src/content/extractors/`
+- For UI enhancements, modify the relevant component in `src/ui/`
+- For new presentation features, extend the renderer in `src/presentation/`
+
+## Version History
+
+### Version 1.1.0
+- Refactored codebase to use modular component-based architecture
+- Improved error handling and reporting
+- Enhanced performance with IndexedDB for large presentations
+- Added ES modules support for better code organization
+- Set up TypeScript configuration for future development
+
+### Version 1.0.0
+- Initial release with basic Notion page to slides conversion
+- Support for Notion blocks: headings, lists, code blocks, tables, images, quotes
+- Multiple themes including Catppuccin themes
+- Basic presentation settings for transitions and display options
+
 ## License
 
-This extension is licensed under [Your License Here].
+This extension is licensed under MIT License.
 The open source components are used under their respective licenses (MIT).

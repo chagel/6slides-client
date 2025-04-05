@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Notion to Slides",
-  "version": "1.0",
+  "version": "1.1.0",
   "description": "Present your Notion pages as simple, elegant, and secure slides",
   "permissions": ["scripting", "activeTab", "tabs"],
   "host_permissions": ["<all_urls>"],
@@ -14,18 +14,19 @@
     }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background/index.js",
+    "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["https://www.notion.so/*", "https://*.notion.site/*"],
-      "js": ["content.js"],
+      "js": ["content/index.js"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["viewer.html", "lib/reveal.js/**", "about.html", "icons/**", "navigation.js", "icons/ui/**"],
+      "resources": ["viewer.html", "lib/reveal.js/**", "about.html", "icons/**", "ui/viewer/index.js", "icons/ui/**"],
       "matches": ["<all_urls>"]
     }
   ]

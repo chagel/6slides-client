@@ -4,7 +4,13 @@
  * Handles the sidebar navigation functionality.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+import { logDebug } from '../common/utils.js';
+import { storage } from '../common/storage.js';
+
+/**
+ * Initialize navigation functionality
+ */
+function initNavigation() {
   // Navigation handling
   const navItems = document.querySelectorAll('.nav-item');
   const pageSections = document.querySelectorAll('.page-section');
@@ -23,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSettings() {
     if (!themeSelector) return;
     
-    const settings = JSON.parse(localStorage.getItem('notionSlidesSettings') || '{}');
+    const settings = storage.getSettings();
     
     // Set default values if settings don't exist
     const defaults = {
@@ -39,11 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
     slideNumberSelector.value = settings.slideNumber || defaults.slideNumber;
     centerSelector.value = settings.center || defaults.center;
     
-    console.log('Settings loaded:', settings);
+    logDebug('Navigation: Settings loaded', settings);
   }
   
   // Save settings
-  function saveSettings() {
+  async function saveSettings() {
     const settings = {
       theme: themeSelector.value,
       transition: transitionSelector.value,
@@ -51,8 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
       center: centerSelector.value
     };
     
-    localStorage.setItem('notionSlidesSettings', JSON.stringify(settings));
-    console.log('Settings saved:', settings);
+    await storage.saveSettings(settings);
+    logDebug('Navigation: Settings saved', settings);
     
     // Show feedback
     saveStatus.style.display = 'inline';
@@ -117,4 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     setActivePage(defaultPage);
   }
-});
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initNavigation);
