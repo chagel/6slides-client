@@ -11,6 +11,16 @@
  * - Bullet points (- or *) are preserved as lists
  * - Paragraphs become regular text
  * - Content between H1s belongs to the previous H1
+ * 
+ * Supported Notion Block Types:
+ * - Headings (H1, H2, H3)
+ * - Lists (bulleted, numbered, to-do, toggle)
+ * - Code blocks (with syntax highlighting)
+ * - Quote blocks
+ * - Divider blocks (horizontal rules)
+ * - Image blocks (with captions)
+ * - Table blocks
+ * - Regular text blocks
  */
 
 /**
@@ -163,6 +173,9 @@ function extractSlideContent(h1Element, nextH1) {
  * @returns {string} Markdown content or empty string
  */
 function processElementForMarkdown(element) {
+  // Log element type for debugging
+  console.log("Processing element:", element.tagName, element.className || "");
+  
   // Skip elements without content
   if (!element || !element.innerText || !element.innerText.trim()) {
     return '';
@@ -180,6 +193,31 @@ function processElementForMarkdown(element) {
   // Check for lists
   if (isListElement(element)) {
     return processListElement(element);
+  }
+  
+  // Check for code blocks
+  if (isCodeBlock(element)) {
+    return processCodeBlock(element);
+  }
+  
+  // Check for quote blocks
+  if (isQuoteBlock(element)) {
+    return processQuoteBlock(element);
+  }
+  
+  // Check for divider blocks
+  if (isDividerBlock(element)) {
+    return "---";
+  }
+  
+  // Check for image blocks
+  if (isImageBlock(element)) {
+    return processImageBlock(element);
+  }
+  
+  // Check for table blocks
+  if (isTableBlock(element)) {
+    return processTableBlock(element);
   }
   
   // Regular paragraph
@@ -222,7 +260,10 @@ function isHeadingElement(element, level) {
     return true;
   }
   
-  if (level === 2 && className.includes('notion-h2')) {
+  if (level === 2 && (
+    className.includes('notion-sub_header-block') ||
+    className.includes('notion-h2')
+  )){
     return true;
   }
   
@@ -239,30 +280,203 @@ function isHeadingElement(element, level) {
  * @returns {boolean} True if element is a list
  */
 function isListElement(element) {
+  console.log("Checking if element is a list:", element);
   return element.tagName === 'UL' || 
          element.tagName === 'OL' || 
          (element.className && (
-           element.className.includes('notion-bulleted_list') ||
-           element.className.includes('notion-numbered_list')
+           element.className.includes('notion-bulleted_list-block') ||
+           element.className.includes('notion-numbered_list-block') ||
+           element.className.includes('notion-to_do-block') ||
+           element.className.includes('notion-toggle-block') ||
+           element.className.includes('notion-list-block')
          ));
 }
 
 /**
- * Process a list element and convert to markdown
- * @param {Element} listElement - The list element (ul, ol)
- * @returns {string} Markdown formatted list
+ * Check if an element is a code block
+ * @param {Element} element - Element to check
+ * @returns {boolean} True if element is a code block
  */
-function processListElement(listElement) {
-  const items = Array.from(listElement.querySelectorAll('li'))
-    .map(li => li.innerText.trim())
-    .filter(text => text); // Filter out empty items
+function isCodeBlock(element) {
+  return element.className && element.className.includes('notion-code-block');
+}
+
+/**
+ * Process a code block element and convert to markdown
+ * @param {Element} codeElement - The code block element
+ * @returns {string} Markdown formatted code block
+ */
+function processCodeBlock(codeElement) {
+  const text = codeElement.innerText.trim();
   
-  if (items.length === 0) {
+  if (!text) {
     return '';
   }
   
-  // Convert to markdown bullet list
-  return items.map(item => `- ${item}`).join('\n');
+  // TODO: handle new formatting for language
+  // Get the language if available
+  let language = '';
+  // const languageElem = codeElement.querySelector('.notion-code-language');
+  // if (languageElem) {
+  //   language = languageElem.innerText.trim().toLowerCase();
+  // }
+  
+  // Format as markdown code block
+  return '```' + language + '\n' + text + '\n```';
+}
+
+/**
+ * Check if an element is a quote block
+ * @param {Element} element - Element to check
+ * @returns {boolean} True if element is a quote block
+ */
+function isQuoteBlock(element) {
+  return element.className && element.className.includes('notion-quote-block');
+}
+
+/**
+ * Process a quote block element and convert to markdown
+ * @param {Element} quoteElement - The quote block element
+ * @returns {string} Markdown formatted quote
+ */
+function processQuoteBlock(quoteElement) {
+  const text = quoteElement.innerText.trim();
+  
+  if (!text) {
+    return '';
+  }
+  
+  // Handle multi-line quotes by adding > to each line
+  if (text.includes('\n')) {
+    return text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line)
+      .map(line => `> ${line}`)
+      .join('\n');
+  }
+  
+  // Single line quote
+  return `> ${text}`;
+}
+
+/**
+ * Check if an element is a divider block
+ * @param {Element} element - Element to check
+ * @returns {boolean} True if element is a divider block
+ */
+function isDividerBlock(element) {
+  return element.className && element.className.includes('notion-divider-block');
+}
+
+/**
+ * Check if an element is an image block
+ * @param {Element} element - Element to check
+ * @returns {boolean} True if element is an image block
+ */
+function isImageBlock(element) {
+  return (element.className && element.className.includes('notion-image-block')) ||
+         (element.querySelector && element.querySelector('img'));
+}
+
+/**
+ * Process an image block element and convert to markdown
+ * @param {Element} imageElement - The image block element
+ * @returns {string} Markdown formatted image
+ */
+function processImageBlock(imageElement) {
+  // Look for the image element
+  const img = imageElement.tagName === 'IMG' ? 
+              imageElement : 
+              imageElement.querySelector('img');
+  
+  if (!img || !img.src) {
+    return '';
+  }
+  
+  // Get alt text or caption if available
+  let altText = '';
+  
+  // Try to find caption
+  const caption = imageElement.querySelector('.notion-image-caption');
+  if (caption) {
+    altText = caption.innerText.trim();
+  }
+  
+  // Use alt attribute if no caption
+  if (!altText && img.alt) {
+    altText = img.alt.trim();
+  }
+  
+  // Create markdown image with alt text
+  return `![${altText}](${img.src})`;
+}
+
+/**
+ * Check if an element is a table block
+ * @param {Element} element - Element to check
+ * @returns {boolean} True if element is a table block
+ */
+function isTableBlock(element) {
+  return element.tagName === 'TABLE' || 
+         (element.className && (
+           element.className.includes('notion-table-block') ||
+           element.className.includes('notion-collection-block')
+         )) ||
+         element.querySelector('table');
+}
+
+/**
+ * Process a table block element and convert to markdown
+ * @param {Element} tableElement - The table block element
+ * @returns {string} Markdown formatted table
+ */
+function processTableBlock(tableElement) {
+  // Find the table element if we were given a container
+  const table = tableElement.tagName === 'TABLE' ? 
+                tableElement : 
+                tableElement.querySelector('table');
+  
+  if (!table) {
+    return '';
+  }
+  
+  // Find all rows
+  const rows = Array.from(table.querySelectorAll('tr'));
+  if (rows.length === 0) {
+    return '';
+  }
+  
+  let markdownTable = '';
+  let headerProcessed = false;
+  
+  // Process each row
+  rows.forEach((row, rowIndex) => {
+    const cells = Array.from(row.querySelectorAll('th, td'))
+      .map(cell => cell.innerText.trim().replace(/\|/g, '\\|')); // Escape pipe characters
+    
+    if (cells.length === 0) return;
+    
+    // Create the markdown row
+    markdownTable += `| ${cells.join(' | ')} |\n`;
+    
+    // Add header separator after first row
+    if (rowIndex === 0 && !headerProcessed) {
+      markdownTable += `| ${cells.map(() => '---').join(' | ')} |\n`;
+      headerProcessed = true;
+    }
+  });
+  
+  return markdownTable;
+}
+
+/**
+ * Process a list element and convert to markdown
+ * @param {Element} listElement - The list element (ul, ol, or Notion list block)
+ * @returns {string} Markdown formatted list
+ */
+function processListElement(listElement) {
+  const text = listElement.innerText.trim();
+  return `- ${text}`;
 }
 
 // Listen for messages from popup or background script
