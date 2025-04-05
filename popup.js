@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Instructions link functionality
   instructionsLink.addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#instructions') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#help') });
   });
   
   /**
