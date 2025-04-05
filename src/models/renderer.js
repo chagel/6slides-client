@@ -5,7 +5,7 @@
  */
 
 import { logDebug, logError } from '../common/utils.js';
-import { storage } from '../common/storage.js';
+import { storage } from './storage.js';
 
 export class PresentationRenderer {
   /**

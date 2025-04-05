@@ -5,7 +5,7 @@
  */
 
 import { logDebug, logError } from '../../common/utils.js';
-import { storage } from '../../common/storage.js';
+import { storage } from '../../models/storage.js';
 
 /**
  * SettingsController class to handle settings UI logic

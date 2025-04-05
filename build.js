@@ -43,19 +43,47 @@ function copyFiles(sourceDir, destDir) {
   }
 }
 
+// Copy files with exclusions
+function copyFilesWithExclusions(sourceDir, destDir, excludeDirs = []) {
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+  
+  const files = fs.readdirSync(sourceDir);
+  
+  for (const file of files) {
+    const sourcePath = path.join(sourceDir, file);
+    const destPath = path.join(destDir, file);
+    
+    const stats = fs.statSync(sourcePath);
+    
+    if (stats.isDirectory()) {
+      // Skip excluded directories
+      if (excludeDirs.includes(file)) {
+        console.log(`Skipping excluded directory: ${file}`);
+        continue;
+      }
+      copyFilesWithExclusions(sourcePath, destPath, excludeDirs);
+    } else {
+      fs.copyFileSync(sourcePath, destPath);
+    }
+  }
+}
+
 // Bundle modules
 function bundleModules() {
   // TODO: Replace with proper bundling using Webpack/Rollup
-  // For now, just copy files
-  copyFiles(SRC_DIR, DIST_DIR);
+  
+  // Copy source files with custom handling
+  copyFilesWithExclusions(SRC_DIR, DIST_DIR, ['views']);
 }
 
 // Copy static files
 function copyStaticFiles() {
-  // Copy HTML files
+  // Copy HTML files from src/views to dist root
   const htmlFiles = ['popup.html', 'viewer.html', 'settings.html', 'about.html', 'sidebar-template.html'];
   for (const file of htmlFiles) {
-    fs.copyFileSync(path.join(__dirname, file), path.join(DIST_DIR, file));
+    fs.copyFileSync(path.join(__dirname, 'src', 'views', file), path.join(DIST_DIR, file));
   }
   
   // Copy manifest.json from src directory

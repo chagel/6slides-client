@@ -5,7 +5,7 @@
  */
 
 import { logDebug } from '../common/utils.js';
-import { storage } from '../common/storage.js';
+import { storage } from '../models/storage.js';
 
 /**
  * Initialize navigation functionality

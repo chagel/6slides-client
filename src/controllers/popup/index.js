@@ -6,7 +6,7 @@
 
 import { logDebug, logError } from '../../common/utils.js';
 import { sendToContent, sendToBackground } from '../../common/messaging.js';
-import { storage } from '../../common/storage.js';
+import { storage } from '../../models/storage.js';
 
 /**
  * PopupController class to handle popup UI logic

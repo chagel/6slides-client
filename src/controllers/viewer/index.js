@@ -5,7 +5,7 @@
  */
 
 import { logDebug, logError } from '../../common/utils.js';
-import { PresentationRenderer } from '../../presentation/renderer.js';
+import { PresentationRenderer } from '../../models/renderer.js';
 
 /**
  * Initialize the viewer

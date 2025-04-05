@@ -6,7 +6,7 @@
 
 import { logDebug, logError } from '../common/utils.js';
 import { addMessageListener } from '../common/messaging.js';
-import { ContentExtractor } from './contentExtractor.js';
+import { ContentExtractor } from '../models/contentExtractor.js';
 
 /**
  * Extract content from the current page
