@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Notion to Slides",
   "version": "1.0",
-  "description": "Convert Notion pages to presentations using Reveal.js",
+  "description": "Present your Notion pages as simple, elegant, and secure slides",
   "permissions": ["scripting", "activeTab", "tabs"],
   "host_permissions": ["<all_urls>"],
   "action": {
@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["viewer.html", "lib/reveal.js/**"],
+      "resources": ["viewer.html", "lib/reveal.js/**", "about.html"],
       "matches": ["<all_urls>"]
     }
   ]

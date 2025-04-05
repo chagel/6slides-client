@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>About Notion to Slides</title>
+  <style>
+    body {
+      width: 500px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #333;
+      line-height: 1.5;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    h3 {
+      font-size: 16px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    p {
+      margin: 0 0 12px 0;
+    }
+    .license-section {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .license-text {
+      max-height: 150px;
+      overflow-y: auto;
+      padding: 8px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Notion to Slides</h1>
+  <p>Version 1.0</p>
+  <p>Present your Notion pages as simple, elegant, and secure slides</p>
+  
+  <h2>Features</h2>
+  <ul>
+    <li>Extract content from Notion pages using a template format</li>
+    <li>Convert to presentations with markdown support</li>
+    <li>Multiple themes and light/dark mode, or self-customized. </li>
+    <li>Support for lists, code blocks, tables, quotes, and more</li>
+  </ul>
+  
+  <h2 id="instructions">Instructions</h2>
+  <div style="background-color: #f7f6f3; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+    <h3>Template Format</h3>
+    <p>Your Notion page must use this structure:</p>
+    <ul>
+      <li>H1 (#) elements start new slides</li>
+      <li>H2 (##) elements are section titles</li>
+      <li>H3 (###) elements are subsections</li>
+      <li>Content between H1s belongs to the previous H1</li>
+      <li>Lines starting with - or * become bullet points</li>
+      <li>Regular text becomes paragraphs</li>
+    </ul>
+    
+    <h3>Supported Notion Blocks</h3>
+    <ul>
+      <li>Code blocks</li>
+      <li>Quote blocks</li>
+      <li>Images (with captions)</li>
+      <li>Tables</li>
+      <li>Dividers (horizontal rules)</li>
+      <li>To-do and toggle lists</li>
+      <li>Others</li>
+    </ul>
+    
+    <h3>How to Use</h3>
+    <ol>
+      <li>Navigate to a Notion page</li>
+      <li>Click the extension icon</li>
+      <li>Select your preferred theme</li>
+      <li>Click "Convert This Page"</li>
+      <li>The slides will open in a new tab</li>
+    </ol>
+  </div>
+
+  <h2>Support</h2>
+  We'd love to hear from you. Email: hi@flakes.ai
+  
+  <h2>Open Source Components</h2>
+  
+  <div class="license-section">
+    <h3>reveal.js</h3>
+    <p>This extension includes <a href="https://revealjs.com" target="_blank">reveal.js</a>, a framework for creating presentations, which is licensed under the MIT License.</p>
+    <div class="license-text">
+      MIT License
+      Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
+
+      Permission is hereby granted, free of charge, to any person obtaining a copy
+      of this software and associated documentation files (the "Software"), to deal
+      in the Software without restriction, including without limitation the rights
+      to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+      copies of the Software, and to permit persons to whom the Software is
+      furnished to do so, subject to the following conditions:
+
+      The above copyright notice and this permission notice shall be included in
+      all copies or substantial portions of the Software.
+
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+      THE SOFTWARE.
+    </div>
+  </div>
+  
+  <div class="license-section">
+    <h3>Catppuccin Color Palette</h3>
+    <p>This extension includes themes based on the <a href="https://github.com/catppuccin/catppuccin" target="_blank">Catppuccin</a> color palette, which is licensed under the MIT License.</p>
+    <div class="license-text">
+      MIT License
+
+      Copyright (c) 2021 Catppuccin
+
+      Permission is hereby granted, free of charge, to any person obtaining a copy
+      of this software and associated documentation files (the "Software"), to deal
+      in the Software without restriction, including without limitation the rights
+      to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+      copies of the Software, and to permit persons to whom the Software is
+      furnished to do so, subject to the following conditions:
+
+      The above copyright notice and this permission notice shall be included in all
+      copies or substantial portions of the Software.
+
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+      SOFTWARE.
+    </div>
+  </div>
+  
+  <p style="margin-top: 20px;">For full license information, see the LICENSE.md file included with this extension.</p>
+</body>
+</html>

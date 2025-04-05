@@ -7,16 +7,13 @@
 document.addEventListener('DOMContentLoaded', () => {
   const convertBtn = document.getElementById('convertBtn');
   const statusEl = document.getElementById('status');
-  const toggleFormatBtn = document.getElementById('toggleFormat');
-  const formatShort = document.getElementById('format-short');
-  const formatDetailed = document.getElementById('format-detailed');
+  const instructionsLink = document.getElementById('instructionsLink');
   const themeSelector = document.getElementById('themeSelector');
   
-  // Toggle format details
-  toggleFormatBtn.addEventListener('click', () => {
-    const isHidden = formatDetailed.style.display === 'none';
-    formatDetailed.style.display = isHidden ? 'block' : 'none';
-    toggleFormatBtn.textContent = isHidden ? 'Show less details' : 'Show more details';
+  // Instructions link functionality
+  instructionsLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#instructions') });
   });
   
   // Set theme selector to saved value or default
@@ -174,6 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStatus(`Error: ${error.message}`);
       convertBtn.disabled = false;
     }
+  });
+  
+  // About link functionality
+  document.getElementById('aboutLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('about.html') });
   });
   
   // Initial page check

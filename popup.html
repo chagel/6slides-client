@@ -70,34 +70,16 @@
   <h1>Notion to Slides</h1>
   
   <div class="template-info">
-    <h2>Template Format Required</h2>
-    <p>Your Notion page must use this structure:</p>
-    <ul id="format-short">
-      <li>H1 headings for slide titles</li>
-      <li>H2/H3 for subtitles</li>
-      <li>- or * for bullet points</li>
+    <h2>Create Slides from Notion</h2>
+    <p>Convert your Notion page to a presentation:</p>
+    <ul>
+      <li>Organize content with H1 headings</li>
+      <li>Each H1 heading becomes a new slide</li>
+      <li>All Notion blocks are supported</li>
     </ul>
-    <div id="format-detailed" style="display: none;">
-      <p>Full template format:</p>
-      <ul>
-        <li>H1 (#) elements start new slides</li>
-        <li>H2 (##) elements are section titles</li>
-        <li>H3 (###) elements are subsections</li>
-        <li>Content between H1s belongs to the previous H1</li>
-        <li>Lines starting with - or * become bullet points</li>
-        <li>Regular text becomes paragraphs</li>
-      </ul>
-      <p>Supported Notion blocks:</p>
-      <ul>
-        <li>Code blocks (with syntax highlighting)</li>
-        <li>Quote blocks</li>
-        <li>Images (with captions)</li>
-        <li>Tables</li>
-        <li>Dividers (horizontal rules)</li>
-        <li>To-do and toggle lists</li>
-      </ul>
-    </div>
-    <span class="toggle" id="toggleFormat">Show more details</span>
+    <p style="margin-top: 8px; font-size: 11px;">
+      <a href="#" id="instructionsLink" style="color: #2eaadc; text-decoration: none;">View detailed instructions</a>
+    </p>
   </div>
   
   <div class="theme-selector" style="margin-bottom: 12px;">
@@ -109,8 +91,12 @@
     </select>
   </div>
   
-  <button id="convertBtn">Convert This Page</button>
+  <button id="convertBtn">Present</button>
   <div id="status"></div>
+  
+  <div style="margin-top: 12px; text-align: center; font-size: 11px;">
+    <a href="#" id="aboutLink" style="color: #666; text-decoration: none;">About</a>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
