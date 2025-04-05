@@ -1,13 +1,14 @@
 {
   "name": "notion-slides",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Present your Notion pages as simple, elegant, and secure slides",
   "main": "src/background/index.js",
   "type": "module",
   "scripts": {
     "build": "node build.js",
     "dev": "node build.js && chrome-extension-cli dev",
-    "watch": "nodemon --watch src --exec \"npm run build\"",
+    "watch": "nodemon --watch src --watch rollup.config.js --exec \"npm run build\"",
+    "rollup": "rollup -c",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
     "clean": "rm -rf dist",
@@ -22,8 +23,12 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@types/chrome": "^0.0.254",
     "eslint": "^8.56.0",
+    "glob": "^10.4.5",
     "nodemon": "^3.0.1",
-    "@types/chrome": "^0.0.254"
+    "rollup": "^4.39.0"
   }
 }

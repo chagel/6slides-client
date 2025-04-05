@@ -100,7 +100,7 @@ class PopupController {
             // Script not loaded, try to inject it
             chrome.scripting.executeScript({
               target: { tabId: tab.id },
-              files: ['src/content/index.js']
+              files: ['content/entry.js']
             }).then(() => {
               logDebug('Content script injected successfully');
               resolve(true);

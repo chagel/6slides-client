@@ -33,42 +33,38 @@ A Chrome extension that converts Notion pages to beautiful presentations using r
 - **Tables** are preserved in the slides
 - **Quotes** and other Notion blocks are supported
 
-## Credits and Licenses
-
-This extension includes open source components:
-
-- [reveal.js](https://revealjs.com/) - Framework for creating presentations (MIT License)
-- [Catppuccin](https://github.com/catppuccin/catppuccin) - Pastel theme color palette (MIT License)
-
-Full license details can be found in LICENSE.md.
-
 ## Development
 
 ### Project Structure
 
-The project now uses a modular component-based architecture:
+The project now uses a modular MVC architecture with Rollup bundling:
 
 ```
 src/
   ├── common/           # Shared utilities and services
   │   ├── utils.js      # Utility functions
-  │   ├── storage.js    # Data persistence (IndexedDB/localStorage)
   │   └── messaging.js  # Communication between components
-  ├── content/          # Content script modules
-  │   ├── extractors/   # Specialized content extractors
-  │   │   ├── baseExtractor.js
-  │   │   ├── headingExtractor.js
-  │   │   ├── listExtractor.js
-  │   │   └── codeBlockExtractor.js
-  │   └── index.js      # Main content script entry point
-  ├── presentation/     # Presentation rendering
-  │   └── renderer.js   # reveal.js integration
-  ├── background/       # Background script
-  │   └── index.js      # Service worker
-  └── ui/               # User interface components
-      ├── popup/        # Extension popup
-      ├── settings/     # Settings page
-      └── viewer/       # Presentation viewer
+  ├── models/           # Data and business logic 
+  │   ├── storage.js    # Data persistence (IndexedDB/localStorage)
+  │   ├── renderer.js   # Presentation rendering
+  │   ├── contentExtractor.js # Content extraction orchestration
+  │   └── extractors/   # Specialized content extractors
+  │       ├── baseExtractor.js
+  │       ├── headingExtractor.js
+  │       ├── listExtractor.js
+  │       └── codeBlockExtractor.js
+  ├── controllers/      # Controllers that connect models and views
+  │   ├── popup/        # Extension popup controller
+  │   ├── settings/     # Settings page controller
+  │   └── viewer/       # Presentation viewer controller
+  ├── views/            # HTML views
+  │   ├── popup.html    # Extension popup view
+  │   ├── settings.html # Settings page view
+  │   └── viewer.html   # Presentation viewer view
+  ├── content/          # Content script
+  │   └── entry.js      # Consolidated content script
+  └── background/       # Background script
+      └── index.js      # Service worker
 ```
 
 ### Setup
@@ -91,27 +87,34 @@ src/
 ### Development Workflow
 
 1. Make changes to the source files in the `src` directory
-2. Run `npm run build` to build the extension
+2. Run `npm run build` to build the extension (uses Rollup for bundling)
 3. Reload the extension in Chrome to test the changes
-4. Use `npm run lint` to check for code style issues
+4. Use `npm run watch` to automatically rebuild on file changes
+5. Use `npm run lint` to check for code style issues
 
-### Building for Production
+### Build Process
 
-When building for production, make sure to:
-- Minify JavaScript files (build script will handle this)
-- Include all necessary attribution and license information
-- Update the version number in manifest.json
+The build process:
+1. Uses Rollup to bundle JavaScript modules
+2. Converts ES modules to IIFE for compatibility with Chrome extension context
+3. Handles proper module formats for different parts of the extension:
+   - Background service worker: ESM format
+   - Content script: Single IIFE bundle with all dependencies included
+   - Popup/UI scripts: IIFE format for maximum compatibility
+4. Copies static assets and updates HTML files to use bundled scripts
 
 ### Adding New Features
 
-- For new content types, add a new extractor in `src/content/extractors/`
-- For UI enhancements, modify the relevant component in `src/ui/`
-- For new presentation features, extend the renderer in `src/presentation/`
+- For new content types, add a new extractor in `src/models/extractors/`
+- For UI enhancements, modify the relevant controller in `src/controllers/` and view in `src/views/`
+- For new presentation features, extend the renderer in `src/models/renderer.js`
+- Add new entries to rollup.config.js if necessary
 
 ## Version History
 
 ### Version 1.1.0
-- Refactored codebase to use modular component-based architecture
+- Refactored codebase to use modular MVC architecture
+- Implemented Rollup bundling for better code organization and compatibility
 - Improved error handling and reporting
 - Enhanced performance with IndexedDB for large presentations
 - Added ES modules support for better code organization
@@ -123,7 +126,12 @@ When building for production, make sure to:
 - Multiple themes including Catppuccin themes
 - Basic presentation settings for transitions and display options
 
-## License
+## Credits and Licenses
 
-This extension is licensed under MIT License.
-The open source components are used under their respective licenses (MIT).
+This extension includes open source components:
+
+- [reveal.js](https://revealjs.com/) - Framework for creating presentations (MIT License)
+- [Catppuccin](https://github.com/catppuccin/catppuccin) - Pastel theme color palette (MIT License)
+
+Full license details can be found in LICENSE.md.
+

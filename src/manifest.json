@@ -20,13 +20,24 @@
   "content_scripts": [
     {
       "matches": ["https://www.notion.so/*", "https://*.notion.site/*"],
-      "js": ["content/index.js"],
+      "js": ["content/entry.js"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["viewer.html", "lib/reveal.js/**", "about.html", "icons/**", "ui/viewer/index.js", "icons/ui/**"],
+      "resources": [
+        "viewer.html", 
+        "lib/reveal.js/**", 
+        "about.html", 
+        "icons/**", 
+        "controllers/viewer/index.js", 
+        "icons/ui/**",
+        "content/entry.js",
+        "models/*.js",
+        "models/extractors/*.js",
+        "common/*.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]
