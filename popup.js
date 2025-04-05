@@ -150,8 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // No theme selection anymore - using default theme
           
-          // Open viewer in a new tab
-          chrome.tabs.create({ url: chrome.runtime.getURL('viewer.html') });
+          // Open viewer in the current tab
+          const currentTab = tab.id;
+          chrome.tabs.update(currentTab, { url: chrome.runtime.getURL('viewer.html') });
+          
+          // Close the popup
+          window.close();
         } else if (response && response.error) {
           console.error('Extraction error details:', response);
           updateStatus(`Error: ${response.error}`, 'not-ready');
