@@ -4,9 +4,9 @@
  * Handles data persistence using localStorage with fallback to IndexedDB for large data
  */
 
-import { loggingService } from '../services/LoggingService.js';
-import { Slide } from '../types/index.js';
-import { DebugInfo, ErrorInfo, Settings } from '../types/storage.js';
+import { loggingService } from '../services/LoggingService';
+import { Slide } from '../types/index';
+import { DebugInfo, ErrorInfo, Settings } from '../types/storage';
 
 // IndexedDB database name and version
 const DB_NAME = 'notionSlides';

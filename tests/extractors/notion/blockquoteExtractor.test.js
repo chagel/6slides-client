@@ -3,7 +3,7 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { BlockquoteExtractor } from '../../../src/models/extractors/notion/blockquoteExtractor.js';
+import { BlockquoteExtractor } from '../../../src/models/extractors/notion/blockquoteExtractor';
 
 describe('BlockquoteExtractor', () => {
   // Setup and teardown

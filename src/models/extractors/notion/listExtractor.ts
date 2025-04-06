@@ -4,8 +4,8 @@
  * Extracts list elements from Notion pages
  */
 
-import { BaseExtractor } from '../baseExtractor.js';
-import { IListExtractor } from './types.js';
+import { BaseExtractor } from '../baseExtractor';
+import { IListExtractor } from './types';
 
 /**
  * List group interface 

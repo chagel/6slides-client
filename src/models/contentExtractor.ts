@@ -4,7 +4,7 @@
  * Main content extraction module that coordinates all specialized extractors
  */
 
-import { loggingService } from '../services/LoggingService.js';
+import { loggingService } from '../services/LoggingService';
 import { 
   HeadingExtractor, 
   ListExtractor, 

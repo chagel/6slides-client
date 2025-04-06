@@ -3,7 +3,7 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { ImageExtractor } from '../../../src/models/extractors/notion/imageExtractor.js';
+import { ImageExtractor } from '../../../src/models/extractors/notion/imageExtractor';
 
 describe('ImageExtractor', () => {
   // Setup and teardown

@@ -4,10 +4,10 @@
  * This script renders markdown content from Notion as slides using reveal.js.
  */
 
-import { loggingService } from '../../services/LoggingService.js';
-import { PresentationRenderer } from '../../models/renderer.js';
-import { configManager } from '../../models/configManager.js';
-import { errorService, ErrorTypes, ErrorSeverity } from '../../services/ErrorService.js';
+import { loggingService } from '../../services/LoggingService';
+import { PresentationRenderer } from '../../models/renderer';
+import { configManager } from '../../models/configManager';
+import { errorService, ErrorTypes, ErrorSeverity } from '../../services/ErrorService';
 
 /**
  * Initialize the viewer

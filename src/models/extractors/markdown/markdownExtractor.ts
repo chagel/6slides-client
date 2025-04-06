@@ -4,10 +4,10 @@
  * Extracts content from Markdown files or rendered Markdown content
  */
 
-import { loggingService } from '../../../services/LoggingService.js';
-import { BaseExtractor } from '../baseExtractor.js';
-import { IMarkdownExtractor } from './types.js';
-import { Slide } from '../../../types/index.js';
+import { loggingService } from '../../../services/LoggingService';
+import { BaseExtractor } from '../baseExtractor';
+import { IMarkdownExtractor } from './types';
+import { Slide } from '../../../types/index';
 
 /**
  * Slide object interface used internally by the extractor

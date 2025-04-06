@@ -4,13 +4,13 @@
  * Manages content extraction from various sources
  */
 
-import { loggingService } from '../services/LoggingService.js';
-import { sourceManager, SourceType } from '../models/sourceManager.js';
-import { contentProcessor } from '../models/contentProcessor.js';
-import { storage } from '../models/storage.js';
-import { Presentation } from '../models/domain/Presentation.js';
-import { errorService, ErrorTypes } from '../services/ErrorService.js';
-import { Slide } from '../types/index.js';
+import { loggingService } from '../services/LoggingService';
+import { sourceManager, SourceType } from '../models/sourceManager';
+import { contentProcessor } from '../models/contentProcessor';
+import { storage } from '../models/storage';
+import { Presentation } from '../models/domain/Presentation';
+import { errorService, ErrorTypes } from '../services/ErrorService';
+import { Slide } from '../types/index';
 
 /**
  * Result of content extraction

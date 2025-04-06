@@ -4,7 +4,7 @@
  * Represents a slide in a presentation
  */
 
-import { SlideData, SlideMetadata } from './types.js';
+import { SlideData, SlideMetadata } from './types';
 
 /**
  * Slide class represents a single slide in a presentation

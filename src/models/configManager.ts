@@ -4,8 +4,8 @@
  * Centralized configuration management service
  */
 
-import { loggingService } from '../services/LoggingService.js';
-import { storage } from './storage.js';
+import { loggingService } from '../services/LoggingService';
+import { storage } from './storage';
 
 /**
  * Configuration interface

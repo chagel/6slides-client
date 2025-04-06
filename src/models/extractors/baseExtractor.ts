@@ -4,8 +4,8 @@
  * Base class for all content extractors
  */
 
-import { loggingService } from '../../services/LoggingService.js';
-import { Slide, ExtractorResult } from '../../types/index.js';
+import { loggingService } from '../../services/LoggingService';
+import { Slide, ExtractorResult } from '../../types/index';
 
 /**
  * Abstract base class for all content extractors

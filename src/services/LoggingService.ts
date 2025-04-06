@@ -9,7 +9,7 @@
  * components rely on.
  */
 
-import { storage } from '../models/storage.js';
+import { storage } from '../models/storage';
 
 /**
  * Log levels in order of increasing severity

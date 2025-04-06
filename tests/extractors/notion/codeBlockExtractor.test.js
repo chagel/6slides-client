@@ -3,8 +3,8 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { CodeBlockExtractor } from '../../../src/models/extractors/notion/codeBlockExtractor.js';
-import { loggingService } from '../../../src/services/LoggingService.js';
+import { CodeBlockExtractor } from '../../../src/models/extractors/notion/codeBlockExtractor';
+import { loggingService } from '../../../src/services/LoggingService';
 
 describe('CodeBlockExtractor', () => {
   // Setup and teardown

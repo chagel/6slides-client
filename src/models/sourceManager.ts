@@ -4,10 +4,10 @@
  * Detects and manages different content sources for extraction
  */
 
-import { loggingService } from '../services/LoggingService.js';
-import { NotionExtractor } from './extractors/notion/notionExtractor.js';
-import { MarkdownExtractor } from './extractors/markdown/markdownExtractor.js';
-import { BaseExtractor } from './extractors/baseExtractor.js';
+import { loggingService } from '../services/LoggingService';
+import { NotionExtractor } from './extractors/notion/notionExtractor';
+import { MarkdownExtractor } from './extractors/markdown/markdownExtractor';
+import { BaseExtractor } from './extractors/baseExtractor';
 
 /**
  * Available content source types

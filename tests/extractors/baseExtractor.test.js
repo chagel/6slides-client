@@ -3,8 +3,8 @@
  */
 
 import { jest, describe, test, expect, beforeEach, jest as jestGlobal } from '@jest/globals';
-import { BaseExtractor } from '../../src/models/extractors/baseExtractor.js';
-import { loggingService } from '../../src/services/LoggingService.js';
+import { BaseExtractor } from '../../src/models/extractors/baseExtractor';
+import { loggingService } from '../../src/services/LoggingService';
 
 // Create a concrete implementation for testing
 class TestExtractor extends BaseExtractor {

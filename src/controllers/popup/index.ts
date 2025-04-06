@@ -4,11 +4,11 @@
  * Handles the popup UI and initiates the content extraction process.
  */
 
-import { loggingService } from '../../services/LoggingService.js';
-import { sendToContent, sendToBackground } from '../../common/messaging.js';
-import { storage } from '../../models/storage.js';
-import { DebugInfo } from '../../types/storage.js';
-import { Slide } from '../../types/index.js';
+import { loggingService } from '../../services/LoggingService';
+import { sendToContent, sendToBackground } from '../../common/messaging';
+import { storage } from '../../models/storage';
+import { DebugInfo } from '../../types/storage';
+import { Slide } from '../../types/index';
 
 /**
  * Response from content script

@@ -4,7 +4,7 @@
  * Handles communication between popup and content scripts.
  */
 
-import { addMessageListener } from '../common/messaging.js';
+import { addMessageListener } from '../common/messaging';
 
 /**
  * Response from the viewer opening operation

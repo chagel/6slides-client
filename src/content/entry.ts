@@ -4,15 +4,15 @@
  * Main content script for extracting content from various page types
  */
 
-import { loggingService } from '../services/LoggingService.js';
+import { loggingService } from '../services/LoggingService';
 // ContentController is imported but used indirectly through DependencyContainer
 // eslint-disable-next-line no-unused-vars
-import { contentController, ExtractionResult } from '../controllers/contentController.js';
+import { contentController, ExtractionResult } from '../controllers/contentController';
 
 // Import app initialization to ensure services are registered
 import '../app.js';
-import { getService } from '../services/DependencyContainer.js';
-import { Slide } from '../types/index.js';
+import { getService } from '../services/DependencyContainer';
+import { Slide } from '../types/index';
 
 /**
  * Response structure from extraction process

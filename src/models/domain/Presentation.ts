@@ -4,8 +4,8 @@
  * Represents a complete presentation with slides
  */
 
-import { Slide } from './Slide.js';
-import { PresentationData, PresentationMetadata, SlideData } from './types.js';
+import { Slide } from './Slide';
+import { PresentationData, PresentationMetadata, SlideData } from './types';
 
 /**
  * Presentation class represents a collection of slides

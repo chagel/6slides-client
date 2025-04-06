@@ -4,15 +4,15 @@
  * Extracts content from Notion pages
  */
 
-import { loggingService } from '../../../services/LoggingService.js';
-import { BaseExtractor } from '../baseExtractor.js';
-import { HeadingExtractor } from './headingExtractor.js';
-import { ListExtractor } from './listExtractor.js';
-import { CodeBlockExtractor } from './codeBlockExtractor.js';
-import { TableExtractor } from './tableExtractor.js';
-import { BlockquoteExtractor } from './blockquoteExtractor.js';
-import { ParagraphExtractor } from './paragraphExtractor.js';
-import { ImageExtractor } from './imageExtractor.js';
+import { loggingService } from '../../../services/LoggingService';
+import { BaseExtractor } from '../baseExtractor';
+import { HeadingExtractor } from './headingExtractor';
+import { ListExtractor } from './listExtractor';
+import { CodeBlockExtractor } from './codeBlockExtractor';
+import { TableExtractor } from './tableExtractor';
+import { BlockquoteExtractor } from './blockquoteExtractor';
+import { ParagraphExtractor } from './paragraphExtractor';
+import { ImageExtractor } from './imageExtractor';
 import { 
   IHeadingExtractor, 
   IListExtractor, 
@@ -22,7 +22,7 @@ import {
   IParagraphExtractor,
   IImageExtractor
 } from './types.js';
-import { Slide } from '../../../types/index.js';
+import { Slide } from '../../../types/index';
 
 /**
  * Extracts content from Notion pages

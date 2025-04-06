@@ -4,9 +4,9 @@
  * Handles the settings page functionality.
  */
 
-import { loggingService } from '../../services/LoggingService.js';
-import { storage } from '../../models/storage.js';
-import { Settings } from '../../types/storage.js';
+import { loggingService } from '../../services/LoggingService';
+import { storage } from '../../models/storage';
+import { Settings } from '../../types/storage';
 
 /**
  * SettingsController class to handle settings UI logic

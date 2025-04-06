@@ -4,13 +4,13 @@
  * Handles rendering slides with reveal.js
  */
 
-import { loggingService } from '../services/LoggingService.js';
-import { storage } from './storage.js';
-import { Presentation } from './domain/Presentation.js';
-import { configManager } from './configManager.js';
-import { errorService, ErrorTypes, ErrorSeverity } from '../services/ErrorService.js';
-import { PresentationSettings } from './domain/types.js';
-import { Slide } from '../types/index.js';
+import { loggingService } from '../services/LoggingService';
+import { storage } from './storage';
+import { Presentation } from './domain/Presentation';
+import { configManager } from './configManager';
+import { errorService, ErrorTypes, ErrorSeverity } from '../services/ErrorService';
+import { PresentationSettings } from './domain/types';
+import { Slide } from '../types/index';
 
 declare global {
   interface Window {

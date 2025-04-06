@@ -4,8 +4,8 @@
  * Extracts table elements from documents and converts to markdown format
  */
 
-import { loggingService } from '../../../services/LoggingService.js';
-import { BaseExtractor } from '../baseExtractor.js';
+import { loggingService } from '../../../services/LoggingService';
+import { BaseExtractor } from '../baseExtractor';
 
 export class TableExtractor extends BaseExtractor {
   /**

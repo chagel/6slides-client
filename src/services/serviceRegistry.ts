@@ -4,13 +4,13 @@
  * Registers all services with the dependency container
  */
 
-import { container } from './DependencyContainer.js';
-import { storage } from '../models/storage.js';
-import { sourceManager } from '../models/sourceManager.js';
-import { contentProcessor } from '../models/contentProcessor.js';
-import { configManager } from '../models/configManager.js';
-import { errorService, ErrorTypes } from './ErrorService.js';
-import { loggingService, LogLevel } from './LoggingService.js';
+import { container } from './DependencyContainer';
+import { storage } from '../models/storage';
+import { sourceManager } from '../models/sourceManager';
+import { contentProcessor } from '../models/contentProcessor';
+import { configManager } from '../models/configManager';
+import { errorService, ErrorTypes } from './ErrorService';
+import { loggingService, LogLevel } from './LoggingService';
 
 interface LoggingOptions {
   debugEnabled: boolean;

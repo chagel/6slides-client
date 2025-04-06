@@ -4,8 +4,8 @@
  * Normalizes content from different sources into a standard format
  */
 
-import { loggingService } from '../services/LoggingService.js';
-import { Slide } from './domain/index.js';
+import { loggingService } from '../services/LoggingService';
+import { Slide } from './domain/index';
 
 /**
  * Raw slide interface with minimal required fields

@@ -2,7 +2,7 @@
  * Type definitions for the storage module
  */
 
-import { Slide } from './index.js';
+import { Slide } from './index';
 
 /**
  * Debug info structure

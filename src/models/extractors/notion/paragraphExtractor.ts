@@ -4,8 +4,8 @@
  * Extracts paragraph elements and converts them to markdown with formatting
  */
 
-import { BaseExtractor } from '../baseExtractor.js';
-import { IParagraphExtractor } from './types.js';
+import { BaseExtractor } from '../baseExtractor';
+import { IParagraphExtractor } from './types';
 
 export class ParagraphExtractor extends BaseExtractor implements IParagraphExtractor {
   /**

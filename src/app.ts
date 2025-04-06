@@ -4,10 +4,10 @@
  * Main entry point for the extension that initializes all services
  */
 
-import { getService } from './services/DependencyContainer.js';
-import { loggingService } from './services/LoggingService.js';
-import { errorService, ErrorTypes, ErrorSeverity } from './services/ErrorService.js';
-import { configManager } from './models/configManager.js';
+import { getService } from './services/DependencyContainer';
+import { loggingService } from './services/LoggingService';
+import { errorService, ErrorTypes, ErrorSeverity } from './services/ErrorService';
+import { configManager } from './models/configManager';
 
 // Import to register all services
 import './services/serviceRegistry.js';

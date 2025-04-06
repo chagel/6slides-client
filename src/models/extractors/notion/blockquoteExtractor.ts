@@ -4,7 +4,7 @@
  * Extracts blockquote elements from documents and converts them to markdown
  */
 
-import { BaseExtractor } from '../baseExtractor.js';
+import { BaseExtractor } from '../baseExtractor';
 
 export class BlockquoteExtractor extends BaseExtractor {
   /**

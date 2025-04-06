@@ -3,8 +3,8 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { NotionExtractor } from '../../../src/models/extractors/notion/notionExtractor.js';
-import { loggingService } from '../../../src/services/LoggingService.js';
+import { NotionExtractor } from '../../../src/models/extractors/notion/notionExtractor';
+import { loggingService } from '../../../src/services/LoggingService';
 
 describe('NotionExtractor', () => {
   // Setup and teardown

@@ -1,5 +1,12 @@
 import { jest } from '@jest/globals';
-import { LogLevel, LoggingConfig } from '../LoggingService';
+
+// Define LogLevel enum without importing from real service
+export enum LogLevel {
+  DEBUG = 'debug',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error'
+}
 
 // Create mock logging service with real Jest mock functions
 export const loggingService = {
@@ -17,5 +24,3 @@ export const loggingService = {
   getFilteredLogs: jest.fn().mockReturnValue([]),
   clearStoredLogs: jest.fn()
 };
-
-export { LogLevel };

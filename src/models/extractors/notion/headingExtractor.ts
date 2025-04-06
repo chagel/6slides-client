@@ -4,8 +4,8 @@
  * Extracts heading elements from Notion pages
  */
 
-import { BaseExtractor } from '../baseExtractor.js';
-import { IHeadingExtractor } from './types.js';
+import { BaseExtractor } from '../baseExtractor';
+import { IHeadingExtractor } from './types';
 
 export class HeadingExtractor extends BaseExtractor implements IHeadingExtractor {
   /**

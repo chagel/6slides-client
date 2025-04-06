@@ -6,7 +6,7 @@
 import { jest } from '@jest/globals';
 
 // Automatically mock the LoggingService module
-jest.mock('../src/services/LoggingService.js');
+jest.mock('../src/services/LoggingService.ts');
 
 // Set up Chrome API mock
 global.chrome = {

@@ -5,7 +5,7 @@
  * Works together with LoggingService for actual logging operations.
  */
 
-import { loggingService, LogLevel } from './LoggingService.js';
+import { loggingService, LogLevel } from './LoggingService';
 
 /**
  * Error types for categorization
