@@ -103,6 +103,29 @@ const entries = [
       format: 'esm',
     }
   },
+  
+  // Domain models
+  {
+    input: 'src/models/domain/index.ts',
+    output: {
+      file: 'dist/models/domain/index.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/models/domain/Slide.ts',
+    output: {
+      file: 'dist/models/domain/Slide.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/models/domain/Presentation.ts',
+    output: {
+      file: 'dist/models/domain/Presentation.js',
+      format: 'esm',
+    }
+  },
   {
     input: 'src/app.js',
     output: {
@@ -184,7 +207,7 @@ entries.push({
 
 // Common utilities
 entries.push({
-  input: 'src/common/messaging.js',
+  input: 'src/common/messaging.ts',
   output: {
     file: 'dist/common/messaging.js',
     format: 'esm',
@@ -193,7 +216,7 @@ entries.push({
 
 // Services
 entries.push({
-  input: 'src/services/LoggingService.js',
+  input: 'src/services/LoggingService.ts',
   output: {
     file: 'dist/services/LoggingService.js',
     format: 'esm',
@@ -201,7 +224,7 @@ entries.push({
 });
 
 entries.push({
-  input: 'src/services/ErrorService.js',
+  input: 'src/services/ErrorService.ts',
   output: {
     file: 'dist/services/ErrorService.js',
     format: 'esm',

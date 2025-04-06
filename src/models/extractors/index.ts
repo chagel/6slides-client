@@ -20,4 +20,4 @@ export {
 } from './notion/index.js';
 
 // Markdown extractors
-export { MarkdownExtractor } from './markdown/index.js';
+export { MarkdownExtractor, IMarkdownExtractor } from './markdown/index.js';

@@ -5,3 +5,4 @@
  */
 
 export { MarkdownExtractor } from './markdownExtractor.js';
+export { IMarkdownExtractor } from './types.js';
