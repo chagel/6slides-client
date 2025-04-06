@@ -193,21 +193,6 @@ async function build() {
   // Copy static files
   copyStaticFiles();
   
-  // Create settings cache for service worker
-  const settingsCache = {
-    theme: "default",
-    transition: "slide",
-    slideNumber: false,
-    center: true,
-    debugLogging: false,
-    extractionTimeout: 30
-  };
-  
-  fs.writeFileSync(
-    path.join(DIST_DIR, 'settings-cache.json'), 
-    JSON.stringify(settingsCache, null, 2)
-  );
-  
   // Bundle JavaScript modules with Rollup
   try {
     await runRollup();

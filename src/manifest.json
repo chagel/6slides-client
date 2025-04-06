@@ -45,8 +45,7 @@
         "content/entry.js",
         "models/*.js",
         "models/extractors/*.js",
-        "common/*.js",
-        "settings-cache.json"
+        "common/*.js"
       ],
       "matches": ["<all_urls>"]
     }

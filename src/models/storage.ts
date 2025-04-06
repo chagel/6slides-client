@@ -164,22 +164,16 @@ class Storage {
   getSettings(): Settings {
     try {
       if (this.isServiceWorker) {
-        // In service worker context, we need to use sync for initialization
-        // This is not ideal but necessary for startup flow
-        let settings = {};
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', chrome.runtime.getURL('settings-cache.json'), false); // Synchronous
-        xhr.send();
-        
-        if (xhr.status === 200) {
-          try {
-            settings = JSON.parse(xhr.responseText);
-          } catch (e) {
-            // Use defaults if can't parse
-          }
-        }
-        
-        return settings as Settings;
+        // In service worker context, just return default settings
+        // Chrome extension service workers can't use synchronous XHR
+        return {
+          theme: "default",
+          transition: "slide",
+          slideNumber: false,
+          center: true,
+          debugLogging: false,
+          extractionTimeout: 30
+        };
       }
       
       const settings = JSON.parse(localStorage.getItem('notionSlidesSettings') || '{}') as Settings;
