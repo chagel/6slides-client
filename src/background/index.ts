@@ -4,15 +4,7 @@
  * Handles communication between popup and content scripts.
  */
 
-import { loggingService } from '../services/LoggingService.js';
 import { addMessageListener } from '../common/messaging.js';
-// ErrorService is imported but used indirectly through error handling
-// ESLint disable next line
-// eslint-disable-next-line no-unused-vars
-import { errorService, ErrorTypes } from '../services/ErrorService.js';
-
-// Import app initialization
-import '../app.js';
 
 /**
  * Response from the viewer opening operation
@@ -38,7 +30,7 @@ function openViewer(): Promise<ViewerResponse> {
  */
 function setupMessageHandlers(): void {
   addMessageListener((message, sender) => {
-    loggingService.debug('Background script received message', { message, sender });
+    console.log('Background script received message', { message, sender });
     
     // Handle any messages that should be processed by the background script
     if (message.action === 'open_viewer') {
@@ -54,9 +46,12 @@ function setupMessageHandlers(): void {
  * Initialize the background script
  */
 function initialize(): void {
-  loggingService.debug('Background service worker initializing');
+  console.log('Background service worker initializing');
+  
+  // Set up message handlers
   setupMessageHandlers();
-  loggingService.debug('Background service worker initialized');
+  
+  console.log('Background service worker initialized');
 }
 
 // Start initialization
