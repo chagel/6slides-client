@@ -4,14 +4,14 @@
  * Registers all services with the dependency container
  */
 
-import { container } from './DependencyContainer';
+import { container } from './dependency_container';
 import { storage } from '../models/storage';
 import { sourceManager } from '../models/sourceManager';
 import { contentProcessor } from '../models/contentProcessor';
 import { configManager } from '../models/configManager';
-import { errorService, ErrorTypes } from './ErrorService';
-import { loggingService, LogLevel } from './LoggingService';
-import { messagingService } from './MessagingService';
+import { errorService, ErrorTypes } from './error_service';
+import { loggingService, LogLevel } from './logging_service';
+import { messagingService } from './messaging_service';
 
 interface LoggingOptions {
   debugEnabled: boolean;

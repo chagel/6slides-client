@@ -4,7 +4,7 @@
  * Handles background operations and communication between extension components.
  */
 
-import { messagingService } from './MessagingService';
+import { messagingService } from './messaging_service';
 
 /**
  * Response from the viewer opening operation

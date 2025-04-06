@@ -202,41 +202,41 @@ entries.push({
 
 // Services
 entries.push({
-  input: 'src/services/LoggingService.ts',
+  input: 'src/services/logging_service.ts',
   output: {
-    file: 'dist/services/LoggingService.js',
+    file: 'dist/services/logging_service.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/services/ErrorService.ts',
+  input: 'src/services/error_service.ts',
   output: {
-    file: 'dist/services/ErrorService.js',
+    file: 'dist/services/error_service.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/services/DependencyContainer.ts',
+  input: 'src/services/dependency_container.ts',
   output: {
-    file: 'dist/services/DependencyContainer.js',
+    file: 'dist/services/dependency_container.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/services/MessagingService.ts',
+  input: 'src/services/messaging_service.ts',
   output: {
-    file: 'dist/services/MessagingService.js',
+    file: 'dist/services/messaging_service.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/services/serviceRegistry.ts',
+  input: 'src/services/service_registry.ts',
   output: {
-    file: 'dist/services/serviceRegistry.js',
+    file: 'dist/services/service_registry.js',
     format: 'esm',
   }
 });

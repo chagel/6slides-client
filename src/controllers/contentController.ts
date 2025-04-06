@@ -4,12 +4,12 @@
  * Manages content extraction from various sources
  */
 
-import { loggingService } from '../services/LoggingService';
+import { loggingService } from '../services/logging_service';
 import { sourceManager, SourceType } from '../models/sourceManager';
 import { contentProcessor } from '../models/contentProcessor';
 import { storage } from '../models/storage';
 import { Presentation } from '../models/domain/Presentation';
-import { errorService, ErrorTypes } from '../services/ErrorService';
+import { errorService, ErrorTypes } from '../services/error_service';
 import { Slide } from '../types/index';
 
 /**

@@ -4,15 +4,15 @@
  * Main entry point for the extension that initializes all services and content script functionality
  */
 
-import { getService } from './services/DependencyContainer';
-import { loggingService } from './services/LoggingService';
-import { errorService, ErrorTypes, ErrorSeverity } from './services/ErrorService';
+import { getService } from './services/dependency_container';
+import { loggingService } from './services/logging_service';
+import { errorService, ErrorTypes, ErrorSeverity } from './services/error_service';
 import { configManager } from './models/configManager';
 import { ExtractionResult } from './controllers/contentController';
 import { Slide } from './types/index';
 
 // Import to register all services
-import './services/serviceRegistry';
+import './services/service_registry';
 
 /**
  * Response structure from extraction process

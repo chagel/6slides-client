@@ -4,8 +4,8 @@
  * Handles the popup UI and initiates the content extraction process.
  */
 
-import { loggingService } from '../../services/LoggingService';
-import { messagingService } from '../../services/MessagingService';
+import { loggingService } from '../../services/logging_service';
+import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
 import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';

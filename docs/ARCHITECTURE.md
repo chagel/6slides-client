@@ -520,11 +520,11 @@ src/
   │   ├── sourceManager.ts    # Source type detection and management
   │   └── storage.ts          # Data persistence (IndexedDB/localStorage)
   ├── services/               # Application services
-  │   ├── DependencyContainer.ts # Dependency injection container
-  │   ├── ErrorService.ts     # Centralized error handling
-  │   ├── LoggingService.ts   # Centralized logging service
-  │   ├── MessagingService.ts # Inter-component communication
-  │   ├── serviceRegistry.ts  # Service registration
+  │   ├── dependency_container.ts # Dependency injection container
+  │   ├── error_service.ts     # Centralized error handling
+  │   ├── logging_service.ts   # Centralized logging service
+  │   ├── messaging_service.ts # Inter-component communication
+  │   ├── service_registry.ts  # Service registration
   │   └── worker.ts           # Service worker (background script)
   ├── types/                  # TypeScript type definitions
   │   ├── index.ts            # Shared type definitions
