@@ -1,5 +1,6 @@
-/** @type {import('jest').Config} */
-const config = {
+import type { Config } from 'jest';
+
+const config: Config = {
   // JS DOM environment for testing
   testEnvironment: 'jsdom',
   
@@ -20,7 +21,7 @@ const config = {
   },
   
   // Test match pattern
-  testMatch: ['**/tests/**/*.test.{js,ts}'],
+  testMatch: ['**/tests/**/*.test.ts'],
   
   // Module name mapper
   moduleNameMapper: {
@@ -40,7 +41,7 @@ const config = {
   ],
   
   // Setup files
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   
   // Test timeout
   testTimeout: 5000,

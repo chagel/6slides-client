@@ -7,8 +7,8 @@ import { BlockquoteExtractor } from '../../../src/models/extractors/notion/block
 
 describe('BlockquoteExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: BlockquoteExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test

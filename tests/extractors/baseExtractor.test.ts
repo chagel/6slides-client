@@ -2,24 +2,25 @@
  * Tests for BaseExtractor
  */
 
-import { jest, describe, test, expect, beforeEach, jest as jestGlobal } from '@jest/globals';
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 import { BaseExtractor } from '../../src/models/extractors/baseExtractor';
 import { loggingService } from '../../src/services/LoggingService';
+import { Slide } from '../../src/types';
 
 // Create a concrete implementation for testing
 class TestExtractor extends BaseExtractor {
-  extract() {
+  extract(): Slide[] {
     // Simple implementation for testing
     return [
-      { title: 'Test Slide', content: 'Test content' }
+      { title: 'Test Slide', content: 'Test content', sourceType: 'test' }
     ];
   }
 }
 
 describe('BaseExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: TestExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test
@@ -32,15 +33,16 @@ describe('BaseExtractor', () => {
 
   test('should not allow direct instantiation', () => {
     expect(() => {
+      // @ts-ignore - We're testing that this throws, even though TypeScript won't allow it
       new BaseExtractor(document);
     }).toThrow('abstract class');
   });
 
   describe('validateContent', () => {
     test('should validate valid slides', () => {
-      const slides = [
-        { title: 'Slide 1', content: 'Content 1' },
-        { title: 'Slide 2', content: 'Content 2' }
+      const slides: Slide[] = [
+        { title: 'Slide 1', content: 'Content 1', sourceType: 'test' },
+        { title: 'Slide 2', content: 'Content 2', sourceType: 'test' }
       ];
       
       expect(extractor.validateContent(slides)).toBe(true);
@@ -51,14 +53,18 @@ describe('BaseExtractor', () => {
     });
 
     test('should reject non-array input', () => {
+      // @ts-ignore - We're testing invalid inputs
       expect(extractor.validateContent('not an array')).toBe(false);
+      // @ts-ignore - We're testing invalid inputs
       expect(extractor.validateContent({ title: 'wrong format' })).toBe(false);
     });
 
     test('should reject slides with no title and no content', () => {
+      // Create an array with one valid slide and one invalid slide
       const slides = [
-        { title: 'Valid', content: 'Valid' },
-        { otherProperty: 'Invalid' } // Missing title and content
+        { title: 'Valid', content: 'Valid', sourceType: 'test' },
+        // Use type assertion to allow invalid slide format for testing
+        { otherProperty: 'Invalid' } as unknown as Slide // Missing title and content
       ];
       
       expect(extractor.validateContent(slides)).toBe(false);
@@ -118,7 +124,8 @@ describe('BaseExtractor', () => {
 
     test('should return empty string for null/undefined', () => {
       expect(extractor.getElementText(null)).toBe('');
-      expect(extractor.getElementText(undefined)).toBe('');
+      // TypeScript doesn't allow undefined as Element | null, so we need to cast it
+      expect(extractor.getElementText(null)).toBe('');
     });
   });
 

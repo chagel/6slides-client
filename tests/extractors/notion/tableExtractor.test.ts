@@ -8,8 +8,8 @@ import { loggingService } from '../../../src/services/LoggingService';
 
 describe('TableExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: TableExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test
@@ -108,7 +108,8 @@ describe('TableExtractor', () => {
       `;
       
       const table = document.querySelector('table');
-      const markdown = extractor.tableToMarkdown(table);
+      // Use non-null assertion since we know the table exists in this test
+      const markdown = extractor.tableToMarkdown(table!);
       
       // Check for markdown table format
       expect(markdown).toContain('| Header 1 | Header 2 |');
@@ -136,7 +137,8 @@ describe('TableExtractor', () => {
       `;
       
       const table = document.querySelector('table');
-      const markdown = extractor.tableToMarkdown(table);
+      // Use non-null assertion since we know the table exists in this test
+      const markdown = extractor.tableToMarkdown(table!);
       
       // The exact spacing might vary, so we'll check for parts of the expected content
       expect(markdown).toContain('| Data 1 |');
@@ -157,7 +159,8 @@ describe('TableExtractor', () => {
       `;
       
       const table = document.querySelector('table');
-      const markdown = extractor.tableToMarkdown(table);
+      // Use non-null assertion since we know the table exists in this test
+      const markdown = extractor.tableToMarkdown(table!);
       
       expect(markdown).toContain('Cell with \\| pipe');
     });
@@ -264,7 +267,7 @@ describe('TableExtractor', () => {
 });
 
 // Helper function to create a div with text content
-function createDivWithText(text) {
+function createDivWithText(text: string) {
   const div = document.createElement('div');
   div.textContent = text;
   return div;

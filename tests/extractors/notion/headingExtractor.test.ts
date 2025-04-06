@@ -8,8 +8,8 @@ import { loggingService } from '../../../src/services/LoggingService';
 
 describe('HeadingExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: HeadingExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test

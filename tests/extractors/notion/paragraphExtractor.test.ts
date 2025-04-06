@@ -7,8 +7,8 @@ import { ParagraphExtractor } from '../../../src/models/extractors/notion/paragr
 
 describe('ParagraphExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: ParagraphExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test

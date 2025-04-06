@@ -7,8 +7,8 @@ import { ImageExtractor } from '../../../src/models/extractors/notion/imageExtra
 
 describe('ImageExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: ImageExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test
@@ -27,24 +27,14 @@ describe('ImageExtractor', () => {
     });
 
     test('should identify element containing an img', () => {
-      // For this test, we'll mock the isImage method to directly verify its behavior
-      // rather than relying on the DOM implementation details which can vary across environments
-      jest.spyOn(extractor, 'isImage').mockImplementation((element) => {
-        if (element.tagName === 'IMG') return true;
-        return element.querySelector && element.querySelector('img');
-      });
-      
+      // Instead of mocking, let's create and test with a real div and img
       const div = document.createElement('div');
       const img = document.createElement('img');
       img.src = 'test.jpg';
       div.appendChild(img);
       
-      // Now verify that the method can be called on the div
-      // This avoids relying on specific JSDOM behavior
-      expect(extractor.isImage(div)).toBeTruthy();
-      
-      // Restore the original method after the test
-      extractor.isImage.mockRestore();
+      // Now verify that the method identifies the div as containing an image
+      expect(extractor.isImage(div)).toBe(true);
     });
 
     test('should identify Notion image block', () => {

@@ -8,8 +8,8 @@ import { loggingService } from '../../../src/services/LoggingService';
 
 describe('CodeBlockExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: CodeBlockExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test

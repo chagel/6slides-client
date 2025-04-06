@@ -8,8 +8,8 @@ import { loggingService } from '../../../src/services/LoggingService';
 
 describe('NotionExtractor', () => {
   // Setup and teardown
-  let extractor;
-  let mockDocument;
+  let extractor: NotionExtractor;
+  let mockDocument: Document;
   
   beforeEach(() => {
     // Reset DOM for each test
@@ -147,7 +147,8 @@ describe('NotionExtractor', () => {
       const firstBreak = document.querySelector('h1');
       const secondBreak = document.querySelectorAll('h1')[1];
       
-      const content = extractor.getContentBetweenBreaks(firstBreak, secondBreak);
+      // Use non-null assertions since we know these elements exist in our test
+      const content = extractor.getContentBetweenBreaks(firstBreak!, secondBreak!);
       
       expect(content).toContain('Paragraph 1');
       expect(content).toContain('Paragraph 2');
@@ -164,7 +165,8 @@ describe('NotionExtractor', () => {
       `;
       
       const slideBreak = document.querySelector('h1');
-      const content = extractor.getContentBetweenBreaks(slideBreak, null);
+      // Use non-null assertion and type assertion for null parameter
+      const content = extractor.getContentBetweenBreaks(slideBreak!, null as unknown as Element);
       
       expect(content).toContain('Content after');
       expect(content).toContain('List item');
@@ -192,14 +194,16 @@ describe('NotionExtractor', () => {
       
       // Check if the blockquote is correctly identified
       const blockquote = document.querySelector('.notion-quote-block');
-      expect(extractor.blockquoteExtractor.isBlockquote(blockquote)).toBe(true);
+      // Use non-null assertion since we know it exists in this test
+      expect(extractor.blockquoteExtractor.isBlockquote(blockquote!)).toBe(true);
       
       // This is the key test - ensure the blockquote is not mistaken for a table
-      expect(extractor.tableExtractor.isTableElement(blockquote)).toBe(false);
+      expect(extractor.tableExtractor.isTableElement(blockquote!)).toBe(false);
       
       // Check the extracted content
       const slideBreak = document.querySelector('h1');
-      const content = extractor.getContentBetweenBreaks(slideBreak, null);
+      // Pass null as second parameter to test end of document
+      const content = extractor.getContentBetweenBreaks(slideBreak!, null as unknown as Element);
       
       // Verify both elements are formatted correctly
       expect(content).toContain('| Header 1 | Header 2 |');
