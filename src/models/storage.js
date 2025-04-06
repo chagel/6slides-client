@@ -144,16 +144,21 @@ class Storage {
       localStorage.removeItem('slides');
       localStorage.removeItem('slideDebugInfo');
       localStorage.removeItem('slideError');
+      localStorage.removeItem('notionSlidesSettings');
       
       // Clear IndexedDB
       const db = await this._openDatabase();
-      const tx = db.transaction([SLIDES_STORE], 'readwrite');
-      const store = tx.objectStore(SLIDES_STORE);
-      await store.clear();
+      const tx = db.transaction([SLIDES_STORE, SETTINGS_STORE], 'readwrite');
+      const slidesStore = tx.objectStore(SLIDES_STORE);
+      const settingsStore = tx.objectStore(SETTINGS_STORE);
+      
+      slidesStore.clear();
+      settingsStore.clear();
       
       return new Promise((resolve) => {
         tx.oncomplete = () => {
           db.close();
+          logDebug('All cache data cleared successfully');
           resolve();
         };
       });

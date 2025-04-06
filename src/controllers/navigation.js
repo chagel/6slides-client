@@ -4,7 +4,7 @@
  * Handles the sidebar navigation functionality.
  */
 
-import { logDebug } from '../common/utils.js';
+import { logDebug, setDebugLogging, isDebugLoggingEnabled } from '../common/utils.js';
 import { storage } from '../models/storage.js';
 
 /**
@@ -25,6 +25,10 @@ function initNavigation() {
   const slideNumberSelector = document.getElementById('slideNumberSelector');
   const centerSelector = document.getElementById('centerSelector');
   
+  // Developer settings
+  const debugLoggingSelector = document.getElementById('debugLoggingSelector');
+  const clearCacheBtn = document.getElementById('clearCacheBtn');
+  
   // Load existing settings
   function loadSettings() {
     if (!themeSelector) return;
@@ -36,7 +40,8 @@ function initNavigation() {
       theme: 'default',
       transition: 'slide',
       slideNumber: 'false',
-      center: 'true'
+      center: 'true',
+      debugLogging: 'false'
     };
     
     // Apply settings to selectors
@@ -44,6 +49,15 @@ function initNavigation() {
     transitionSelector.value = settings.transition || defaults.transition;
     slideNumberSelector.value = settings.slideNumber || defaults.slideNumber;
     centerSelector.value = settings.center || defaults.center;
+    
+    // Set developer settings
+    if (debugLoggingSelector) {
+      const debugLogging = settings.debugLogging || defaults.debugLogging;
+      debugLoggingSelector.value = debugLogging;
+      
+      // Apply debug logging setting
+      setDebugLogging(debugLogging === 'true');
+    }
     
     logDebug('Navigation: Settings loaded', settings);
   }
@@ -57,21 +71,77 @@ function initNavigation() {
       center: centerSelector.value
     };
     
+    // Add developer settings if present
+    if (debugLoggingSelector) {
+      settings.debugLogging = debugLoggingSelector.value;
+      
+      // Apply debug logging setting immediately
+      setDebugLogging(debugLoggingSelector.value === 'true');
+    }
+    
     await storage.saveSettings(settings);
     logDebug('Navigation: Settings saved', settings);
     
     // Show feedback
-    saveStatus.style.display = 'inline';
-    
-    // Hide feedback after 2 seconds
-    setTimeout(() => {
-      saveStatus.style.display = 'none';
-    }, 2000);
+    if (saveStatus) {
+      saveStatus.style.display = 'inline';
+      
+      // Hide feedback after 2 seconds
+      setTimeout(() => {
+        saveStatus.style.display = 'none';
+      }, 2000);
+    }
   }
   
-  // Attach save event
+  // Clear all caches
+  async function clearAllCaches() {
+    if (confirm('Are you sure you want to clear all data? This will remove all saved slides and settings.')) {
+      try {
+        await storage.clearAll();
+        alert('All cache data has been cleared successfully.');
+        // Reload the page to reflect changes
+        window.location.reload();
+      } catch (error) {
+        alert('Failed to clear cache: ' + error.message);
+      }
+    }
+  }
+  
+  // Attach events
   if (saveSettingsBtn) {
     saveSettingsBtn.addEventListener('click', saveSettings);
+  }
+  
+  if (debugLoggingSelector) {
+    debugLoggingSelector.addEventListener('change', saveSettings);
+  }
+  
+  if (clearCacheBtn) {
+    clearCacheBtn.addEventListener('click', clearAllCaches);
+  }
+  
+  // Handle help tabs
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  if (tabButtons.length > 0) {
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        
+        // Update active tab button
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Update visible tab content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === tabId) {
+            content.classList.add('active');
+          }
+        });
+      });
+    });
   }
   
   // Load settings if we're on the settings page

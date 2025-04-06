@@ -239,6 +239,48 @@
     .help-answer {
       color: #444;
     }
+    
+    /* Tab styles */
+    .help-tabs {
+      margin-bottom: 30px;
+    }
+    
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    
+    .tab-button {
+      background: none;
+      color: var(--text-color);
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-right: 5px;
+      border-bottom: 3px solid transparent;
+    }
+    
+    .tab-button:hover {
+      background-color: rgba(0,0,0,0.03);
+      color: var(--text-color);
+    }
+    
+    .tab-button.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+      background-color: transparent;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -256,7 +298,7 @@
       
       <div style="flex-grow: 1;"></div>
       
-      <a href="#opensource" class="nav-item" id="nav-opensource">Open Source</a>
+      <a href="#developer" class="nav-item" id="nav-developer">Developer</a>
     </nav>
     
     <div class="sidebar-footer">
@@ -367,20 +409,27 @@
     <section id="help" class="page-section">
       <h1>Help</h1>
       
-      <div class="about-section">
-        <h2>Instructions</h2>
-        <p>Your Notion page must use this structure:</p>
-        <ul>
-          <li>H1 (#) elements start new slides</li>
-          <li>H2 (##) elements are section titles</li>
-          <li>H3 (###) elements are subsections</li>
-          <li>Content between H1s belongs to the previous H1</li>
-          <li>Lines starting with - or * become bullet points</li>
-          <li>Regular text becomes paragraphs</li>
-        </ul>
+      <div class="help-tabs">
+        <div class="tab-nav">
+          <button class="tab-button active" data-tab="instructions">Instructions</button>
+          <button class="tab-button" data-tab="faq">FAQ</button>
+        </div>
         
-        <h3>Example Format</h3>
-        <div style="background-color: #f0f0f0; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-line; margin-top: 10px; margin-bottom: 15px; font-size: 14px;">
+        <div id="instructions" class="tab-content active">
+          <div class="about-section">
+            <h2>Instructions</h2>
+            <p>Your Notion page must use this structure:</p>
+            <ul>
+              <li>H1 (#) elements start new slides</li>
+              <li>H2 (##) elements are section titles</li>
+              <li>H3 (###) elements are subsections</li>
+              <li>Content between H1s belongs to the previous H1</li>
+              <li>Lines starting with - or * become bullet points</li>
+              <li>Regular text becomes paragraphs</li>
+            </ul>
+            
+            <h3>Example Format</h3>
+            <div style="background-color: #f0f0f0; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-line; margin-top: 10px; margin-bottom: 15px; font-size: 14px;">
 # Slide 1 Title
 This paragraph will appear on slide 1.
 - This is a bullet point on slide 1
@@ -405,126 +454,162 @@ function helloWorld() {
 
 ### Subsection on Slide 3
 Final slide content...
-        </div>
-        
-        <h3>Supported Notion Blocks</h3>
-        <ul>
-          <li>Code blocks</li>
-          <li>Quote blocks</li>
-          <li>Images (with captions)</li>
-          <li>Tables</li>
-          <li>Dividers (horizontal rules)</li>
-          <li>To-do and toggle lists</li>
-          <li>Others</li>
-        </ul>
-        
-        <h3>How to Use</h3>
-        <ol>
-          <li>Navigate to a Notion page</li>
-          <li>Click the extension icon</li>
-          <li>Click "Present"</li>
-          <li>The slides will open in the current tab</li>
-        </ol>
-      </div>
-      
-      <h2>Frequently Asked Questions</h2>
-      <div class="help-section">
-        <div class="help-item">
-          <div class="help-question">Why isn't my Notion page converting correctly?</div>
-          <div class="help-answer">
-            <p>Make sure your Notion page follows the template format:</p>
+            </div>
+            
+            <h3>Supported Notion Blocks</h3>
             <ul>
-              <li>Each H1 heading creates a new slide</li>
-              <li>You need at least one H1 heading to generate slides</li>
-              <li>Check if you have proper permissions for the Notion page</li>
+              <li>Code blocks</li>
+              <li>Quote blocks</li>
+              <li>Images (with captions)</li>
+              <li>Tables</li>
+              <li>Dividers (horizontal rules)</li>
+              <li>To-do and toggle lists</li>
+              <li>Others</li>
             </ul>
+            
+            <h3>How to Use</h3>
+            <ol>
+              <li>Navigate to a Notion page</li>
+              <li>Click the extension icon</li>
+              <li>Click "Present"</li>
+              <li>The slides will open in the current tab</li>
+            </ol>
           </div>
         </div>
         
-        <div class="help-item">
-          <div class="help-question">How do I customize my presentation?</div>
-          <div class="help-answer">
-            <p>You can customize your presentation in several ways:</p>
-            <ul>
-              <li>Visit the Settings page to change the theme, transitions, and more</li>
-              <li>Use Markdown formatting in your Notion page for text styling</li>
-              <li>Add images and other rich content in Notion</li>
-            </ul>
-          </div>
-        </div>
-        
-        <div class="help-item">
-          <div class="help-question">Is my data secure?</div>
-          <div class="help-answer">
-            <p>Yes! Notion to Slides processes everything locally in your browser. No data is sent to external servers or stored anywhere except in your browser's local storage.</p>
-          </div>
-        </div>
-        
-        <div class="help-item">
-          <div class="help-question">How do I report a bug or request a feature?</div>
-          <div class="help-answer">
-            <p>Please email us at <a href="mailto:hello@flakes.ai">hello@flakes.ai</a> with any bugs, feature requests, or feedback. We're constantly working to improve the extension!</p>
+        <div id="faq" class="tab-content">
+          <div class="help-section">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="help-item">
+              <div class="help-question">Why isn't my Notion page converting correctly?</div>
+              <div class="help-answer">
+                <p>Make sure your Notion page follows the template format:</p>
+                <ul>
+                  <li>Each H1 heading creates a new slide</li>
+                  <li>You need at least one H1 heading to generate slides</li>
+                  <li>Check if you have proper permissions for the Notion page</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="help-item">
+              <div class="help-question">How do I customize my presentation?</div>
+              <div class="help-answer">
+                <p>You can customize your presentation in several ways:</p>
+                <ul>
+                  <li>Visit the Settings page to change the theme, transitions, and more</li>
+                  <li>Use Markdown formatting in your Notion page for text styling</li>
+                  <li>Add images and other rich content in Notion</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="help-item">
+              <div class="help-question">Is my data secure?</div>
+              <div class="help-answer">
+                <p>Yes! Notion to Slides processes everything locally in your browser. No data is sent to external servers or stored anywhere except in your browser's local storage.</p>
+              </div>
+            </div>
+            
+            <div class="help-item">
+              <div class="help-question">How do I report a bug or request a feature?</div>
+              <div class="help-answer">
+                <p>Please email us at <a href="mailto:hello@flakes.ai">hello@flakes.ai</a> with any bugs, feature requests, or feedback. We're constantly working to improve the extension!</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
   
-    <!-- Open Source Section -->
-    <section id="opensource" class="page-section">
-      <h1>Open Source Components</h1>
+    <!-- Developer Section -->
+    <section id="developer" class="page-section">
+      <h1>Developer Tools</h1>
       
-      <div class="license-section">
-        <h3>reveal.js</h3>
-        <p>This extension includes <a href="https://revealjs.com" target="_blank">reveal.js</a>, a framework for creating presentations, which is licensed under the MIT License.</p>
-        <div class="license-text">
-          MIT License
-          Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
-
-          Permission is hereby granted, free of charge, to any person obtaining a copy
-          of this software and associated documentation files (the "Software"), to deal
-          in the Software without restriction, including without limitation the rights
-          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-          copies of the Software, and to permit persons to whom the Software is
-          furnished to do so, subject to the following conditions:
-
-          The above copyright notice and this permission notice shall be included in
-          all copies or substantial portions of the Software.
-
-          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-          THE SOFTWARE.
+      <div class="setting-section">
+        <h2>Debugging</h2>
+        
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Debug Mode</div>
+            <div class="setting-description">Enable console debug messages</div>
+          </div>
+          <div class="setting-control">
+            <select id="debugLoggingSelector">
+              <option value="false">Disabled</option>
+              <option value="true">Enabled</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Clear All Caches</div>
+            <div class="setting-description">Remove all stored data and settings</div>
+          </div>
+          <div class="setting-control">
+            <button id="clearCacheBtn" style="width: auto; padding: 8px 12px; background-color: #e53935; font-size: 14px;">Clear Cache</button>
+          </div>
         </div>
       </div>
       
       <div class="license-section">
-        <h3>Catppuccin Color Palette</h3>
-        <p>This extension includes themes based on the <a href="https://github.com/catppuccin/catppuccin" target="_blank">Catppuccin</a> color palette, which is licensed under the MIT License.</p>
-        <div class="license-text">
-          MIT License
+        <h3>Open Source Components</h3>
+        
+        <div class="setting-section" style="margin-top: 15px; box-shadow: none; padding: 15px;">
+          <h4>reveal.js</h4>
+          <p>This extension includes <a href="https://revealjs.com" target="_blank">reveal.js</a>, a framework for creating presentations, which is licensed under the MIT License.</p>
+          <div class="license-text">
+            MIT License
+            Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
 
-          Copyright (c) 2021 Catppuccin
+            Permission is hereby granted, free of charge, to any person obtaining a copy
+            of this software and associated documentation files (the "Software"), to deal
+            in the Software without restriction, including without limitation the rights
+            to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+            copies of the Software, and to permit persons to whom the Software is
+            furnished to do so, subject to the following conditions:
 
-          Permission is hereby granted, free of charge, to any person obtaining a copy
-          of this software and associated documentation files (the "Software"), to deal
-          in the Software without restriction, including without limitation the rights
-          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-          copies of the Software, and to permit persons to whom the Software is
-          furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in
+            all copies or substantial portions of the Software.
 
-          The above copyright notice and this permission notice shall be included in all
-          copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+            IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+            FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+            AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+            LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+            OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+            THE SOFTWARE.
+          </div>
+        </div>
+        
+        <div class="setting-section" style="margin-top: 15px; box-shadow: none; padding: 15px;">
+          <h4>Catppuccin Color Palette</h4>
+          <p>This extension includes themes based on the <a href="https://github.com/catppuccin/catppuccin" target="_blank">Catppuccin</a> color palette, which is licensed under the MIT License.</p>
+          <div class="license-text">
+            MIT License
 
-          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-          SOFTWARE.
+            Copyright (c) 2021 Catppuccin
+
+            Permission is hereby granted, free of charge, to any person obtaining a copy
+            of this software and associated documentation files (the "Software"), to deal
+            in the Software without restriction, including without limitation the rights
+            to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+            copies of the Software, and to permit persons to whom the Software is
+            furnished to do so, subject to the following conditions:
+
+            The above copyright notice and this permission notice shall be included in all
+            copies or substantial portions of the Software.
+
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+            IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+            FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+            AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+            LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+            OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+            SOFTWARE.
+          </div>
         </div>
       </div>
     </section>
