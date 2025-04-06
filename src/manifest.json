@@ -3,7 +3,7 @@
   "name": "Notion to Slides",
   "version": "1.1.0",
   "description": "Present your Notion pages as simple, elegant, and secure slides",
-  "permissions": ["scripting", "activeTab", "tabs"],
+  "permissions": ["scripting", "activeTab", "tabs", "storage"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",
@@ -45,7 +45,8 @@
         "content/entry.js",
         "models/*.js",
         "models/extractors/*.js",
-        "common/*.js"
+        "common/*.js",
+        "_settings_cache.json"
       ],
       "matches": ["<all_urls>"]
     }

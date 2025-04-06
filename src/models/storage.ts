@@ -26,9 +26,18 @@ interface SlideData {
 }
 
 /**
- * Storage class that provides a unified API for localStorage and IndexedDB
+ * Storage class that provides a unified API for localStorage, chrome.storage, and IndexedDB
  */
 class Storage {
+  private isServiceWorker: boolean;
+
+  constructor() {
+    // Detect if we're running in a service worker context (no window object)
+    this.isServiceWorker = typeof window === 'undefined' || 
+                          !!(typeof globalThis !== 'undefined' && 
+                             (globalThis as any).ServiceWorkerGlobalScope);
+  }
+  
   /**
    * Save slides data (uses IndexedDB for large datasets)
    * @param slides - Array of slide objects
@@ -40,6 +49,19 @@ class Storage {
       
       // Check data size
       const dataSize = new Blob([data]).size;
+      
+      if (this.isServiceWorker) {
+        // Use chrome.storage.local in service worker
+        return new Promise((resolve, reject) => {
+          chrome.storage.local.set({ slides: data }, () => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
       
       // Use localStorage for small data, IndexedDB for large data
       if (dataSize < SIZE_THRESHOLD) {
@@ -62,6 +84,21 @@ class Storage {
    */
   async getSlides(): Promise<Slide[]> {
     try {
+      if (this.isServiceWorker) {
+        // Use chrome.storage.local in service worker
+        return new Promise((resolve, reject) => {
+          chrome.storage.local.get(['slides'], (result) => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else if (result.slides) {
+              resolve(JSON.parse(result.slides));
+            } else {
+              resolve([]);
+            }
+          });
+        });
+      }
+      
       // First try localStorage
       const localData = localStorage.getItem('slides');
       
@@ -95,7 +132,23 @@ class Storage {
    */
   saveSettings(settings: Settings): Promise<void> {
     try {
-      localStorage.setItem('notionSlidesSettings', JSON.stringify(settings));
+      const settingsData = JSON.stringify(settings);
+      
+      if (this.isServiceWorker) {
+        // Use chrome.storage.local in service worker
+        return new Promise((resolve, reject) => {
+          chrome.storage.local.set({ notionSlidesSettings: settingsData }, () => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              loggingService.debug('Settings saved to chrome.storage.local', settings);
+              resolve();
+            }
+          });
+        });
+      }
+      
+      localStorage.setItem('notionSlidesSettings', settingsData);
       loggingService.debug('Settings saved to localStorage', settings);
       return Promise.resolve();
     } catch (error) {
@@ -110,6 +163,25 @@ class Storage {
    */
   getSettings(): Settings {
     try {
+      if (this.isServiceWorker) {
+        // In service worker context, we need to use sync for initialization
+        // This is not ideal but necessary for startup flow
+        let settings = {};
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', chrome.runtime.getURL('_settings_cache.json'), false); // Synchronous
+        xhr.send();
+        
+        if (xhr.status === 200) {
+          try {
+            settings = JSON.parse(xhr.responseText);
+          } catch (e) {
+            // Use defaults if can't parse
+          }
+        }
+        
+        return settings as Settings;
+      }
+      
       const settings = JSON.parse(localStorage.getItem('notionSlidesSettings') || '{}') as Settings;
       return settings;
     } catch (error) {
@@ -124,6 +196,12 @@ class Storage {
    */
   saveDebugInfo(info: Partial<DebugInfo>): void {
     try {
+      if (this.isServiceWorker) {
+        // In service worker, just log but don't try to save
+        console.debug('Debug info in service worker:', info);
+        return;
+      }
+      
       // Get existing debug info
       const existingDebugInfo = this.getDebugInfo();
       
@@ -147,6 +225,11 @@ class Storage {
    */
   getDebugInfo(): DebugInfo {
     try {
+      if (this.isServiceWorker) {
+        // In service worker, return empty debug info
+        return { logs: [] };
+      }
+      
       const data = localStorage.getItem('slideDebugInfo');
       return data ? JSON.parse(data) as DebugInfo : { logs: [] };
     } catch (error) {
@@ -163,6 +246,12 @@ class Storage {
    */
   saveErrorInfo(error: ErrorInfo): void {
     try {
+      if (this.isServiceWorker) {
+        // Just log in service worker
+        console.error('Error in service worker:', error);
+        return;
+      }
+      
       localStorage.setItem('slideError', JSON.stringify({
         ...error,
         timestamp: new Date().toISOString()
@@ -178,6 +267,18 @@ class Storage {
    */
   async clearAll(): Promise<void> {
     try {
+      if (this.isServiceWorker) {
+        return new Promise((resolve, reject) => {
+          chrome.storage.local.clear(() => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
+      
       // Clear localStorage
       localStorage.removeItem('slides');
       localStorage.removeItem('slideDebugInfo');
