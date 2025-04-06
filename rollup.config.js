@@ -153,7 +153,7 @@ entries.push({
 });
 
 // Add notion extractors
-const notionExtractors = globSync('src/models/extractors/notion/*.{js,ts}', { ignore: 'src/models/extractors/notion/index.{js,ts}' });
+const notionExtractors = globSync('src/models/extractors/notion/*.ts', { ignore: 'src/models/extractors/notion/index.ts' });
 notionExtractors.forEach(file => {
   const name = path.basename(file).replace('.ts', '.js');
   entries.push({
@@ -175,7 +175,7 @@ entries.push({
 });
 
 // Add markdown extractors
-const markdownExtractors = globSync('src/models/extractors/markdown/*.{js,ts}', { ignore: 'src/models/extractors/markdown/index.{js,ts}' });
+const markdownExtractors = globSync('src/models/extractors/markdown/*.ts', { ignore: 'src/models/extractors/markdown/index.ts' });
 markdownExtractors.forEach(file => {
   const name = path.basename(file).replace('.ts', '.js');
   entries.push({
