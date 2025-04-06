@@ -1,7 +1,7 @@
 /**
- * Notion to Slides - Background Script
+ * Notion to Slides - Service Worker
  * 
- * Handles communication between popup and content scripts.
+ * Handles background operations and communication between extension components.
  */
 
 import { addMessageListener } from '../common/messaging';
@@ -30,9 +30,9 @@ function openViewer(): Promise<ViewerResponse> {
  */
 function setupMessageHandlers(): void {
   addMessageListener((message, sender) => {
-    console.log('Background script received message', { message, sender });
+    console.log('Service worker received message', { message, sender });
     
-    // Handle any messages that should be processed by the background script
+    // Handle any messages that should be processed by the service worker
     if (message.action === 'open_viewer') {
       return openViewer();
     }
@@ -43,15 +43,15 @@ function setupMessageHandlers(): void {
 }
 
 /**
- * Initialize the background script
+ * Initialize the service worker
  */
 function initialize(): void {
-  console.log('Background service worker initializing');
+  console.log('Service worker initializing');
   
   // Set up message handlers
   setupMessageHandlers();
   
-  console.log('Background service worker initialized');
+  console.log('Service worker initialized');
 }
 
 // Start initialization

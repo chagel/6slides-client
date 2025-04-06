@@ -14,7 +14,7 @@
     }
   },
   "background": {
-    "service_worker": "background/index.js",
+    "service_worker": "services/worker.js",
     "type": "module"
   },
   "content_scripts": [
@@ -29,7 +29,7 @@
         "file://*/*.md",
         "file://*/*.markdown"
       ],
-      "js": ["content/entry.js"],
+      "js": ["app.js"],
       "run_at": "document_idle"
     }
   ],
@@ -42,7 +42,7 @@
         "icons/**", 
         "controllers/viewer/index.js", 
         "icons/ui/**",
-        "content/entry.js",
+        "app.js",
         "models/*.js",
         "models/extractors/*.js",
         "common/*.js"

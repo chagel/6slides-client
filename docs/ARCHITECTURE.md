@@ -479,14 +479,10 @@ class DependencyContainer {
 
 ```
 src/
-  ├── app.ts                  # Application bootstrap and initialization
-  ├── background/             # Background service worker
-  │   └── index.ts            # Main entry point for the background script
+  ├── app.ts                  # Application bootstrap and content script functionality
   ├── common/                 # Shared utilities
   │   ├── messaging.ts        # Communication between components
   │   └── utils.ts            # Utility functions
-  ├── content/                # Content script
-  │   └── entry.ts            # Main entry point for content script
   ├── controllers/            # Controllers connecting models and views
   │   ├── contentController.ts # Content extraction orchestration
   │   ├── navigation.ts       # Navigation handling
@@ -527,7 +523,8 @@ src/
   │   ├── DependencyContainer.ts # Dependency injection container
   │   ├── ErrorService.ts     # Centralized error handling
   │   ├── LoggingService.ts   # Centralized logging service
-  │   └── serviceRegistry.ts  # Service registration
+  │   ├── serviceRegistry.ts  # Service registration
+  │   └── worker.ts           # Service worker (background script)
   ├── types/                  # TypeScript type definitions
   │   ├── index.ts            # Shared type definitions
   │   └── storage.ts          # Storage-specific type definitions

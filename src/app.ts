@@ -1,25 +1,126 @@
 /**
  * Notion to Slides - Application Bootstrap
  * 
- * Main entry point for the extension that initializes all services
+ * Main entry point for the extension that initializes all services and content script functionality
  */
 
 import { getService } from './services/DependencyContainer';
 import { loggingService } from './services/LoggingService';
 import { errorService, ErrorTypes, ErrorSeverity } from './services/ErrorService';
 import { configManager } from './models/configManager';
+import { ExtractionResult } from './controllers/contentController';
+import { Slide } from './types/index';
 
 // Import to register all services
-import './services/serviceRegistry.js';
+import './services/serviceRegistry';
+
+/**
+ * Response structure from extraction process
+ */
+interface ExtractionResponse {
+  slides?: Slide[];
+  error?: string;
+  stack?: string;
+  status?: string;
+}
+
+/**
+ * Extract content from the current page
+ * @returns Promise resolving to array of slide objects
+ */
+async function extractContent(): Promise<Slide[]> {
+  try {
+    // Get current URL
+    const url = window.location.href;
+    
+    // Clear storage to ensure we get fresh content each extraction
+    // This makes the extension more predictable for users
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('slides');
+    }
+
+    // Get the content controller from the dependency container
+    const controller = getService('contentController');
+    
+    // Use the content controller to extract content based on the page type
+    const result = await controller.extractContent(document, url) as ExtractionResult;
+    
+    if (result.error) {
+      return Promise.reject(new Error(result.error));
+    }
+    
+    // Add debug logging to see what was extracted before storage
+    loggingService.debug('EXTRACTED SLIDES BEFORE STORAGE:');
+    loggingService.debug('Slides', result.slides);
+    
+    return Promise.resolve(result.slides || []);
+  } catch (error) {
+    loggingService.error('Error in content extraction', error);
+    return Promise.reject(error);
+  }
+}
+
+/**
+ * Set up message handlers for content script functionality
+ */
+function setupContentScriptHandlers(): void {
+  // Only set up message handlers if we're in a content script context (has chrome.runtime)
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    // Add listener for messages from popup/background
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      loggingService.debug('Content script received message', message);
+      
+      // Ping action to check if content script is loaded
+      if (message.action === 'ping') {
+        sendResponse({ status: 'content_script_ready' });
+        return true;
+      }
+      
+      // Extract content action
+      if (message.action === 'extract_content') {
+        loggingService.debug('Extracting content from page');
+        
+        // Use setTimeout to ensure the DOM is fully loaded and accessible
+        setTimeout(async () => {
+          try {
+            const slides = await extractContent();
+            
+            if (!slides || slides.length === 0) {
+              sendResponse({ 
+                error: 'No slides found. Make sure your page has H1 headings to define slides.' 
+              } as ExtractionResponse);
+            } else {
+              loggingService.debug(`Successfully extracted ${slides.length} slides`);
+              sendResponse({ slides } as ExtractionResponse);
+            }
+          } catch (error) {
+            loggingService.error('Error during extraction', error);
+            
+            // Create a detailed error response
+            sendResponse({ 
+              error: 'Error extracting slides: ' + (error instanceof Error ? error.message : 'Unknown error'),
+              stack: error instanceof Error ? error.stack : undefined
+            } as ExtractionResponse);
+          }
+        }, 300); // Short delay to ensure DOM is accessible
+        
+        // Return true to keep the message channel open for async response
+        return true;
+      }
+      
+      // Return false for unhandled messages
+      return false;
+    });
+    
+    loggingService.debug('Content script message handlers set up');
+  }
+}
 
 /**
  * Initialize the application
  * @returns Promise resolving to initialization success status
  */
 export async function initializeApp(): Promise<boolean> {
-  // Initialize quietly - only log if debug is enabled later
-  // Debug logging is disabled by default at this point
-  
   try {
     // Get configuration
     const config = configManager.getConfig();
@@ -35,10 +136,14 @@ export async function initializeApp(): Promise<boolean> {
       loggingService.setConsoleLogging(config.debugLogging || false);
     }
     
+    // Set up content script message handlers if we're in that context
+    setupContentScriptHandlers();
+    
     // Log initialization success
     loggingService.info('Application initialized successfully', {
-      version: '1.3.0',
-      debugMode: config.debugLogging
+      version: '1.4.0',
+      debugMode: config.debugLogging,
+      context: typeof chrome !== 'undefined' && chrome.runtime ? 'content_script' : 'extension'
     });
     
     return true;
@@ -50,9 +155,14 @@ export async function initializeApp(): Promise<boolean> {
       context: 'app_bootstrap'
     });
     
+    console.error('App initialization failed:', error);
+    
     return false;
   }
 }
 
 // Auto-initialize when imported 
 initializeApp();
+
+// Export content script functionality for testing
+export { extractContent };

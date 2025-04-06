@@ -7,22 +7,22 @@ import fs from 'fs';
 
 // Define the main entry points for our bundles
 const entries = [
-  // Background script
+  // Service worker
   {
-    input: 'src/background/index.ts', // Changed to .ts
+    input: 'src/services/worker.ts',
     output: {
-      file: 'dist/background/index.js',
+      file: 'dist/services/worker.js',
       format: 'esm', // Service worker supports ES modules
     }
   },
   
-  // Content script (consolidated)
+  // App script (includes content script functionality)
   {
-    input: 'src/content/entry.ts',
+    input: 'src/app.ts',
     output: {
-      file: 'dist/content/entry.js',
+      file: 'dist/app.js',
       format: 'iife', // Immediately invoked function for content script context
-      name: 'notionSlidesContent'
+      name: 'notionSlidesApp'
     }
   },
   
@@ -123,13 +123,6 @@ const entries = [
     input: 'src/models/domain/Presentation.ts',
     output: {
       file: 'dist/models/domain/Presentation.js',
-      format: 'esm',
-    }
-  },
-  {
-    input: 'src/app.ts',
-    output: {
-      file: 'dist/app.js',
       format: 'esm',
     }
   },
