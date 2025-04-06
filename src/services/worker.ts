@@ -4,7 +4,7 @@
  * Handles background operations and communication between extension components.
  */
 
-import { addMessageListener } from '../common/messaging';
+import { messagingService } from './MessagingService';
 
 /**
  * Response from the viewer opening operation
@@ -29,7 +29,7 @@ function openViewer(): Promise<ViewerResponse> {
  * Set up message handlers
  */
 function setupMessageHandlers(): void {
-  addMessageListener((message, sender) => {
+  messagingService.addMessageListener((message, sender) => {
     console.log('Service worker received message', { message, sender });
     
     // Handle any messages that should be processed by the service worker

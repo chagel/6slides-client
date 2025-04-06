@@ -79,12 +79,6 @@ function copyStaticFiles() {
     fs.mkdirSync(modelsDestDir, { recursive: true });
   }
   
-  // Create directories for common
-  const commonDestDir = path.join(DIST_DIR, 'common');
-  if (!fs.existsSync(commonDestDir)) {
-    fs.mkdirSync(commonDestDir, { recursive: true });
-  }
-  
   // Create directories for controllers
   const controllersDestDir = path.join(DIST_DIR, 'controllers');
   if (!fs.existsSync(controllersDestDir)) {

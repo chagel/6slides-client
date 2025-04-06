@@ -11,6 +11,7 @@ import { contentProcessor } from '../models/contentProcessor';
 import { configManager } from '../models/configManager';
 import { errorService, ErrorTypes } from './ErrorService';
 import { loggingService, LogLevel } from './LoggingService';
+import { messagingService } from './MessagingService';
 
 interface LoggingOptions {
   debugEnabled: boolean;
@@ -32,6 +33,7 @@ export function registerServices(): void {
   container.register('configManager', configManager);
   container.register('errorService', errorService);
   container.register('loggingService', loggingService);
+  container.register('messagingService', messagingService);
   
   // Initialize loggingService (still used as a singleton through direct imports)
   loggingService.initialize({

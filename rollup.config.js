@@ -198,14 +198,7 @@ entries.push({
   }
 });
 
-// Common utilities
-entries.push({
-  input: 'src/common/messaging.ts',
-  output: {
-    file: 'dist/common/messaging.js',
-    format: 'esm',
-  }
-});
+// Common utilities (removed messaging.ts, now a service)
 
 // Services
 entries.push({
@@ -228,6 +221,14 @@ entries.push({
   input: 'src/services/DependencyContainer.ts',
   output: {
     file: 'dist/services/DependencyContainer.js',
+    format: 'esm',
+  }
+});
+
+entries.push({
+  input: 'src/services/MessagingService.ts',
+  output: {
+    file: 'dist/services/MessagingService.js',
     format: 'esm',
   }
 });

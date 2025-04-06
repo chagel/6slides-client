@@ -66,50 +66,52 @@ async function extractContent(): Promise<Slide[]> {
 function setupContentScriptHandlers(): void {
   // Only set up message handlers if we're in a content script context (has chrome.runtime)
   if (typeof chrome !== 'undefined' && chrome.runtime) {
+    // Get messaging service from DI container
+    const messagingService = getService('messagingService');
+    
     // Add listener for messages from popup/background
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    messagingService.addMessageListener((message: {action: string, [key: string]: any}, sender: chrome.runtime.MessageSender) => {
       loggingService.debug('Content script received message', message);
       
       // Ping action to check if content script is loaded
       if (message.action === 'ping') {
-        sendResponse({ status: 'content_script_ready' });
-        return true;
+        return { status: 'content_script_ready' };
       }
       
       // Extract content action
       if (message.action === 'extract_content') {
         loggingService.debug('Extracting content from page');
         
-        // Use setTimeout to ensure the DOM is fully loaded and accessible
-        setTimeout(async () => {
-          try {
-            const slides = await extractContent();
-            
-            if (!slides || slides.length === 0) {
-              sendResponse({ 
-                error: 'No slides found. Make sure your page has H1 headings to define slides.' 
+        // Return a promise that will be resolved/rejected after extraction
+        return new Promise((resolve) => {
+          // Use setTimeout to ensure the DOM is fully loaded and accessible
+          setTimeout(async () => {
+            try {
+              const slides = await extractContent();
+              
+              if (!slides || slides.length === 0) {
+                resolve({ 
+                  error: 'No slides found. Make sure your page has H1 headings to define slides.' 
+                } as ExtractionResponse);
+              } else {
+                loggingService.debug(`Successfully extracted ${slides.length} slides`);
+                resolve({ slides } as ExtractionResponse);
+              }
+            } catch (error) {
+              loggingService.error('Error during extraction', error);
+              
+              // Create a detailed error response
+              resolve({ 
+                error: 'Error extracting slides: ' + (error instanceof Error ? error.message : 'Unknown error'),
+                stack: error instanceof Error ? error.stack : undefined
               } as ExtractionResponse);
-            } else {
-              loggingService.debug(`Successfully extracted ${slides.length} slides`);
-              sendResponse({ slides } as ExtractionResponse);
             }
-          } catch (error) {
-            loggingService.error('Error during extraction', error);
-            
-            // Create a detailed error response
-            sendResponse({ 
-              error: 'Error extracting slides: ' + (error instanceof Error ? error.message : 'Unknown error'),
-              stack: error instanceof Error ? error.stack : undefined
-            } as ExtractionResponse);
-          }
-        }, 300); // Short delay to ensure DOM is accessible
-        
-        // Return true to keep the message channel open for async response
-        return true;
+          }, 300); // Short delay to ensure DOM is accessible
+        });
       }
       
-      // Return false for unhandled messages
-      return false;
+      // Return undefined for unhandled messages
+      return undefined;
     });
     
     loggingService.debug('Content script message handlers set up');

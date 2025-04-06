@@ -523,6 +523,7 @@ src/
   │   ├── DependencyContainer.ts # Dependency injection container
   │   ├── ErrorService.ts     # Centralized error handling
   │   ├── LoggingService.ts   # Centralized logging service
+  │   ├── MessagingService.ts # Inter-component communication
   │   ├── serviceRegistry.ts  # Service registration
   │   └── worker.ts           # Service worker (background script)
   ├── types/                  # TypeScript type definitions
