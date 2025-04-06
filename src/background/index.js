@@ -6,6 +6,9 @@
 
 import { loggingService } from '../services/LoggingService.js';
 import { addMessageListener } from '../common/messaging.js';
+// ErrorService is imported but used indirectly through error handling
+// ESLint disable next line
+// eslint-disable-next-line no-unused-vars
 import { errorService, ErrorTypes } from '../services/ErrorService.js';
 
 // Import app initialization

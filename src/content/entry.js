@@ -5,6 +5,8 @@
  */
 
 import { loggingService } from '../services/LoggingService.js';
+// ContentController is imported but used indirectly through DependencyContainer
+// eslint-disable-next-line no-unused-vars
 import { contentController } from '../controllers/contentController.js';
 
 // Import app initialization to ensure services are registered

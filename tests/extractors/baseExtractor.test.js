@@ -2,7 +2,7 @@
  * Tests for BaseExtractor
  */
 
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { jest, describe, test, expect, beforeEach, jest as jestGlobal } from '@jest/globals';
 import { BaseExtractor } from '../../src/models/extractors/baseExtractor.js';
 import { loggingService } from '../../src/services/LoggingService.js';
 
@@ -124,12 +124,19 @@ describe('BaseExtractor', () => {
 
   describe('debug', () => {
     test('should call loggingService.debug with class name prefix', () => {
+      // Manually mock the debug function for this test
+      const originalDebug = loggingService.debug;
+      loggingService.debug = jest.fn();
+      
       extractor.debug('Test message', { data: 'test' });
       
       expect(loggingService.debug).toHaveBeenCalledWith(
         '[TestExtractor] Test message', 
         { data: 'test' }
       );
+      
+      // Restore the original debug function
+      loggingService.debug = originalDebug;
     });
   });
 });

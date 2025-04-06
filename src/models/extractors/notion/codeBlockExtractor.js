@@ -13,9 +13,28 @@ export class CodeBlockExtractor extends BaseExtractor {
    * @returns {boolean} - True if element is a code block
    */
   isCodeBlock(element) {
-    return this.hasClass(element, 'notion-code-block') || 
-           element.tagName === 'PRE' ||
-           (element.querySelector && element.querySelector('pre, code'));
+    if (!element) return false;
+    
+    // Check for Notion class
+    if (this.hasClass(element, 'notion-code-block')) {
+      return true;
+    }
+    
+    // Check for PRE tag
+    if (element.tagName === 'PRE') {
+      return true;
+    }
+    
+    // Check for child code elements
+    try {
+      if (element.querySelector && element.querySelector('pre, code')) {
+        return true;
+      }
+    } catch (e) {
+      // Handle JSDOM limitations
+    }
+    
+    return false;
   }
   
   /**

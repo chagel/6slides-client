@@ -1,3 +1,6 @@
+import { jest } from '@jest/globals';
+
+// Create mock logging service with real Jest mock functions
 export const loggingService = {
   debug: jest.fn(),
   info: jest.fn(),

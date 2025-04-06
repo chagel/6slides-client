@@ -84,7 +84,9 @@ export class BaseExtractor {
    * @returns {boolean} - True if element has the class
    */
   hasClass(element, className) {
-    return element.className && element.className.includes(className);
+    if (!element || !element.className) return false;
+    return typeof element.className === 'string' && 
+           element.className.includes(className);
   }
   
   /**
@@ -93,7 +95,10 @@ export class BaseExtractor {
    * @returns {string} - Normalized text content
    */
   getElementText(element) {
-    return element ? (element.innerText || '').trim() : '';
+    if (!element) return '';
+    // Use textContent for JSDOM compatibility and innerText for real browsers
+    const text = element.innerText || element.textContent || '';
+    return text.trim();
   }
   
   /**

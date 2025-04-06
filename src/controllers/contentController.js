@@ -34,7 +34,7 @@ class ContentController {
       loggingService.debug('Extracting content from URL:', url);
       
       // Detect content source
-      const sourceType = sourceManager.detectSource(document, url);
+      let sourceType = sourceManager.detectSource(document, url);
       
       if (!sourceType) {
         return {
@@ -94,7 +94,7 @@ class ContentController {
       return errorService.handleError(error, {
         type: ErrorTypes.EXTRACTION,
         context: 'content_extraction',
-        data: { url, sourceType }
+        data: { url, sourceType: 'unknown' }
       });
       
       // The error service already logs and stores the error,

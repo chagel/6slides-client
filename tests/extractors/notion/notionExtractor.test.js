@@ -80,7 +80,8 @@ describe('NotionExtractor', () => {
       const slides = extractor.extract();
       expect(slides).toHaveLength(1);
       expect(slides[0].title).toBe('Slide with & and < characters');
-      expect(slides[0].content).toContain('Text with  space and "quotes".');
+      expect(slides[0].content).toMatch(/Text with\s+space and "quotes"\./);
+      // Using regex to handle differences in how JSDOM parses &nbsp;
     });
   });
 
