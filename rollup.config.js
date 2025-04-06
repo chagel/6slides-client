@@ -18,7 +18,7 @@ const entries = [
   
   // Content script (consolidated)
   {
-    input: 'src/content/entry.js',
+    input: 'src/content/entry.ts',
     output: {
       file: 'dist/content/entry.js',
       format: 'iife', // Immediately invoked function for content script context
@@ -28,7 +28,7 @@ const entries = [
   
   // UI Controllers (popup, settings)
   {
-    input: 'src/controllers/popup/index.js',
+    input: 'src/controllers/popup/index.ts',
     output: {
       file: 'dist/controllers/popup/index.js', 
       format: 'iife', // Regular script for popup
@@ -36,7 +36,7 @@ const entries = [
     }
   },
   {
-    input: 'src/controllers/settings/index.js',
+    input: 'src/controllers/settings/index.ts',
     output: {
       file: 'dist/controllers/settings/index.js',
       format: 'iife', // Regular script for settings
@@ -44,7 +44,7 @@ const entries = [
     }
   },
   {
-    input: 'src/controllers/viewer/index.js',
+    input: 'src/controllers/viewer/index.ts',
     output: {
       file: 'dist/controllers/viewer/index.js',
       format: 'iife', // Regular script for viewer
@@ -52,7 +52,7 @@ const entries = [
     }
   },
   {
-    input: 'src/controllers/navigation.js',
+    input: 'src/controllers/navigation.ts',
     output: {
       file: 'dist/controllers/navigation.js',
       format: 'iife', // Regular script for navigation
@@ -69,7 +69,7 @@ const entries = [
     }
   },
   {
-    input: 'src/models/renderer.js',
+    input: 'src/models/renderer.ts',
     output: {
       file: 'dist/models/renderer.js',
       format: 'esm',
@@ -90,7 +90,7 @@ const entries = [
     }
   },
   {
-    input: 'src/models/configManager.js',
+    input: 'src/models/configManager.ts',
     output: {
       file: 'dist/models/configManager.js',
       format: 'esm',
@@ -127,7 +127,7 @@ const entries = [
     }
   },
   {
-    input: 'src/app.js',
+    input: 'src/app.ts',
     output: {
       file: 'dist/app.js',
       format: 'esm',

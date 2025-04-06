@@ -58,8 +58,8 @@ export interface PresentationData {
 export interface PresentationSettings {
   theme?: string;
   transition?: string;
-  center?: string;
-  slideNumber?: string;
+  center?: string | boolean;
+  slideNumber?: string | boolean;
   controls?: boolean;
   progress?: boolean;
   [key: string]: any;
