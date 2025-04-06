@@ -47,38 +47,42 @@ The project uses a clean modular architecture with domain-driven design patterns
 
 ```
 src/
-  ├── app.js            # Application bootstrap and initialization
+  ├── app.ts            # Application bootstrap and initialization
   ├── common/           # Shared utilities
-  │   └── messaging.js  # Component communication
+  │   └── messaging.ts  # Component communication
   ├── models/           # Business logic and data models
   │   ├── domain/       # Domain models
-  │   │   ├── Slide.js             # Slide domain model
-  │   │   └── Presentation.js      # Presentation domain model
-  │   ├── configManager.js         # Configuration management
-  │   ├── contentExtractor.js      # Content extraction coordination
-  │   ├── contentProcessor.js      # Content normalization
-  │   ├── renderer.js              # Presentation rendering
-  │   ├── sourceManager.js         # Source detection
-  │   ├── storage.js               # Data persistence
+  │   │   ├── Slide.ts             # Slide domain model
+  │   │   ├── Presentation.ts      # Presentation domain model
+  │   │   └── types.ts             # Domain type definitions
+  │   ├── configManager.ts         # Configuration management
+  │   ├── contentExtractor.ts      # Content extraction coordination
+  │   ├── contentProcessor.ts      # Content normalization
+  │   ├── renderer.ts              # Presentation rendering
+  │   ├── sourceManager.ts         # Source detection
+  │   ├── storage.ts               # Data persistence
   │   └── extractors/              # Specialized extractors
-  │       ├── baseExtractor.js     # Base extractor interface
+  │       ├── baseExtractor.ts     # Base extractor interface
   │       ├── markdown/            # Markdown extractors
   │       └── notion/              # Notion extractors
   ├── services/         # Application services
-  │   ├── DependencyContainer.js   # Dependency injection
-  │   ├── ErrorService.js          # Centralized error handling
-  │   ├── LoggingService.js        # Centralized logging
-  │   └── serviceRegistry.js       # Service registration
+  │   ├── DependencyContainer.ts   # Dependency injection
+  │   ├── ErrorService.ts          # Centralized error handling
+  │   ├── LoggingService.ts        # Centralized logging
+  │   └── serviceRegistry.ts       # Service registration
   ├── controllers/      # Controllers connecting models and views
-  │   ├── contentController.js     # Content orchestration
+  │   ├── contentController.ts     # Content orchestration
   │   ├── popup/                   # Extension popup controller
   │   ├── settings/                # Settings controller
   │   └── viewer/                  # Presentation viewer controller
+  ├── types/            # TypeScript type definitions
+  │   ├── index.ts                 # Type exports
+  │   └── storage.ts               # Storage-related types
   ├── views/            # HTML views
   ├── content/          # Content script
-  │   └── entry.js      # Content script entry point
+  │   └── entry.ts      # Content script entry point
   └── background/       # Background script
-      └── index.js      # Service worker
+      └── index.ts      # Service worker
 ```
 
 ### Setup
@@ -127,6 +131,15 @@ The build process:
 - Add new entries to rollup.config.js if necessary
 
 ## Version History
+
+### Version 1.4.0
+- Migrated codebase from JavaScript to TypeScript
+- Added TypeScript type definitions for all files
+- Configured TypeScript build process and ESLint integration
+- Updated Jest tests to use TypeScript
+- Improved type safety throughout the application
+- Fixed service worker context detection for storage operations
+- Enhanced dependency injection with type-safe services
 
 ### Version 1.3.0
 - Added comprehensive Jest test suite for extractors

@@ -2,6 +2,10 @@
 
 This document outlines the architecture of the Notion Slides Chrome extension, detailing how the system is structured to support multiple content sources and be extensible for future enhancements. The architecture follows Domain-Driven Design principles with clear domain models, dependency injection, and a layered approach that separates concerns while maintaining flexibility.
 
+## Overview
+
+**Notion Slides** is a Chrome extension that transforms various content sources into elegant presentations. The codebase is written in **TypeScript**, providing type safety and better developer experience while maintaining the same architecture and design principles.
+
 ## Business Requirements
 
 1. **Multi-source Support**: Extract content from various sources:
@@ -70,10 +74,10 @@ The extension follows a Domain-Driven Design approach with clear separation of c
 
 The Content Source Manager serves as a factory that determines which extractor to use based on the current page. This is the key component enabling multi-source support.
 
-```javascript
-// src/models/sourceManager.js
+```typescript
+// src/models/sourceManager.ts
 class SourceManager {
-  detectSource(document, url) {
+  detectSource(document: Document, url: string): string | null {
     if (url.includes('notion.so') || url.includes('notion.site')) {
       return 'notion';
     } else if (url.endsWith('.md') || url.endsWith('.markdown')) {
@@ -83,7 +87,7 @@ class SourceManager {
     return null;
   }
   
-  getExtractor(sourceType, document) {
+  getExtractor(sourceType: string, document: Document): BaseExtractor {
     switch (sourceType) {
       case 'notion':
         return new NotionExtractor(document);
@@ -101,31 +105,51 @@ class SourceManager {
 
 Each supported content source has its own extractor that knows how to parse content from that source. All extractors conform to a common interface.
 
-```javascript
-// src/models/extractors/baseExtractor.js
-class BaseExtractor {
-  constructor(document) {
+```typescript
+// src/models/extractors/baseExtractor.ts
+import { Slide } from '../../types';
+
+export abstract class BaseExtractor {
+  protected document: Document;
+
+  constructor(document: Document) {
+    if (new.target === BaseExtractor) {
+      throw new Error('BaseExtractor is an abstract class and cannot be instantiated directly');
+    }
+    
     this.document = document;
   }
   
-  extract() {
-    throw new Error('Extract method must be implemented by subclass');
+  abstract extract(): Slide[];
+  
+  // Other shared utility methods
+  protected validateContent(slides: Slide[]): boolean {
+    // Validate the extracted slides
+    return true;
   }
 }
 
-// src/models/extractors/notionExtractor.js
-class NotionExtractor extends BaseExtractor {
-  extract() {
+// src/models/extractors/notion/notionExtractor.ts
+import { BaseExtractor } from '../baseExtractor';
+import { Slide } from '../../../types';
+
+export class NotionExtractor extends BaseExtractor {
+  extract(): Slide[] {
     // Notion-specific extraction logic
     // Extract H1s, content between them, etc.
+    return [];
   }
 }
 
-// src/models/extractors/markdownExtractor.js
-class MarkdownExtractor extends BaseExtractor {
-  extract() {
+// src/models/extractors/markdown/markdownExtractor.ts
+import { BaseExtractor } from '../baseExtractor';
+import { Slide } from '../../../types';
+
+export class MarkdownExtractor extends BaseExtractor {
+  extract(): Slide[] {
     // Markdown-specific extraction logic
     // Parse markdown content and structure it into slides
+    return [];
   }
 }
 ```
@@ -134,17 +158,24 @@ class MarkdownExtractor extends BaseExtractor {
 
 The Content Processor normalizes content from different sources into a standard internal format. This ensures consistent processing regardless of the source.
 
-```javascript
-// src/models/contentProcessor.js
+```typescript
+// src/models/contentProcessor.ts
+import { Slide } from '../types';
+
 class ContentProcessor {
   constructor() {
     // Initialize processor
   }
   
-  process(rawContent) {
+  process(rawContent: Slide[]): Slide[] {
     // Process and normalize content into slides
     // Example: Convert all heading formats to a standard one
-    return normalizedSlides;
+    return this.normalizeSlides(rawContent);
+  }
+  
+  private normalizeSlides(slides: Slide[]): Slide[] {
+    // Apply standardization to all slides
+    return slides;
   }
 }
 ```
@@ -153,17 +184,57 @@ class ContentProcessor {
 
 The Storage Service handles persistence, using a dual-storage strategy with localStorage for small data and IndexedDB for larger presentations.
 
-```javascript
-// src/models/storage.js
+```typescript
+// src/models/storage.ts
+import { Slide, Settings } from '../types';
+
 class Storage {
-  async saveSlides(slides) {
+  private isServiceWorker: boolean;
+
+  constructor() {
+    // Detect if we're running in a service worker context (no window object)
+    this.isServiceWorker = typeof window === 'undefined' || 
+                       !!(typeof globalThis !== 'undefined' && 
+                          (globalThis as any).ServiceWorkerGlobalScope);
+  }
+
+  async saveSlides(slides: Slide[]): Promise<void> {
     // Save slides using appropriate storage
-    // Use localStorage for small data
+    // Use localStorage for small data in regular context
     // Use IndexedDB for larger presentations
+    // In service worker context, can't use localStorage
   }
   
-  async getSlides() {
-    // Retrieve slides
+  async getSlides(): Promise<Slide[]> {
+    // Retrieve slides based on environment
+    return [];
+  }
+  
+  getSettings(): Settings {
+    try {
+      if (this.isServiceWorker) {
+        // In service worker context, return default settings
+        return this.getDefaultSettings();
+      }
+      
+      // In regular context, use localStorage
+      return JSON.parse(localStorage.getItem('notionSlidesSettings') || '{}') as Settings;
+    } catch (error) {
+      console.error('Failed to get settings', error);
+      return {} as Settings;
+    }
+  }
+  
+  private getDefaultSettings(): Settings {
+    // Default settings for service worker context
+    return {
+      theme: "default",
+      transition: "slide",
+      slideNumber: false,
+      center: true,
+      debugLogging: false,
+      extractionTimeout: 30
+    };
   }
   
   // Other storage methods
@@ -174,20 +245,32 @@ class Storage {
 
 Controllers handle user interactions and coordinate the flow between UI and business logic.
 
-```javascript
-// src/controllers/contentController.js
+```typescript
+// src/controllers/contentController.ts
+import { SourceManager } from '../models/sourceManager';
+import { ContentProcessor } from '../models/contentProcessor';
+import { Storage } from '../models/storage';
+import { ErrorService } from '../services/ErrorService';
+import { Slide } from '../types';
+
+interface ExtractionResult {
+  slides?: Slide[];
+  sourceType?: string;
+  error?: string;
+}
+
 class ContentController {
   /**
    * Constructor with dependency injection
    */
-  constructor(sourceManager, contentProcessor, storage, errorService) {
-    this.sourceManager = sourceManager;
-    this.contentProcessor = contentProcessor;
-    this.storage = storage;
-    this.errorService = errorService;
-  }
+  constructor(
+    private sourceManager: SourceManager,
+    private contentProcessor: ContentProcessor,
+    private storage: Storage,
+    private errorService: ErrorService
+  ) {}
   
-  async extractContent(document, url) {
+  async extractContent(document: Document, url: string): Promise<ExtractionResult> {
     try {
       // Detect source type
       const sourceType = this.sourceManager.detectSource(document, url);
@@ -223,9 +306,16 @@ class ContentController {
 Domain models represent the core business entities and encapsulate both data and behavior.
 
 ```javascript
-// src/models/domain/Slide.js
+// src/models/domain/Slide.ts
+import { SlideMetadata } from './types';
+
 export class Slide {
-  constructor(data = {}) {
+  title: string;
+  content: string;
+  sourceType: string;
+  metadata?: SlideMetadata;
+  
+  constructor(data: Partial<Slide> = {}) {
     this.title = data.title || '';
     this.content = data.content || '';
     this.sourceType = data.sourceType || 'unknown';
@@ -233,17 +323,17 @@ export class Slide {
   }
   
   // Convert to markdown for presentation
-  toMarkdown() {
+  toMarkdown(): string {
     return `# ${this.title}\n\n${this.content}`;
   }
   
   // Validation logic
-  isValid() {
+  isValid(): boolean {
     return !!this.title.trim();
   }
   
   // Serialization for storage
-  toObject() {
+  toObject(): Record<string, unknown> {
     return {
       title: this.title,
       content: this.content,
@@ -259,15 +349,36 @@ export class Slide {
 The Logging Service provides centralized logging functionality with support for different log levels and storage of log entries.
 
 ```javascript
-// src/services/LoggingService.js
-export const LogLevel = {
-  DEBUG: 'debug',
-  INFO: 'info',
-  WARN: 'warn',
-  ERROR: 'error'
-};
+// src/services/LoggingService.ts
+export enum LogLevel {
+  DEBUG = 'debug',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error'
+}
+
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  data?: unknown;
+  stack?: string;
+  timestamp: string;
+}
+
+interface LoggingConfig {
+  debugEnabled?: boolean;
+  logLevel?: LogLevel;
+  storeDebugLogs?: boolean;
+  prefix?: string;
+}
 
 class LoggingService {
+  private _enabled: boolean;
+  private _debugEnabled: boolean;
+  private _logLevel: LogLevel;
+  private _prefix: string;
+  private _storeDebugLogs: boolean;
+  
   constructor() {
     this._enabled = true;
     this._debugEnabled = false;
@@ -277,21 +388,22 @@ class LoggingService {
   }
   
   // Initialize with configuration
-  initialize(config = {}) {
+  initialize(config: LoggingConfig = {}): void {
     if (typeof config.debugEnabled === 'boolean') this._debugEnabled = config.debugEnabled;
     if (config.logLevel) this._logLevel = config.logLevel;
-    // Other initialization...
+    if (typeof config.storeDebugLogs === 'boolean') this._storeDebugLogs = config.storeDebugLogs;
+    if (config.prefix) this._prefix = config.prefix;
   }
   
   // Log debug messages
-  debug(message, data) {
+  debug(message: string, data?: unknown): void {
     if (!this._enabled || !this._debugEnabled) return;
     
     this._log(LogLevel.DEBUG, message, data);
   }
   
   // Log error messages
-  error(message, error) {
+  error(message: string, error?: Error | unknown): void {
     if (!this._enabled) return;
     
     const fullMessage = `${this._prefix} ${message}`;
@@ -302,9 +414,14 @@ class LoggingService {
       level: LogLevel.ERROR,
       message: message,
       data: error ? (error instanceof Error ? error.message : error) : undefined,
-      stack: error && error.stack ? error.stack : undefined,
+      stack: error instanceof Error && error.stack ? error.stack : undefined,
       timestamp: new Date().toISOString()
     });
+  }
+  
+  // Private method to store logs
+  private _storeLog(entry: LogEntry): void {
+    // Implementation details for storing logs
   }
   
   // Additional methods for info, warn, etc.
@@ -316,34 +433,41 @@ class LoggingService {
 The DI container manages service instances and their dependencies, promoting loose coupling.
 
 ```javascript
-// src/services/DependencyContainer.js
+// src/services/DependencyContainer.ts
+export type ServiceInstance = any; // Flexible type for various service implementations
+
+export type FactoryFunction = (container: DependencyContainer) => ServiceInstance;
+
 class DependencyContainer {
+  private services: Map<string, ServiceInstance>;
+  private factories: Map<string, FactoryFunction>;
+  
   constructor() {
-    this.services = new Map();
-    this.factories = new Map();
+    this.services = new Map<string, ServiceInstance>();
+    this.factories = new Map<string, FactoryFunction>();
   }
   
   // Register a service instance
-  register(name, instance) {
+  register(name: string, instance: ServiceInstance): void {
     this.services.set(name, instance);
   }
   
   // Register a factory function
-  registerFactory(name, factory) {
+  registerFactory(name: string, factory: FactoryFunction): void {
     this.factories.set(name, factory);
   }
   
-  // Get service by name
-  get(name) {
+  // Get service by name with generic type parameter
+  get<T = ServiceInstance>(name: string): T {
     if (this.services.has(name)) {
-      return this.services.get(name);
+      return this.services.get(name) as T;
     }
     
     if (this.factories.has(name)) {
-      const factory = this.factories.get(name);
+      const factory = this.factories.get(name)!;
       const instance = factory(this);
       this.services.set(name, instance);
-      return instance;
+      return instance as T;
     }
     
     throw new Error(`Service "${name}" not found`);
@@ -355,54 +479,58 @@ class DependencyContainer {
 
 ```
 src/
-  ├── app.js                  # Application bootstrap and initialization
+  ├── app.ts                  # Application bootstrap and initialization
   ├── background/             # Background service worker
-  │   └── index.js            # Main entry point for the background script
+  │   └── index.ts            # Main entry point for the background script
   ├── common/                 # Shared utilities
-  │   ├── messaging.js        # Communication between components
-  │   └── utils.js            # Utility functions
+  │   ├── messaging.ts        # Communication between components
+  │   └── utils.ts            # Utility functions
   ├── content/                # Content script
-  │   └── entry.js            # Main entry point for content script
+  │   └── entry.ts            # Main entry point for content script
   ├── controllers/            # Controllers connecting models and views
-  │   ├── contentController.js # Content extraction orchestration
-  │   ├── navigation.js       # Navigation handling
+  │   ├── contentController.ts # Content extraction orchestration
+  │   ├── navigation.ts       # Navigation handling
   │   ├── popup/              # Popup UI controller
-  │   │   └── index.js        # Popup controller
+  │   │   └── index.ts        # Popup controller
   │   ├── settings/           # Settings UI controller
-  │   │   └── index.js        # Settings controller
+  │   │   └── index.ts        # Settings controller
   │   └── viewer/             # Viewer UI controller
-  │       └── index.js        # Viewer controller
+  │       └── index.ts        # Viewer controller
   ├── models/                 # Business logic and data models
-  │   ├── configManager.js    # Configuration management
-  │   ├── contentExtractor.js # Main content extraction logic
-  │   ├── contentProcessor.js # Content normalization and processing
+  │   ├── configManager.ts    # Configuration management
+  │   ├── contentExtractor.ts # Main content extraction logic
+  │   ├── contentProcessor.ts # Content normalization and processing
   │   ├── domain/             # Domain models
-  │   │   ├── Presentation.js # Presentation domain model
-  │   │   └── Slide.js        # Slide domain model
+  │   │   ├── Presentation.ts # Presentation domain model
+  │   │   ├── Slide.ts        # Slide domain model
+  │   │   └── types.ts        # Domain model type definitions
   │   ├── extractors/         # Content extractors
-  │   │   ├── baseExtractor.js       # Base extractor class
-  │   │   ├── index.js               # Extractor exports
+  │   │   ├── baseExtractor.ts       # Base extractor class
+  │   │   ├── index.ts               # Extractor exports
   │   │   ├── markdown/              # Markdown extractors
-  │   │   │   ├── index.js           # Markdown extractor exports
-  │   │   │   └── markdownExtractor.js # Markdown extraction
+  │   │   │   ├── index.ts           # Markdown extractor exports
+  │   │   │   └── markdownExtractor.ts # Markdown extraction
   │   │   └── notion/                # Notion extractors
-  │   │       ├── blockquoteExtractor.js # Blockquote extraction
-  │   │       ├── codeBlockExtractor.js  # Code block extraction
-  │   │       ├── headingExtractor.js    # Heading extraction
-  │   │       ├── imageExtractor.js      # Image extraction
-  │   │       ├── index.js               # Notion extractor exports
-  │   │       ├── listExtractor.js       # List extraction
-  │   │       ├── notionExtractor.js     # Notion extraction coordinator
-  │   │       ├── paragraphExtractor.js  # Paragraph extraction
-  │   │       └── tableExtractor.js      # Table extraction
-  │   ├── renderer.js         # Presentation rendering
-  │   ├── sourceManager.js    # Source type detection and management
-  │   └── storage.js          # Data persistence (IndexedDB/localStorage)
+  │   │       ├── blockquoteExtractor.ts # Blockquote extraction
+  │   │       ├── codeBlockExtractor.ts  # Code block extraction
+  │   │       ├── headingExtractor.ts    # Heading extraction
+  │   │       ├── imageExtractor.ts      # Image extraction
+  │   │       ├── index.ts               # Notion extractor exports
+  │   │       ├── listExtractor.ts       # List extraction
+  │   │       ├── notionExtractor.ts     # Notion extraction coordinator
+  │   │       ├── paragraphExtractor.ts  # Paragraph extraction
+  │   │       └── tableExtractor.ts      # Table extraction
+  │   ├── renderer.ts         # Presentation rendering
+  │   ├── sourceManager.ts    # Source type detection and management
+  │   └── storage.ts          # Data persistence (IndexedDB/localStorage)
   ├── services/               # Application services
-  │   ├── DependencyContainer.js # Dependency injection container
-  │   ├── ErrorService.js     # Centralized error handling
-  │   ├── LoggingService.js   # Centralized logging service
-  │   └── serviceRegistry.js  # Service registration
+  │   ├── DependencyContainer.ts # Dependency injection container
+  │   ├── ErrorService.ts     # Centralized error handling
+  │   ├── LoggingService.ts   # Centralized logging service
+  │   └── serviceRegistry.ts  # Service registration
+  ├── types/                  # TypeScript type definitions
+  │   ├── index.ts            # Shared type definitions
+  │   └── storage.ts          # Storage-specific type definitions
   ├── views/                  # HTML views
   │   ├── about.html          # About page
   │   ├── popup.html          # Popup UI
@@ -639,16 +767,18 @@ The following diagram shows the key domain models and their relationships:
 
 This architecture enables Notion Slides to support multiple content sources while maintaining a clean, modular, and extensible codebase. Key architectural benefits include:
 
-1. **Domain-Driven Design** - Clear domain objects (Slide, Presentation) encapsulate business rules and validation logic
-2. **Dependency Injection** - Components request dependencies through constructors rather than creating them directly
-3. **Strategy Pattern** - Content extractors share a common interface but implement source-specific parsing logic
-4. **Separation of Concerns** - Distinct layers for controllers, models, services, and rendering
-5. **Error Handling** - Centralized error management with the ErrorService
-6. **Configuration Management** - Unified configuration through the ConfigManager service
-7. **Centralized Logging** - Consistent logging through the LoggingService with support for different levels and storage
-8. **Comprehensive Testing** - Unit tests with Jest provide high code coverage for core components
+1. **TypeScript Integration** - Strong typing throughout the codebase for improved safety and developer experience
+2. **Domain-Driven Design** - Clear domain objects with TypeScript interfaces encapsulate business rules and validation logic
+3. **Dependency Injection** - Components request dependencies through type-safe constructors
+4. **Strategy Pattern** - Content extractors share a common abstract class and interfaces but implement source-specific parsing logic
+5. **Separation of Concerns** - Distinct layers for controllers, models, services, and rendering with appropriate interfaces
+6. **Error Handling** - Centralized error management with the ErrorService and proper error typing
+7. **Configuration Management** - Unified configuration through the ConfigManager service with typed configs
+8. **Centralized Logging** - Consistent logging through the LoggingService with type-safe logging methods and enums
+9. **Comprehensive Testing** - TypeScript-based unit tests with Jest provide high code coverage for core components
+10. **Service Worker Awareness** - Environment detection for cross-context compatibility (browser vs. service worker)
 
-By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked).
+By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked). The TypeScript integration ensures type safety across the entire codebase, reducing runtime errors and improving developer productivity.
 
 ## Testing Architecture
 
@@ -656,33 +786,37 @@ The project uses Jest as its testing framework with a focus on unit testing core
 
 ```
 tests/
-  ├── setup.js                # Test environment setup with global mocks
+  ├── setup.ts                # Test environment setup with global mocks
   ├── extractors/             # Tests for content extractors
-  │   ├── baseExtractor.test.js        # Tests for base extractor functionality
+  │   ├── baseExtractor.test.ts        # Tests for base extractor functionality
   │   └── notion/                      # Notion-specific extractor tests
-  │       ├── blockquoteExtractor.test.js  # Tests for blockquote extraction
-  │       ├── codeBlockExtractor.test.js   # Tests for code block extraction
-  │       ├── headingExtractor.test.js     # Tests for heading extraction
-  │       ├── imageExtractor.test.js       # Tests for image extraction
-  │       ├── listExtractor.test.js        # Tests for list extraction
-  │       ├── notionExtractor.test.js      # Tests for main Notion extractor
-  │       ├── paragraphExtractor.test.js   # Tests for paragraph extraction
-  │       └── tableExtractor.test.js       # Tests for table extraction
+  │       ├── blockquoteExtractor.test.ts  # Tests for blockquote extraction
+  │       ├── codeBlockExtractor.test.ts   # Tests for code block extraction
+  │       ├── headingExtractor.test.ts     # Tests for heading extraction
+  │       ├── imageExtractor.test.ts       # Tests for image extraction
+  │       ├── listExtractor.test.ts        # Tests for list extraction
+  │       ├── notionExtractor.test.ts      # Tests for main Notion extractor
+  │       ├── paragraphExtractor.test.ts   # Tests for paragraph extraction
+  │       └── tableExtractor.test.ts       # Tests for table extraction
   └── services/               # Tests for application services
       └── __mocks__/          # Service mocks for testing
-          └── LoggingService.js         # Mock for logging service
+          └── services.ts     # Type-safe mock services for testing
 ```
 
 ### Testing Strategy
 
 1. **JSDOM Integration**: Tests use JSDOM to simulate DOM manipulation without a browser
-2. **Mocking Services**: Core services are mocked to isolate components during testing
-3. **High Coverage**: Focus on high test coverage for extractors (>90%) as they contain core business logic
-4. **ES Module Support**: Configuration for testing ES modules with Jest
-5. **Test Isolation**: Each test file focuses on a specific component with proper setup and teardown
+2. **TypeScript Integration**: Tests are written in TypeScript with proper type definitions
+3. **Mocking Services**: Core services are mocked with type-safe implementations to isolate components during testing
+4. **High Coverage**: Focus on high test coverage for extractors (>90%) as they contain core business logic
+5. **ES Module Support**: Configuration for testing ES modules with TypeScript and Jest
+6. **Test Isolation**: Each test file focuses on a specific component with proper setup and teardown
+7. **Type Assertions**: Non-null assertions are used where appropriate to handle DOM element testing
+8. **Mock Type Safety**: Mock functions include proper TypeScript type definitions
 
 ### Running Tests
 
 - Use `npm test` to run the test suite
 - Use `npm test -- --coverage` to generate coverage reports
 - Use `npm test -- <pattern>` to run specific test files
+- Use `npm run tsc` to check TypeScript types before running tests

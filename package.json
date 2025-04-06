@@ -1,6 +1,6 @@
 {
   "name": "notion-slides",
-  "version": "1.3.0",
+  "version": "1.4.0-TS",
   "description": "Present your Notion pages as simple, elegant, and secure slides",
   "main": "src/background/index.ts",
   "type": "module",
