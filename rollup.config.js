@@ -62,7 +62,7 @@ const entries = [
   
   // Models and utilities
   {
-    input: 'src/models/storage.js',
+    input: 'src/models/storage.ts',
     output: {
       file: 'dist/models/storage.js',
       format: 'esm', // ESM for imports
@@ -76,14 +76,14 @@ const entries = [
     }
   },
   {
-    input: 'src/models/contentExtractor.js',
+    input: 'src/models/contentExtractor.ts',
     output: {
       file: 'dist/models/contentExtractor.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/sourceManager.js',
+    input: 'src/models/sourceManager.ts',
     output: {
       file: 'dist/models/sourceManager.js',
       format: 'esm',
@@ -97,7 +97,7 @@ const entries = [
     }
   },
   {
-    input: 'src/models/contentProcessor.js',
+    input: 'src/models/contentProcessor.ts',
     output: {
       file: 'dist/models/contentProcessor.js',
       format: 'esm',
@@ -134,7 +134,7 @@ const entries = [
     }
   },
   {
-    input: 'src/controllers/contentController.js',
+    input: 'src/controllers/contentController.ts',
     output: {
       file: 'dist/controllers/contentController.js',
       format: 'esm',
@@ -143,7 +143,7 @@ const entries = [
 ];
 
 // Base extractor - add separately
-const baseExtractor = 'src/models/extractors/baseExtractor.js';
+const baseExtractor = 'src/models/extractors/baseExtractor.ts';
 entries.push({
   input: baseExtractor,
   output: {
@@ -232,7 +232,7 @@ entries.push({
 });
 
 entries.push({
-  input: 'src/services/DependencyContainer.js',
+  input: 'src/services/DependencyContainer.ts',
   output: {
     file: 'dist/services/DependencyContainer.js',
     format: 'esm',
@@ -240,7 +240,7 @@ entries.push({
 });
 
 entries.push({
-  input: 'src/services/serviceRegistry.js',
+  input: 'src/services/serviceRegistry.ts',
   output: {
     file: 'dist/services/serviceRegistry.js',
     format: 'esm',
