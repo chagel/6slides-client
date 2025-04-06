@@ -6,7 +6,10 @@
 
 import { logDebug, logError } from '../common/utils.js';
 import { sourceManager } from '../models/sourceManager.js';
+import { contentProcessor } from '../models/contentProcessor.js';
 import { storage } from '../models/storage.js';
+import { Presentation } from '../models/domain/Presentation.js';
+import { errorService, ErrorTypes } from '../services/ErrorService.js';
 
 /**
  * Content Controller class
@@ -45,10 +48,10 @@ class ContentController {
       // Get appropriate extractor
       const extractor = sourceManager.getExtractor(sourceType, document);
       
-      // Extract content
-      let slides = extractor.extract();
+      // Extract raw content
+      const rawSlides = extractor.extract();
       
-      if (!slides || slides.length === 0) {
+      if (!rawSlides || rawSlides.length === 0) {
         return {
           error: 'No slides found. Make sure your page has at least one H1 heading.',
           sourceType
@@ -56,41 +59,46 @@ class ContentController {
       }
       
       // Ensure every slide has the source type
-      slides = slides.map(slide => ({
+      const slidesWithSourceType = rawSlides.map(slide => ({
         ...slide,
         sourceType: slide.sourceType || sourceType
       }));
       
-      logDebug(`Extracted ${slides.length} slides`);
+      // Process content to normalize it
+      const processedSlides = contentProcessor.process(slidesWithSourceType);
       
-      // Store slides
-      await storage.saveSlides(slides);
+      logDebug(`Extracted and processed ${processedSlides.length} slides`);
+      
+      // Create a domain presentation model
+      const presentation = Presentation.fromSlides(processedSlides, sourceType);
+      
+      // Store the presentation
+      await storage.saveSlides(presentation.toObject().slides);
       
       // Store debug info
       storage.saveDebugInfo({
         timestamp: new Date().toISOString(),
         sourceType,
         url,
-        slideCount: slides.length
+        slideCount: presentation.slideCount,
+        title: presentation.title
       });
       
       return {
-        slides,
+        slides: presentation.toObject().slides,
+        presentation,
         sourceType
       };
     } catch (error) {
-      logError('Error extracting content', error);
-      
-      // Store error info for debugging
-      storage.saveErrorInfo({
-        error: error.message,
-        stack: error.stack
+      // Use the error service to handle the error
+      return errorService.handleError(error, {
+        type: ErrorTypes.EXTRACTION,
+        context: 'content_extraction',
+        data: { url, sourceType }
       });
       
-      return {
-        error: `Error extracting content: ${error.message}`,
-        stack: error.stack
-      };
+      // The error service already logs and stores the error,
+      // so no need to duplicate that logic here
     }
   }
 }

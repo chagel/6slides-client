@@ -37,32 +37,40 @@ A Chrome extension that converts Notion pages to beautiful presentations using r
 
 ### Project Structure
 
-The project now uses a modular MVC architecture with Rollup bundling:
+The project uses a clean modular architecture with domain-driven design patterns:
 
 ```
 src/
-  ├── common/           # Shared utilities and services
+  ├── app.js            # Application bootstrap and initialization
+  ├── common/           # Shared utilities
   │   ├── utils.js      # Utility functions
-  │   └── messaging.js  # Communication between components
-  ├── models/           # Data and business logic 
-  │   ├── storage.js    # Data persistence (IndexedDB/localStorage)
-  │   ├── renderer.js   # Presentation rendering
-  │   ├── contentExtractor.js # Content extraction orchestration
-  │   └── extractors/   # Specialized content extractors
-  │       ├── baseExtractor.js
-  │       ├── headingExtractor.js
-  │       ├── listExtractor.js
-  │       └── codeBlockExtractor.js
-  ├── controllers/      # Controllers that connect models and views
-  │   ├── popup/        # Extension popup controller
-  │   ├── settings/     # Settings page controller
-  │   └── viewer/       # Presentation viewer controller
+  │   └── messaging.js  # Component communication
+  ├── models/           # Business logic and data models
+  │   ├── domain/       # Domain models
+  │   │   ├── Slide.js             # Slide domain model
+  │   │   └── Presentation.js      # Presentation domain model
+  │   ├── configManager.js         # Configuration management
+  │   ├── contentExtractor.js      # Content extraction coordination
+  │   ├── contentProcessor.js      # Content normalization
+  │   ├── renderer.js              # Presentation rendering
+  │   ├── sourceManager.js         # Source detection
+  │   ├── storage.js               # Data persistence
+  │   └── extractors/              # Specialized extractors
+  │       ├── baseExtractor.js     # Base extractor interface
+  │       ├── markdown/            # Markdown extractors
+  │       └── notion/              # Notion extractors
+  ├── services/         # Application services
+  │   ├── DependencyContainer.js   # Dependency injection
+  │   ├── ErrorService.js          # Centralized error handling
+  │   └── serviceRegistry.js       # Service registration
+  ├── controllers/      # Controllers connecting models and views
+  │   ├── contentController.js     # Content orchestration
+  │   ├── popup/                   # Extension popup controller
+  │   ├── settings/                # Settings controller
+  │   └── viewer/                  # Presentation viewer controller
   ├── views/            # HTML views
-  │   ├── popup.html    # Extension popup view
-  │   ├── settings.html # Settings page view
-  │   └── viewer.html   # Presentation viewer view
   ├── content/          # Content script
-  │   └── entry.js      # Consolidated content script
+  │   └── entry.js      # Content script entry point
   └── background/       # Background script
       └── index.js      # Service worker
 ```
@@ -111,6 +119,14 @@ The build process:
 - Add new entries to rollup.config.js if necessary
 
 ## Version History
+
+### Version 1.1.1
+- Implemented domain models for Slide and Presentation
+- Added content processing and normalization layer
+- Created centralized error handling with ErrorService
+- Implemented dependency injection with DependencyContainer
+- Added configuration management service
+- Improved architectural patterns following domain-driven design
 
 ### Version 1.1.0
 - Refactored codebase to use modular MVC architecture

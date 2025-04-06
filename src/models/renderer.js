@@ -6,6 +6,9 @@
 
 import { logDebug, logError } from '../common/utils.js';
 import { storage } from './storage.js';
+import { Presentation } from './domain/Presentation.js';
+import { configManager } from './configManager.js';
+import { errorService, ErrorTypes } from '../services/ErrorService.js';
 
 export class PresentationRenderer {
   /**
@@ -33,32 +36,48 @@ export class PresentationRenderer {
   async loadAndRender() {
     try {
       // Get slides from storage
-      const slides = await storage.getSlides();
+      const rawSlides = await storage.getSlides();
       
-      // Log the raw slides data from storage
-      console.log('==== RAW SLIDES FROM STORAGE ====');
-      console.log(JSON.stringify(slides, null, 2));
-      console.log('=================================');
+      // Log the raw slides data from storage (debug only)
+      if (configManager.getValue('debugLogging', false)) {
+        console.log('==== RAW SLIDES FROM STORAGE ====');
+        console.log(JSON.stringify(rawSlides, null, 2));
+        console.log('=================================');
+      }
       
-      // Get settings
-      const settings = storage.getSettings();
+      // Get settings from config manager
+      const settings = configManager.getPresentationSettings();
       
       // Check if we have slides
-      if (!Array.isArray(slides) || slides.length === 0) {
-        logError('No slides data found in storage');
+      if (!Array.isArray(rawSlides) || rawSlides.length === 0) {
+        errorService.trackError('No slides data found in storage', {
+          type: ErrorTypes.RENDERING,
+          context: 'presentation_loading'
+        });
         this.showNoSlidesMessage();
         return;
       }
       
-      logDebug(`Creating presentation with ${slides.length} slides`);
+      // Create a domain presentation model
+      const presentation = Presentation.fromSlides(rawSlides);
       
-      // Create slides from markdown content
-      slides.forEach(this.createMarkdownSlide.bind(this));
+      logDebug(`Creating presentation with ${presentation.slideCount} slides`);
+      
+      // Create slides from the presentation model
+      presentation.slides.forEach(slide => {
+        this.createMarkdownSlide(slide.toObject());
+      });
       
       // Initialize reveal.js
       this.initReveal(settings);
     } catch (error) {
-      logError('Error loading and rendering presentation', error);
+      // Use error service for consistent error handling
+      errorService.trackError(error, {
+        type: ErrorTypes.RENDERING,
+        context: 'presentation_rendering',
+        severity: 'error'
+      });
+      
       this.showErrorMessage(error.message);
     }
   }

@@ -7,6 +7,10 @@
 import { logDebug, logError } from '../common/utils.js';
 import { contentController } from '../controllers/contentController.js';
 
+// Import app initialization to ensure services are registered
+import '../app.js';
+import { getService } from '../services/DependencyContainer.js';
+
 /**
  * Extract content from the current page
  * @returns {Promise<Object[]>} - Array of slide objects
@@ -20,8 +24,11 @@ async function extractContent() {
     // This makes the extension more predictable for users
     localStorage.removeItem('slides');
 
+    // Get the content controller from the dependency container
+    const controller = getService('contentController');
+    
     // Use the content controller to extract content based on the page type
-    const result = await contentController.extractContent(document, url);
+    const result = await controller.extractContent(document, url);
     
     if (result.error) {
       return Promise.reject(new Error(result.error));

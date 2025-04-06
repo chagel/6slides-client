@@ -4,8 +4,10 @@
  * This script renders markdown content from Notion as slides using reveal.js.
  */
 
-import { logDebug, logError } from '../../common/utils.js';
+import { logDebug } from '../../common/utils.js';
 import { PresentationRenderer } from '../../models/renderer.js';
+import { configManager } from '../../models/configManager.js';
+import { errorService, ErrorTypes } from '../../services/ErrorService.js';
 
 /**
  * Initialize the viewer
@@ -21,9 +23,13 @@ function initialize() {
     try {
       logDebug('DOM content loaded, creating renderer');
       
+      // Get any renderer settings from the config manager
+      const settings = configManager.getPresentationSettings();
+      
       // Create and initialize the renderer
       const renderer = new PresentationRenderer({
-        containerId: 'slideContainer'
+        containerId: 'slideContainer',
+        ...settings
       });
       
       // Load and render slides
@@ -31,7 +37,13 @@ function initialize() {
       
       logDebug('Viewer initialization complete');
     } catch (error) {
-      logError('Error initializing viewer', error);
+      // Use error service for consistent error handling
+      errorService.trackError(error, {
+        type: ErrorTypes.UI,
+        context: 'viewer_initialization',
+        severity: 'error'
+      });
+      
       alert('Error: ' + (error.message || 'Failed to initialize slides'));
     }
   });

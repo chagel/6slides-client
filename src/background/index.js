@@ -4,8 +4,12 @@
  * Handles communication between popup and content scripts.
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { logDebug } from '../common/utils.js';
 import { addMessageListener } from '../common/messaging.js';
+import { errorService, ErrorTypes } from '../services/ErrorService.js';
+
+// Import app initialization
+import '../app.js';
 
 /**
  * Open the viewer in a new tab
