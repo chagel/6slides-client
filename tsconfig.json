@@ -12,7 +12,9 @@
     "sourceMap": true,
     "declaration": false,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "types": ["chrome"]
+    "types": ["chrome", "jest"],
+    "allowJs": true,
+    "checkJs": false
   },
   "include": ["src/**/*.ts", "src/**/*.js"],
   "exclude": ["node_modules", "dist", "backup"]

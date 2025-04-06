@@ -9,12 +9,14 @@
     "dev": "node build.js && chrome-extension-cli dev",
     "watch": "nodemon --watch src --watch rollup.config.js --exec \"npm run build\"",
     "rollup": "rollup -c",
-    "lint": "eslint src/**/*.js",
-    "lint:fix": "eslint src/**/*.js --fix",
+    "lint": "eslint src/**/*.{js,ts}",
+    "lint:fix": "eslint src/**/*.{js,ts} --fix",
     "clean": "rm -rf dist",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "tsc": "tsc --noEmit",
+    "tsc:watch": "tsc --noEmit --watch"
   },
   "keywords": [
     "notion",
@@ -30,8 +32,11 @@
     "@babel/preset-modules": "^0.1.6",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@types/chrome": "^0.0.254",
     "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
     "babel-jest": "^29.7.0",
     "eslint": "^8.56.0",
     "glob": "^10.4.5",
@@ -40,6 +45,8 @@
     "jest-environment-node": "^29.7.0",
     "jest-transform-stub": "^2.0.0",
     "nodemon": "^3.0.1",
-    "rollup": "^4.39.0"
+    "rollup": "^4.39.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3"
   }
 }

@@ -1,5 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 import { globSync } from 'glob';
 import path from 'path';
 import fs from 'fs';
@@ -8,7 +9,7 @@ import fs from 'fs';
 const entries = [
   // Background script
   {
-    input: 'src/background/index.js',
+    input: 'src/background/index.ts', // Changed to .ts
     output: {
       file: 'dist/background/index.js',
       format: 'esm', // Service worker supports ES modules
@@ -129,9 +130,9 @@ entries.push({
 });
 
 // Add notion extractors
-const notionExtractors = globSync('src/models/extractors/notion/*.js', { ignore: 'src/models/extractors/notion/index.js' });
+const notionExtractors = globSync('src/models/extractors/notion/*.{js,ts}', { ignore: 'src/models/extractors/notion/index.{js,ts}' });
 notionExtractors.forEach(file => {
-  const name = path.basename(file);
+  const name = path.basename(file).replace('.ts', '.js');
   entries.push({
     input: file,
     output: {
@@ -143,7 +144,7 @@ notionExtractors.forEach(file => {
 
 // Add notion extractors index
 entries.push({
-  input: 'src/models/extractors/notion/index.js',
+  input: 'src/models/extractors/notion/index.ts',
   output: {
     file: 'dist/models/extractors/notion/index.js',
     format: 'esm',
@@ -151,9 +152,9 @@ entries.push({
 });
 
 // Add markdown extractors
-const markdownExtractors = globSync('src/models/extractors/markdown/*.js', { ignore: 'src/models/extractors/markdown/index.js' });
+const markdownExtractors = globSync('src/models/extractors/markdown/*.{js,ts}', { ignore: 'src/models/extractors/markdown/index.{js,ts}' });
 markdownExtractors.forEach(file => {
-  const name = path.basename(file);
+  const name = path.basename(file).replace('.ts', '.js');
   entries.push({
     input: file,
     output: {
@@ -165,7 +166,7 @@ markdownExtractors.forEach(file => {
 
 // Add markdown extractors index
 entries.push({
-  input: 'src/models/extractors/markdown/index.js',
+  input: 'src/models/extractors/markdown/index.ts',
   output: {
     file: 'dist/models/extractors/markdown/index.js',
     format: 'esm',
@@ -174,7 +175,7 @@ entries.push({
 
 // Separate entry for extractors index
 entries.push({
-  input: 'src/models/extractors/index.js',
+  input: 'src/models/extractors/index.ts',
   output: {
     file: 'dist/models/extractors/index.js',
     format: 'esm',
@@ -231,6 +232,10 @@ export default entries.map(entry => ({
   plugins: [
     resolve(), // Resolve node_modules
     commonjs(), // Convert CommonJS modules to ES6
+    typescript({
+      tsconfig: './tsconfig.json',
+      sourceMap: true,
+    }), // Transform TypeScript files
     {
       // Replace process.env.NODE_ENV with 'production' for production builds
       name: 'replace-env',
