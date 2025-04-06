@@ -1,3 +1,5 @@
+[![Run Tests](https://github.com/chagel/notion_slides/actions/workflows/tests.yml/badge.svg)](https://github.com/chagel/notion_slides/actions/workflows/tests.yml)
+
 # Notion Slides
 
 A Chrome extension that converts Notion pages to beautiful presentations using reveal.js.
