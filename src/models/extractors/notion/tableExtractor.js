@@ -116,6 +116,14 @@ export class TableExtractor extends BaseExtractor {
    * @returns {boolean} - True if element is a table
    */
   isTableElement(element) {
+    // First, check if this is a blockquote - if so, it's NOT a table
+    // This prevents blockquotes from being misidentified as tables
+    if (element.tagName === 'BLOCKQUOTE' || 
+        this.hasClass(element, 'notion-quote-block') ||
+        this.hasClass(element, 'notion-quote')) {
+      return false;
+    }
+    
     // Standard HTML table
     if (element.tagName === 'TABLE') {
       return true;

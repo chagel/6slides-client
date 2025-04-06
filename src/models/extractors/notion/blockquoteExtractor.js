@@ -24,7 +24,30 @@ export class BlockquoteExtractor extends BaseExtractor {
    * @returns {string} - Markdown blockquote
    */
   blockquoteToMarkdown(element) {
-    const lines = this.getElementText(element).split('\n');
+    let text = this.getElementText(element);
+    
+    // In case the blockquote contains div structure, check for child divs
+    // This helps with Notion's unique blockquote structure
+    if (element.children && element.children.length > 0) {
+      const childTexts = [];
+      
+      // Extract text from each child div
+      for (let i = 0; i < element.children.length; i++) {
+        const child = element.children[i];
+        const childText = this.getElementText(child);
+        if (childText.trim()) {
+          childTexts.push(childText.trim());
+        }
+      }
+      
+      // If we found text in child divs, use that instead
+      if (childTexts.length > 0) {
+        text = childTexts.join('\n');
+      }
+    }
+    
+    // Split by newline and format each line with blockquote marker
+    const lines = text.split('\n');
     const quotedLines = lines.map(line => `> ${line}`);
     return quotedLines.join('\n');
   }

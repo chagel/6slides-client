@@ -169,5 +169,43 @@ describe('NotionExtractor', () => {
       expect(content).toContain('Content after');
       expect(content).toContain('List item');
     });
+    
+    test('should correctly handle blockquotes with table-like structure', () => {
+      // Create test HTML with a table followed by a blockquote with div structure
+      document.body.innerHTML = `
+        <h1>Table and Blockquote Test</h1>
+        <table>
+          <tr><th>Header 1</th><th>Header 2</th></tr>
+          <tr><td>Data 1</td><td>Data 2</td></tr>
+        </table>
+        <div class="notion-quote-block">
+          <div>
+            <div>Quote line 1</div>
+            <div></div>
+          </div>
+          <div>
+            <div>Quote line 2</div>
+            <div></div>
+          </div>
+        </div>
+      `;
+      
+      // Check if the blockquote is correctly identified
+      const blockquote = document.querySelector('.notion-quote-block');
+      expect(extractor.blockquoteExtractor.isBlockquote(blockquote)).toBe(true);
+      
+      // This is the key test - ensure the blockquote is not mistaken for a table
+      expect(extractor.tableExtractor.isTableElement(blockquote)).toBe(false);
+      
+      // Check the extracted content
+      const slideBreak = document.querySelector('h1');
+      const content = extractor.getContentBetweenBreaks(slideBreak, null);
+      
+      // Verify both elements are formatted correctly
+      expect(content).toContain('| Header 1 | Header 2 |');
+      expect(content).toContain('| Data 1 | Data 2 |');
+      expect(content).toContain('> Quote line 1');
+      expect(content).toContain('> Quote line 2');
+    });
   });
 });
