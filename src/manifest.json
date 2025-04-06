@@ -46,7 +46,7 @@
         "models/*.js",
         "models/extractors/*.js",
         "common/*.js",
-        "_settings_cache.json"
+        "settings-cache.json"
       ],
       "matches": ["<all_urls>"]
     }

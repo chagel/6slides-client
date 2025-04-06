@@ -204,7 +204,7 @@ async function build() {
   };
   
   fs.writeFileSync(
-    path.join(DIST_DIR, '_settings_cache.json'), 
+    path.join(DIST_DIR, 'settings-cache.json'), 
     JSON.stringify(settingsCache, null, 2)
   );
   

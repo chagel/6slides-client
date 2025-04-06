@@ -168,7 +168,7 @@ class Storage {
         // This is not ideal but necessary for startup flow
         let settings = {};
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', chrome.runtime.getURL('_settings_cache.json'), false); // Synchronous
+        xhr.open('GET', chrome.runtime.getURL('settings-cache.json'), false); // Synchronous
         xhr.send();
         
         if (xhr.status === 200) {
