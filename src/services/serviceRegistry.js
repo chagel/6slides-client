@@ -24,13 +24,18 @@ export function registerServices() {
   container.register('errorService', errorService);
   container.register('loggingService', loggingService);
   
-  // Initialize logging service
+  // Initialize loggingService (still used as a singleton through direct imports)
   loggingService.initialize({
     debugEnabled: false, // Will be updated from config later
     logLevel: 'info',
     prefix: '[Notion Slides]',
-    storeDebugLogs: true
+    storeDebugLogs: true,
+    logConsole: false, // Disable console logging by default
+    maxStoredLogs: 150 // Store more logs for better troubleshooting
   });
+  
+  // Initialize errorService
+  errorService.setTelemetryEnabled(false); // Disable until we have proper telemetry infrastructure
   
   // Register factory functions for services that need dependencies or delayed initialization
   container.registerFactory('contentController', (container) => {

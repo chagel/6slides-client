@@ -5,6 +5,8 @@
  */
 
 import { getService } from './services/DependencyContainer.js';
+import { loggingService } from './services/LoggingService.js';
+import { errorService } from './services/ErrorService.js';
 
 // Import to register all services
 import './services/serviceRegistry.js';
@@ -13,23 +15,42 @@ import './services/serviceRegistry.js';
  * Initialize the application
  */
 export async function initializeApp() {
-  // Get services from container
-  const loggingService = getService('loggingService');
-  
-  loggingService.debug('Initializing application');
+  // Initialize quietly - only log if debug is enabled later
+  // Debug logging is disabled by default at this point
   
   try {
-    // Get config manager and load settings
+    // Get services from container
     const configManager = getService('configManager');
+    
+    // Get configuration
     const config = configManager.getConfig();
     
-    // Set debug logging based on config
+    // Set debug logging and other service configurations based on config
     loggingService.setDebugLogging(config.debugLogging);
+    loggingService.setStoreDebugLogs(true); // Always store logs for now
     
-    loggingService.debug('Application initialized successfully');
+    // Set console logging from config or via explicit debug mode setting
+    if (config.logConsole !== undefined) {
+      loggingService.setConsoleLogging(config.logConsole);
+    } else {
+      loggingService.setConsoleLogging(config.debugLogging || false);
+    }
+    
+    // Log initialization success
+    loggingService.info('Application initialized successfully', {
+      version: '1.2.0',
+      debugMode: config.debugLogging
+    });
+    
     return true;
   } catch (error) {
-    loggingService.error('Failed to initialize application', error);
+    // Use the error service for application initialization errors
+    errorService.trackError(error, {
+      type: 'initialization',
+      severity: 'critical',
+      context: 'app_bootstrap'
+    });
+    
     return false;
   }
 }

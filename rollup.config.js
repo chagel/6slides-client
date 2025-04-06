@@ -89,6 +89,27 @@ const entries = [
     }
   },
   {
+    input: 'src/models/configManager.js',
+    output: {
+      file: 'dist/models/configManager.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/models/contentProcessor.js',
+    output: {
+      file: 'dist/models/contentProcessor.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/app.js',
+    output: {
+      file: 'dist/app.js',
+      format: 'esm',
+    }
+  },
+  {
     input: 'src/controllers/contentController.js',
     output: {
       file: 'dist/controllers/contentController.js',
@@ -162,17 +183,42 @@ entries.push({
 
 // Common utilities
 entries.push({
-  input: 'src/common/utils.js',
+  input: 'src/common/messaging.js',
   output: {
-    file: 'dist/common/utils.js',
+    file: 'dist/common/messaging.js',
+    format: 'esm',
+  }
+});
+
+// Services
+entries.push({
+  input: 'src/services/LoggingService.js',
+  output: {
+    file: 'dist/services/LoggingService.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/common/messaging.js',
+  input: 'src/services/ErrorService.js',
   output: {
-    file: 'dist/common/messaging.js',
+    file: 'dist/services/ErrorService.js',
+    format: 'esm',
+  }
+});
+
+entries.push({
+  input: 'src/services/DependencyContainer.js',
+  output: {
+    file: 'dist/services/DependencyContainer.js',
+    format: 'esm',
+  }
+});
+
+entries.push({
+  input: 'src/services/serviceRegistry.js',
+  output: {
+    file: 'dist/services/serviceRegistry.js',
     format: 'esm',
   }
 });
@@ -184,7 +230,14 @@ export default entries.map(entry => ({
   ...entry,
   plugins: [
     resolve(), // Resolve node_modules
-    commonjs() // Convert CommonJS modules to ES6
+    commonjs(), // Convert CommonJS modules to ES6
+    {
+      // Replace process.env.NODE_ENV with 'production' for production builds
+      name: 'replace-env',
+      transform(code) {
+        return code.replace(/process\.env\.NODE_ENV/g, JSON.stringify('production'));
+      }
+    }
   ],
   // Chrome extensions don't need external dependencies bundled
   external: ['chrome'],

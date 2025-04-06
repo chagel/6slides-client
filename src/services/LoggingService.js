@@ -1,7 +1,12 @@
 /**
  * Notion to Slides - Logging Service
  * 
- * Centralized logging functionality with support for different levels and destinations
+ * Centralized logging functionality with support for different levels and destinations.
+ * Provides core logging capabilities for the entire application.
+ * 
+ * Note: LoggingService is used as a singleton through direct imports throughout the
+ * codebase for simplicity. It provides fundamental logging capabilities that other
+ * components rely on.
  */
 
 import { storage } from '../models/storage.js';
@@ -21,13 +26,14 @@ export const LogLevel = {
  */
 class LoggingService {
   constructor() {
-    // Default configuration
-    this._enabled = true;
-    this._debugEnabled = false;
+    // Default configuration - all logging is silenced by default
+    this._enabled = true;       // Master switch for all logging
+    this._debugEnabled = false; // Debug-level logging
     this._logLevel = LogLevel.INFO;
     this._prefix = '[Notion Slides]';
     this._storeDebugLogs = false; // Whether to store debug logs in localStorage/IndexedDB
-    this._maxStoredLogs = 100; // Maximum number of logs to keep in storage
+    this._maxStoredLogs = 100;    // Maximum number of logs to keep in storage
+    this._logConsole = false;     // Console logging disabled by default for production
   }
 
   /**
@@ -38,6 +44,8 @@ class LoggingService {
    * @param {string} config.logLevel - Minimum log level to output
    * @param {string} config.prefix - Prefix for log messages
    * @param {boolean} config.storeDebugLogs - Whether to store logs in storage
+   * @param {boolean} config.logConsole - Whether to log to console
+   * @param {number} config.maxStoredLogs - Maximum number of logs to keep in storage
    */
   initialize(config = {}) {
     if (typeof config.enabled === 'boolean') this._enabled = config.enabled;
@@ -45,11 +53,15 @@ class LoggingService {
     if (config.logLevel) this._logLevel = config.logLevel;
     if (config.prefix) this._prefix = config.prefix;
     if (typeof config.storeDebugLogs === 'boolean') this._storeDebugLogs = config.storeDebugLogs;
+    if (typeof config.logConsole === 'boolean') this._logConsole = config.logConsole;
+    if (typeof config.maxStoredLogs === 'number') this._maxStoredLogs = config.maxStoredLogs;
     
-    // Log initialization
+    // The debug method has its own checks for debugEnabled and will not log if it's false
     this.debug('Logging service initialized', { 
       debugEnabled: this._debugEnabled,
-      logLevel: this._logLevel
+      logLevel: this._logLevel,
+      storeDebugLogs: this._storeDebugLogs,
+      logConsole: this._logConsole
     });
   }
 
@@ -59,6 +71,7 @@ class LoggingService {
    */
   setDebugLogging(enabled) {
     this._debugEnabled = enabled;
+    // The debug method itself checks if debugEnabled is true before logging
     this.debug(`Debug logging ${enabled ? 'enabled' : 'disabled'}`);
   }
 
@@ -71,6 +84,26 @@ class LoggingService {
   }
 
   /**
+   * Set whether to store debug logs
+   * @param {boolean} enabled - Whether to store debug logs
+   */
+  setStoreDebugLogs(enabled) {
+    this._storeDebugLogs = enabled;
+    this.debug(`Debug log storage ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Set the minimum log level
+   * @param {string} level - Log level from LogLevel
+   */
+  setLogLevel(level) {
+    if (Object.values(LogLevel).includes(level)) {
+      this._logLevel = level;
+      this.debug(`Log level set to ${level}`);
+    }
+  }
+
+  /**
    * Log a debug message
    * @param {string} message - Message to log
    * @param {any} data - Optional data to include
@@ -78,7 +111,7 @@ class LoggingService {
   debug(message, data) {
     if (!this._enabled || !this._debugEnabled) return;
     
-    this._log(LogLevel.DEBUG, message, data);
+    this._logMessage(LogLevel.DEBUG, message, data);
   }
 
   /**
@@ -91,7 +124,7 @@ class LoggingService {
       return;
     }
     
-    this._log(LogLevel.INFO, message, data);
+    this._logMessage(LogLevel.INFO, message, data);
   }
 
   /**
@@ -104,33 +137,29 @@ class LoggingService {
       return;
     }
     
-    this._log(LogLevel.WARN, message, data);
+    this._logMessage(LogLevel.WARN, message, data);
   }
 
   /**
    * Log an error message
    * @param {string} message - Error message
-   * @param {Error|any} error - Optional error object or data
+   * @param {Error|any} data - Optional error object or data
    */
-  error(message, error) {
+  error(message, data) {
     if (!this._enabled) return;
     
-    const fullMessage = `${this._prefix} ${message}`;
-    console.error(fullMessage, error || '');
+    // Extract error if it's in the data.error property (from ErrorService)
+    let error = data;
+    let metadata = undefined;
     
-    // Log stack trace if available
-    if (error && error.stack) {
-      console.error('Stack trace:', error.stack);
+    if (data && typeof data === 'object') {
+      if (data.error) {
+        error = data.error;
+        metadata = data.meta || {}; // Use provided metadata if available
+      }
     }
     
-    // Store error information if enabled
-    this._storeLog({
-      level: LogLevel.ERROR,
-      message: message,
-      data: error ? (error instanceof Error ? error.message : error) : undefined,
-      stack: error && error.stack ? error.stack : undefined,
-      timestamp: new Date().toISOString()
-    });
+    this._logMessage(LogLevel.ERROR, message, data, error, metadata);
   }
 
   /**
@@ -138,44 +167,187 @@ class LoggingService {
    * @param {string} level - Log level
    * @param {string} message - Message to log
    * @param {any} data - Optional data
+   * @param {Error} [error] - Optional error object 
+   * @param {Object} [metadata] - Optional metadata
    * @private
    */
-  _log(level, message, data) {
+  _logMessage(level, message, data, error, metadata) {
     const fullMessage = `${this._prefix} ${message}`;
+    const timestamp = new Date().toISOString();
     
-    switch (level) {
-      case LogLevel.DEBUG:
-        console.debug(fullMessage, data || '');
-        break;
-      case LogLevel.INFO:
-        console.info(fullMessage, data || '');
-        break;
-      case LogLevel.WARN:
-        console.warn(fullMessage, data || '');
-        break;
-      case LogLevel.ERROR:
-        console.error(fullMessage, data || '');
-        break;
-      default:
-        console.log(fullMessage, data || '');
+    // Log to console if enabled
+    if (this._logConsole) {
+      switch (level) {
+        case LogLevel.DEBUG:
+          console.debug(fullMessage, data || '');
+          break;
+        case LogLevel.INFO:
+          console.info(fullMessage, data || '');
+          break;
+        case LogLevel.WARN:
+          console.warn(fullMessage, data || '');
+          break;
+        case LogLevel.ERROR:
+          console.error(fullMessage, data || '');
+          
+          // Log stack trace for errors
+          if (error && error.stack) {
+            console.error('Stack trace:', error.stack);
+          }
+          break;
+        default:
+          console.log(fullMessage, data || '');
+      }
     }
     
-    // Store log if enabled
-    if (this._storeDebugLogs || level === LogLevel.ERROR) {
-      this._storeLog({
+    // Store log if enabled for this level
+    if (this._shouldStoreLog(level)) {
+      const logEntry = {
         level,
         message,
-        data: data instanceof Error ? data.message : data,
-        timestamp: new Date().toISOString()
-      });
+        timestamp
+      };
+      
+      // Extract error properties if available
+      if (error instanceof Error) {
+        logEntry.errorMessage = error.message;
+        logEntry.stack = error.stack;
+        
+        // Add any additional properties from the error
+        const errorProps = {};
+        for (const key in error) {
+          if (key !== 'message' && key !== 'stack') {
+            errorProps[key] = error[key];
+          }
+        }
+        
+        if (Object.keys(errorProps).length > 0) {
+          logEntry.errorProps = errorProps;
+        }
+      }
+      
+      // Add data if available (summarized to avoid large objects)
+      if (data !== undefined && data !== null) {
+        if (data !== error) { // Don't duplicate error data
+          logEntry.data = this._summarizeData(data);
+        }
+      }
+      
+      // Add metadata if available
+      if (metadata) {
+        logEntry.metadata = metadata;
+      }
+      
+      this._storeLog(logEntry);
     }
   }
 
   /**
-   * Store a log entry
-   * @param {Object} logEntry - Log entry to store
+   * Determine if this log level should be stored
+   * @param {string} level - Log level
+   * @returns {boolean} - Whether to store this log
    * @private
    */
+  _shouldStoreLog(level) {
+    // Always store errors
+    if (level === LogLevel.ERROR) {
+      return true;
+    }
+    
+    // For other levels, check if debug logs are enabled
+    return this._storeDebugLogs;
+  }
+
+  /**
+   * Summarize data to avoid storing large objects
+   * @param {any} data - Data to summarize
+   * @returns {any} - Summarized data
+   * @private
+   */
+  _summarizeData(data) {
+    if (data === null || data === undefined) {
+      return data;
+    }
+    
+    // Handle errors
+    if (data instanceof Error) {
+      return {
+        message: data.message,
+        name: data.name,
+        stack: data.stack
+      };
+    }
+    
+    // Handle arrays
+    if (Array.isArray(data)) {
+      if (data.length <= 5) {
+        return data.map(item => this._summarizeData(item));
+      }
+      return {
+        _summary: `Array with ${data.length} items`,
+        _sample: data.slice(0, 5).map(item => this._summarizeData(item))
+      };
+    }
+    
+    // Handle objects but avoid circular references
+    if (typeof data === 'object') {
+      // Don't process DOM elements or nodes - just indicate their type
+      if (typeof Node !== 'undefined' && data instanceof Node) {
+        return `[${data.nodeName || 'DOM Node'}]`;
+      }
+      
+      // Check for HTML elements specifically (safer cross-context check)
+      if (data && data.nodeType && data.nodeName) {
+        return `[${data.nodeName || 'DOM Element'}]`;
+      }
+      
+      // For other objects, extract key info
+      try {
+        const summary = {};
+        const keys = Object.keys(data);
+        
+        if (keys.length <= 10) {
+          // For small objects, include all properties (summarized)
+          for (const key of keys) {
+            if (typeof data[key] !== 'function') {
+              summary[key] = this._summarizeData(data[key]);
+            }
+          }
+        } else {
+          // For large objects, just summarize
+          summary._summary = `Object with ${keys.length} properties`;
+          summary._keys = keys.slice(0, 10);
+          summary._sample = {};
+          
+          // Include a few sample properties
+          for (const key of keys.slice(0, 5)) {
+            if (typeof data[key] !== 'function') {
+              summary._sample[key] = this._summarizeData(data[key]);
+            }
+          }
+        }
+        
+        return summary;
+      } catch (e) {
+        return '[Object]';
+      }
+    }
+    
+    // For primitive types, return as is
+    return data;
+  }
+
+  // No need for setStorageService as we're using direct import
+  
+  /**
+   * Set console logging enabled state
+   * @param {boolean} enabled - Whether to log to console
+   */
+  setConsoleLogging(enabled) {
+    this._logConsole = enabled;
+    this.debug(`Console logging ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
   _storeLog(logEntry) {
     try {
       const currentLogs = this._getStoredLogs();
@@ -186,11 +358,14 @@ class LoggingService {
         currentLogs.length = this._maxStoredLogs;
       }
       
-      // Save logs
+      // Save logs using storage service
       storage.saveDebugInfo({ logs: currentLogs });
     } catch (error) {
       // Don't use this.error to avoid potential infinite recursion
-      console.error(`${this._prefix} Failed to store log`, error);
+      // Only log critical errors when console is enabled
+      if (this._logConsole) {
+        console.error(`${this._prefix} Failed to store log`, error);
+      }
     }
   }
 
@@ -201,8 +376,9 @@ class LoggingService {
    */
   _getStoredLogs() {
     try {
-      const debugInfo = JSON.parse(localStorage.getItem('slideDebugInfo') || '{"logs":[]}');
-      return Array.isArray(debugInfo.logs) ? debugInfo.logs : [];
+      // Get debug info from storage
+      const debugInfo = storage.getDebugInfo();
+      return Array.isArray(debugInfo?.logs) ? debugInfo.logs : [];
     } catch (error) {
       return [];
     }
@@ -217,13 +393,52 @@ class LoggingService {
   }
 
   /**
+   * Get filtered logs by level and/or context
+   * @param {Object} options - Filter options
+   * @param {string} [options.level] - Log level to filter by
+   * @param {string} [options.context] - Context to filter by
+   * @param {number} [options.limit] - Maximum number of logs to return
+   * @returns {Array<Object>} Filtered log entries
+   */
+  getFilteredLogs(options = {}) {
+    const logs = this._getStoredLogs();
+    
+    // Apply filters
+    let filtered = logs;
+    
+    if (options.level) {
+      filtered = filtered.filter(log => log.level === options.level);
+    }
+    
+    if (options.context && filtered.length > 0) {
+      filtered = filtered.filter(log => {
+        // Check if context exists in metadata
+        return log.metadata && log.metadata.context === options.context;
+      });
+    }
+    
+    // Apply limit
+    if (options.limit && filtered.length > options.limit) {
+      filtered = filtered.slice(0, options.limit);
+    }
+    
+    return filtered;
+  }
+
+  /**
    * Clear stored logs
    */
   clearStoredLogs() {
     try {
+      // Clear logs in storage
       storage.saveDebugInfo({ logs: [] });
+      
+      this.debug('Debug logs cleared');
     } catch (error) {
-      console.error(`${this._prefix} Failed to clear logs`, error);
+      // Only log when console logging is enabled
+      if (this._logConsole) {
+        console.error(`${this._prefix} Failed to clear logs`, error);
+      }
     }
   }
 

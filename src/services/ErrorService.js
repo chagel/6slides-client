@@ -1,11 +1,11 @@
 /**
  * Notion to Slides - Error Service
  * 
- * Centralized error handling and reporting
+ * Centralized error handling and recovery strategies.
+ * Works together with LoggingService for actual logging operations.
  */
 
-import { loggingService } from './LoggingService.js';
-import { storage } from '../models/storage.js';
+import { loggingService, LogLevel } from './LoggingService.js';
 
 /**
  * Error types for categorization
@@ -20,19 +20,44 @@ export const ErrorTypes = {
 };
 
 /**
- * Error severities
+ * Error severities that map to logging levels
  */
 export const ErrorSeverity = {
-  INFO: 'info',
-  WARNING: 'warning',
-  ERROR: 'error',
-  CRITICAL: 'critical'
+  INFO: 'info',      // Maps to LogLevel.INFO
+  WARNING: 'warning', // Maps to LogLevel.WARN
+  ERROR: 'error',    // Maps to LogLevel.ERROR
+  CRITICAL: 'critical' // Maps to LogLevel.ERROR with special handling
 };
 
 /**
- * Error Service for centralized error handling
+ * Maps ErrorSeverity to LogLevel
+ * @private
+ */
+const SEVERITY_TO_LOG_LEVEL = {
+  [ErrorSeverity.INFO]: LogLevel.INFO,
+  [ErrorSeverity.WARNING]: LogLevel.WARN,
+  [ErrorSeverity.ERROR]: LogLevel.ERROR,
+  [ErrorSeverity.CRITICAL]: LogLevel.ERROR
+};
+
+/**
+ * Error Service for centralized error handling and recovery strategies
  */
 class ErrorService {
+  constructor() {
+    this._isTelemetryEnabled = false;
+    
+    loggingService.debug('ErrorService initialized');
+  }
+  
+  /**
+   * Enable or disable error telemetry
+   * @param {boolean} enabled - Whether to enable telemetry
+   */
+  setTelemetryEnabled(enabled) {
+    this._isTelemetryEnabled = enabled;
+  }
+  
   /**
    * Track an error
    * @param {Error|string} error - Error object or message
@@ -47,36 +72,58 @@ class ErrorService {
     const type = options.type || ErrorTypes.UNKNOWN;
     const severity = options.severity || ErrorSeverity.ERROR;
     const context = options.context || 'unknown';
+    const isCritical = severity === ErrorSeverity.CRITICAL;
     
-    // Log the error using LoggingService
-    loggingService.error(`[${severity.toUpperCase()}] [${type}] ${context}: ${errorObj.message}`, errorObj);
-    
-    // Store error info for debugging
-    this._storeError({
-      message: errorObj.message,
-      stack: errorObj.stack,
+    // Create error metadata
+    const errorMeta = {
       type,
       severity,
       context,
       timestamp: new Date().toISOString(),
       data: options.data || {}
-    });
+    };
     
-    // TODO: Add telemetry/reporting in the future
+    // Format error message
+    const formattedMessage = `[${type}] ${context}: ${errorObj.message}`;
+    
+    // Use the appropriate logging level based on severity
+    const logLevel = SEVERITY_TO_LOG_LEVEL[severity];
+    
+    switch (logLevel) {
+      case LogLevel.INFO:
+        loggingService.info(formattedMessage, { error: errorObj, meta: errorMeta });
+        break;
+      case LogLevel.WARN:
+        loggingService.warn(formattedMessage, { error: errorObj, meta: errorMeta });
+        break;
+      case LogLevel.ERROR:
+        // Add special handling for critical errors
+        if (isCritical) {
+          loggingService.error(`CRITICAL: ${formattedMessage}`, { error: errorObj, meta: errorMeta });
+        } else {
+          loggingService.error(formattedMessage, { error: errorObj, meta: errorMeta });
+        }
+        break;
+      default:
+        loggingService.error(formattedMessage, { error: errorObj, meta: errorMeta });
+    }
+    
+    // Send telemetry if enabled and if error is significant enough
+    if (this._isTelemetryEnabled && (severity === ErrorSeverity.ERROR || severity === ErrorSeverity.CRITICAL)) {
+      this._sendTelemetry(errorObj, errorMeta);
+    }
   }
   
   /**
-   * Store error information
-   * @param {Object} errorInfo - Error information
+   * Send telemetry data to error tracking service
+   * @param {Error} error - Error object
+   * @param {Object} meta - Error metadata
    * @private
    */
-  _storeError(errorInfo) {
-    try {
-      storage.saveErrorInfo(errorInfo);
-    } catch (storeError) {
-      // If storing the error fails, just log it
-      loggingService.error('Failed to store error info', storeError);
-    }
+  _sendTelemetry(error, meta) {
+    // Future implementation for remote error reporting
+    // This would integrate with an error tracking service
+    loggingService.debug('Error telemetry would be sent here', { error, meta });
   }
   
   /**
@@ -97,10 +144,14 @@ class ErrorService {
     // 1. Retry if a retry function is provided
     if (typeof options.onRetry === 'function') {
       try {
-        loggingService.debug(`Attempting retry for error: ${error instanceof Error ? error.message : error}`);
+        loggingService.debug(`Attempting recovery strategy: retry`, {
+          error: error instanceof Error ? error.message : error,
+          context: options.context
+        });
+        
         return await options.onRetry();
       } catch (retryError) {
-        // If retry fails, continue to fallback
+        // If retry fails, log it and continue to fallback
         this.trackError(retryError, { 
           ...options,
           context: `${options.context || 'unknown'}_retry_failed` 
@@ -111,7 +162,11 @@ class ErrorService {
     // 2. Use fallback if provided
     if (typeof options.onFallback === 'function') {
       try {
-        loggingService.debug(`Using fallback for error: ${error instanceof Error ? error.message : error}`);
+        loggingService.debug(`Attempting recovery strategy: fallback`, {
+          error: error instanceof Error ? error.message : error,
+          context: options.context
+        });
+        
         return await options.onFallback();
       } catch (fallbackError) {
         // If fallback fails too, give up
@@ -124,14 +179,32 @@ class ErrorService {
     
     // 3. Report error if a report callback is provided
     if (typeof options.onReport === 'function') {
-      options.onReport(error, options);
+      try {
+        options.onReport(error, options);
+      } catch (reportError) {
+        loggingService.error('Error in onReport callback', reportError);
+      }
     }
     
     // Return default error response
     return {
       success: false,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
+      type: options.type || ErrorTypes.UNKNOWN,
+      context: options.context || 'unknown'
     };
+  }
+  
+  /**
+   * Create a contextual error with additional metadata
+   * @param {string} message - Error message
+   * @param {Object} context - Context information
+   * @returns {Error} - Enhanced error object
+   */
+  createError(message, context = {}) {
+    const error = new Error(message);
+    error.context = context;
+    return error;
   }
 }
 

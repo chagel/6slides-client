@@ -76,7 +76,11 @@ function initNavigation() {
       settings.debugLogging = debugLoggingSelector.value;
       
       // Apply debug logging setting immediately
-      loggingService.setDebugLogging(debugLoggingSelector.value === 'true');
+      const debugEnabled = debugLoggingSelector.value === 'true';
+      loggingService.setDebugLogging(debugEnabled);
+      
+      // Also enable console logging if debug is enabled
+      loggingService.setConsoleLogging(debugEnabled);
     }
     
     await storage.saveSettings(settings);

@@ -116,7 +116,29 @@ class Storage {
     try {
       localStorage.setItem('slideDebugInfo', JSON.stringify(info));
     } catch (error) {
-      loggingService.error('Failed to save debug info', error);
+      // Don't use loggingService here to avoid circular dependency
+      // Log only in dev mode to avoid spam in console
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to save debug info', error);
+      }
+    }
+  }
+  
+  /**
+   * Get debug info
+   * @returns {Object} Debug info object
+   */
+  getDebugInfo() {
+    try {
+      const data = localStorage.getItem('slideDebugInfo');
+      return data ? JSON.parse(data) : { logs: [] };
+    } catch (error) {
+      // Don't use loggingService here to avoid circular dependency
+      // Log only in dev mode to avoid spam in console
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to get debug info', error);
+      }
+      return { logs: [] };
     }
   }
   

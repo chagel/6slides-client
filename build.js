@@ -67,6 +67,30 @@ function copyStaticFiles() {
     fs.copyFileSync(path.join(viewsDir, file), path.join(DIST_DIR, file));
   }
   
+  // Create directories for services
+  const servicesDestDir = path.join(DIST_DIR, 'services');
+  if (!fs.existsSync(servicesDestDir)) {
+    fs.mkdirSync(servicesDestDir, { recursive: true });
+  }
+  
+  // Create directories for models
+  const modelsDestDir = path.join(DIST_DIR, 'models');
+  if (!fs.existsSync(modelsDestDir)) {
+    fs.mkdirSync(modelsDestDir, { recursive: true });
+  }
+  
+  // Create directories for common
+  const commonDestDir = path.join(DIST_DIR, 'common');
+  if (!fs.existsSync(commonDestDir)) {
+    fs.mkdirSync(commonDestDir, { recursive: true });
+  }
+  
+  // Create directories for controllers
+  const controllersDestDir = path.join(DIST_DIR, 'controllers');
+  if (!fs.existsSync(controllersDestDir)) {
+    fs.mkdirSync(controllersDestDir, { recursive: true });
+  }
+  
   // Copy models/extractors - these will be imported by the bundled modules
   const extractorsDir = path.join(SRC_DIR, 'models', 'extractors');
   const extractorsDestDir = path.join(DIST_DIR, 'models', 'extractors');
@@ -88,21 +112,29 @@ function copyStaticFiles() {
 // Run rollup to bundle JavaScript modules
 function runRollup() {
   return new Promise((resolve, reject) => {
-    const rollup = spawn('npx', ['rollup', '-c']);
+    // Set NODE_ENV to production for the build
+    const env = { ...process.env, NODE_ENV: 'production' };
+    const rollup = spawn('npx', ['rollup', '-c'], { env });
+    
+    // Capture output but don't show it unless there's an error
+    let stdoutBuffer = '';
+    let stderrBuffer = '';
     
     rollup.stdout.on('data', (data) => {
-      console.log(`${data}`);
+      stdoutBuffer += data.toString();
     });
     
     rollup.stderr.on('data', (data) => {
-      console.error(`${data}`);
+      stderrBuffer += data.toString();
     });
     
     rollup.on('close', (code) => {
       if (code === 0) {
-        console.log('Rollup bundling complete');
         resolve();
       } else {
+        // Only show output on error
+        if (stdoutBuffer) console.log(stdoutBuffer);
+        if (stderrBuffer) console.error(stderrBuffer);
         console.error(`Rollup process exited with code ${code}`);
         reject(new Error(`Rollup failed with code ${code}`));
       }
@@ -145,7 +177,12 @@ function updateHtmlFiles() {
 
 // Main build function
 async function build() {
-  console.log('Building Notion Slides extension...');
+  // Use QUIET_BUILD=true for CI/production builds with no output
+  const quietBuild = process.env.QUIET_BUILD === 'true';
+  
+  if (!quietBuild) {
+    console.log('Building Notion Slides extension...');
+  }
   
   // Clean dist directory
   if (fs.existsSync(DIST_DIR)) {
@@ -163,7 +200,9 @@ async function build() {
     // Update HTML files to use bundled scripts
     updateHtmlFiles();
     
-    console.log('Build complete!');
+    if (!quietBuild) {
+      console.log('Build complete!');
+    }
   } catch (error) {
     console.error('Build failed:', error);
     process.exit(1);

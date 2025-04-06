@@ -39,11 +39,7 @@ export class PresentationRenderer {
       const rawSlides = await storage.getSlides();
       
       // Log the raw slides data from storage (debug only)
-      if (configManager.getValue('debugLogging', false)) {
-        console.log('==== RAW SLIDES FROM STORAGE ====');
-        console.log(JSON.stringify(rawSlides, null, 2));
-        console.log('=================================');
-      }
+      loggingService.debug('Raw slides loaded from storage', { rawSlides });
       
       // Get settings from config manager
       const settings = configManager.getPresentationSettings();
@@ -121,9 +117,10 @@ export class PresentationRenderer {
     const markdown = `# ${title}\n\n${content}`;
     
     // Log the exact markdown content being sent to reveal.js
-    console.log('==== MARKDOWN CONTENT PASSED TO REVEAL.JS ====');
-    console.log(markdown);
-    console.log('==============================================');
+    loggingService.debug('Markdown content for slide', { 
+      title,
+      content: markdown
+    });
     
     const section = document.createElement('section');
     section.setAttribute('data-markdown', '');
