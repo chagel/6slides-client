@@ -49,7 +49,7 @@ class ContentController {
       loggingService.debug('Extracting content from URL:', url);
       
       // Detect content source
-      let sourceType = sourceManager.detectSource(document, url);
+      const sourceType = sourceManager.detectSource(document, url);
       
       if (!sourceType) {
         return {

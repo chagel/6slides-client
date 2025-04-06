@@ -78,7 +78,7 @@ export class NotionExtractor extends BaseExtractor {
         const nextBreak = slideBreaks[i + 1];
         
         // Get slide title from the current break
-        let title = this.getElementText(currentBreak).trim();
+        const title = this.getElementText(currentBreak).trim();
         
         // Get content between current and next break
         let content = this.getContentBetweenBreaks(currentBreak, nextBreak);
