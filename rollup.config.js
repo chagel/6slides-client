@@ -1,5 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 import { globSync } from 'glob';
 import path from 'path';
 import fs from 'fs';
@@ -8,7 +9,7 @@ import fs from 'fs';
 const entries = [
   // Background script
   {
-    input: 'src/background/index.js',
+    input: 'src/background/index.ts', // Changed to .ts
     output: {
       file: 'dist/background/index.js',
       format: 'esm', // Service worker supports ES modules
@@ -17,7 +18,7 @@ const entries = [
   
   // Content script (consolidated)
   {
-    input: 'src/content/entry.js',
+    input: 'src/content/entry.ts',
     output: {
       file: 'dist/content/entry.js',
       format: 'iife', // Immediately invoked function for content script context
@@ -27,7 +28,7 @@ const entries = [
   
   // UI Controllers (popup, settings)
   {
-    input: 'src/controllers/popup/index.js',
+    input: 'src/controllers/popup/index.ts',
     output: {
       file: 'dist/controllers/popup/index.js', 
       format: 'iife', // Regular script for popup
@@ -35,7 +36,7 @@ const entries = [
     }
   },
   {
-    input: 'src/controllers/settings/index.js',
+    input: 'src/controllers/settings/index.ts',
     output: {
       file: 'dist/controllers/settings/index.js',
       format: 'iife', // Regular script for settings
@@ -43,7 +44,7 @@ const entries = [
     }
   },
   {
-    input: 'src/controllers/viewer/index.js',
+    input: 'src/controllers/viewer/index.ts',
     output: {
       file: 'dist/controllers/viewer/index.js',
       format: 'iife', // Regular script for viewer
@@ -51,7 +52,7 @@ const entries = [
     }
   },
   {
-    input: 'src/controllers/navigation.js',
+    input: 'src/controllers/navigation.ts',
     output: {
       file: 'dist/controllers/navigation.js',
       format: 'iife', // Regular script for navigation
@@ -61,56 +62,79 @@ const entries = [
   
   // Models and utilities
   {
-    input: 'src/models/storage.js',
+    input: 'src/models/storage.ts',
     output: {
       file: 'dist/models/storage.js',
       format: 'esm', // ESM for imports
     }
   },
   {
-    input: 'src/models/renderer.js',
+    input: 'src/models/renderer.ts',
     output: {
       file: 'dist/models/renderer.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/contentExtractor.js',
+    input: 'src/models/contentExtractor.ts',
     output: {
       file: 'dist/models/contentExtractor.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/sourceManager.js',
+    input: 'src/models/sourceManager.ts',
     output: {
       file: 'dist/models/sourceManager.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/configManager.js',
+    input: 'src/models/configManager.ts',
     output: {
       file: 'dist/models/configManager.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/contentProcessor.js',
+    input: 'src/models/contentProcessor.ts',
     output: {
       file: 'dist/models/contentProcessor.js',
       format: 'esm',
     }
   },
+  
+  // Domain models
   {
-    input: 'src/app.js',
+    input: 'src/models/domain/index.ts',
+    output: {
+      file: 'dist/models/domain/index.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/models/domain/Slide.ts',
+    output: {
+      file: 'dist/models/domain/Slide.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/models/domain/Presentation.ts',
+    output: {
+      file: 'dist/models/domain/Presentation.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/app.ts',
     output: {
       file: 'dist/app.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/controllers/contentController.js',
+    input: 'src/controllers/contentController.ts',
     output: {
       file: 'dist/controllers/contentController.js',
       format: 'esm',
@@ -119,7 +143,7 @@ const entries = [
 ];
 
 // Base extractor - add separately
-const baseExtractor = 'src/models/extractors/baseExtractor.js';
+const baseExtractor = 'src/models/extractors/baseExtractor.ts';
 entries.push({
   input: baseExtractor,
   output: {
@@ -129,9 +153,9 @@ entries.push({
 });
 
 // Add notion extractors
-const notionExtractors = globSync('src/models/extractors/notion/*.js', { ignore: 'src/models/extractors/notion/index.js' });
+const notionExtractors = globSync('src/models/extractors/notion/*.ts', { ignore: 'src/models/extractors/notion/index.ts' });
 notionExtractors.forEach(file => {
-  const name = path.basename(file);
+  const name = path.basename(file).replace('.ts', '.js');
   entries.push({
     input: file,
     output: {
@@ -143,7 +167,7 @@ notionExtractors.forEach(file => {
 
 // Add notion extractors index
 entries.push({
-  input: 'src/models/extractors/notion/index.js',
+  input: 'src/models/extractors/notion/index.ts',
   output: {
     file: 'dist/models/extractors/notion/index.js',
     format: 'esm',
@@ -151,9 +175,9 @@ entries.push({
 });
 
 // Add markdown extractors
-const markdownExtractors = globSync('src/models/extractors/markdown/*.js', { ignore: 'src/models/extractors/markdown/index.js' });
+const markdownExtractors = globSync('src/models/extractors/markdown/*.ts', { ignore: 'src/models/extractors/markdown/index.ts' });
 markdownExtractors.forEach(file => {
-  const name = path.basename(file);
+  const name = path.basename(file).replace('.ts', '.js');
   entries.push({
     input: file,
     output: {
@@ -165,7 +189,7 @@ markdownExtractors.forEach(file => {
 
 // Add markdown extractors index
 entries.push({
-  input: 'src/models/extractors/markdown/index.js',
+  input: 'src/models/extractors/markdown/index.ts',
   output: {
     file: 'dist/models/extractors/markdown/index.js',
     format: 'esm',
@@ -174,7 +198,7 @@ entries.push({
 
 // Separate entry for extractors index
 entries.push({
-  input: 'src/models/extractors/index.js',
+  input: 'src/models/extractors/index.ts',
   output: {
     file: 'dist/models/extractors/index.js',
     format: 'esm',
@@ -183,7 +207,7 @@ entries.push({
 
 // Common utilities
 entries.push({
-  input: 'src/common/messaging.js',
+  input: 'src/common/messaging.ts',
   output: {
     file: 'dist/common/messaging.js',
     format: 'esm',
@@ -192,7 +216,7 @@ entries.push({
 
 // Services
 entries.push({
-  input: 'src/services/LoggingService.js',
+  input: 'src/services/LoggingService.ts',
   output: {
     file: 'dist/services/LoggingService.js',
     format: 'esm',
@@ -200,7 +224,7 @@ entries.push({
 });
 
 entries.push({
-  input: 'src/services/ErrorService.js',
+  input: 'src/services/ErrorService.ts',
   output: {
     file: 'dist/services/ErrorService.js',
     format: 'esm',
@@ -208,7 +232,7 @@ entries.push({
 });
 
 entries.push({
-  input: 'src/services/DependencyContainer.js',
+  input: 'src/services/DependencyContainer.ts',
   output: {
     file: 'dist/services/DependencyContainer.js',
     format: 'esm',
@@ -216,7 +240,7 @@ entries.push({
 });
 
 entries.push({
-  input: 'src/services/serviceRegistry.js',
+  input: 'src/services/serviceRegistry.ts',
   output: {
     file: 'dist/services/serviceRegistry.js',
     format: 'esm',
@@ -231,6 +255,10 @@ export default entries.map(entry => ({
   plugins: [
     resolve(), // Resolve node_modules
     commonjs(), // Convert CommonJS modules to ES6
+    typescript({
+      tsconfig: './tsconfig.json',
+      sourceMap: true,
+    }), // Transform TypeScript files
     {
       // Replace process.env.NODE_ENV with 'production' for production builds
       name: 'replace-env',

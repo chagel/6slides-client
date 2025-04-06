@@ -1,0 +1,93 @@
+/**
+ * Notion to Slides - Paragraph Extractor
+ * 
+ * Extracts paragraph elements and converts them to markdown with formatting
+ */
+
+import { BaseExtractor } from '../baseExtractor';
+import { IParagraphExtractor } from './types';
+
+export class ParagraphExtractor extends BaseExtractor implements IParagraphExtractor {
+  /**
+   * Check if an element is a paragraph
+   * @param element - The element to check
+   * @returns True if the element is a paragraph
+   */
+  isParagraph(element: Element): boolean {
+    return element.tagName === 'P' || 
+           this.hasClass(element, 'notion-text-block') ||
+           this.hasClass(element, 'notion-text');
+  }
+  
+  /**
+   * Convert a paragraph to markdown with formatting
+   * @param element - The paragraph element
+   * @returns Markdown formatted paragraph
+   */
+  paragraphToMarkdown(element: Element): string {
+    let text = this.getElementText(element);
+    
+    if (!text.trim()) return '';
+    
+    // Process text formatting
+    
+    // Bold formatting
+    if (element.querySelector('strong, b')) {
+      const boldElements = element.querySelectorAll('strong, b');
+      boldElements.forEach(el => {
+        const boldText = el.textContent ? el.textContent.trim() : '';
+        if (boldText && text.includes(boldText)) {
+          text = text.replace(boldText, `**${boldText}**`);
+        }
+      });
+    }
+    
+    // Italic formatting
+    if (element.querySelector('em, i')) {
+      const italicElements = element.querySelectorAll('em, i');
+      italicElements.forEach(el => {
+        const italicText = el.textContent ? el.textContent.trim() : '';
+        if (italicText && text.includes(italicText)) {
+          text = text.replace(italicText, `*${italicText}*`);
+        }
+      });
+    }
+    
+    // Code/inline code formatting
+    if (element.querySelector('code')) {
+      const codeElements = element.querySelectorAll('code');
+      codeElements.forEach(el => {
+        const codeText = el.textContent ? el.textContent.trim() : '';
+        if (codeText && text.includes(codeText)) {
+          text = text.replace(codeText, `\`${codeText}\``);
+        }
+      });
+    }
+    
+    return text;
+  }
+  
+  /**
+   * Find all paragraphs in the document
+   * @returns Array of paragraph elements
+   */
+  extractParagraphs(): Element[] {
+    const htmlParagraphs = this.findElements('p');
+    const notionParagraphs = this.findElements('.notion-text-block, .notion-text');
+    
+    const allParagraphs = [...htmlParagraphs, ...notionParagraphs];
+    this.debug(`Found ${allParagraphs.length} paragraphs`);
+    
+    return allParagraphs;
+  }
+  
+  /**
+   * Extract method implementation
+   * @returns Array of slide objects (not used directly for this extractor)
+   */
+  extract() {
+    // This method is required by BaseExtractor but not directly used
+    // Paragraph extraction is typically part of a larger extraction process
+    return [];
+  }
+}

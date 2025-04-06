@@ -4,17 +4,35 @@
     "es2021": true,
     "webextensions": true
   },
-  "extends": "eslint:recommended",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2022,
-    "sourceType": "module"
+    "sourceType": "module",
+    "project": "./tsconfig.eslint.json"
   },
+  "plugins": ["@typescript-eslint"],
   "rules": {
-    "no-unused-vars": "warn",
-    "no-console": "off"
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "no-console": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-useless-escape": "warn"
   },
   "globals": {
     "Reveal": "readonly",
     "RevealMarkdown": "readonly"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ]
 }

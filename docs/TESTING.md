@@ -8,9 +8,9 @@ Notion Slides uses Jest as its primary testing framework, configured for ES modu
 
 ### Key Configuration Files
 
-- **jest.config.js**: Contains Jest configuration for ES modules, test environment, and path mappings
+- **jest.config.ts**: Contains Jest configuration for ES modules, TypeScript support, and path mappings
 - **babel.config.js**: Babel configuration for transpiling modern JavaScript in tests
-- **tests/setup.js**: Global test setup with mocks for core services
+- **tests/setup.ts**: Global test setup with mocks for core services and Chrome API
 
 ### Running Tests
 
@@ -19,13 +19,13 @@ Notion Slides uses Jest as its primary testing framework, configured for ES modu
 npm test
 
 # Run tests with coverage report
-npm test -- --coverage
+npm run test:coverage
 
 # Run specific test files
 npm test -- extractors/notion/headingExtractor.test.js
 
 # Run tests with watch mode (for development)
-npm test -- --watch
+npm run test:watch
 ```
 
 ## Test Structure
@@ -35,19 +35,19 @@ Tests are organized by component type and follow a hierarchical structure:
 ```
 tests/
   ├── extractors/             # Tests for content extraction components
-  │   ├── baseExtractor.test.js
+  │   ├── baseExtractor.test.js / .ts
   │   └── notion/             # Notion-specific extractors
-  │       ├── blockquoteExtractor.test.js
-  │       ├── codeBlockExtractor.test.js
-  │       ├── headingExtractor.test.js
-  │       ├── imageExtractor.test.js
-  │       ├── listExtractor.test.js
-  │       ├── notionExtractor.test.js
-  │       ├── paragraphExtractor.test.js
-  │       └── tableExtractor.test.js
-  └── services/               # Tests for application services
-      └── __mocks__/          # Service mocks
-          └── LoggingService.js
+  │       ├── blockquoteExtractor.test.js / .ts
+  │       ├── codeBlockExtractor.test.js / .ts
+  │       ├── headingExtractor.test.js / .ts
+  │       ├── imageExtractor.test.js / .ts
+  │       ├── listExtractor.test.js / .ts
+  │       ├── notionExtractor.test.js / .ts
+  │       ├── paragraphExtractor.test.js / .ts
+  │       └── tableExtractor.test.js / .ts
+  ├── mocks/                  # Mock implementations
+  │   └── services.ts         # Mock services for testing
+  └── setup.ts                # Global test setup
 ```
 
 ### Test File Structure
@@ -62,21 +62,22 @@ Each test file follows a consistent pattern:
 
 Example:
 
-```javascript
+```typescript
 /**
  * Tests for Component X
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { ComponentX } from '../path/to/component.js';
-import { dependencyY } from '../path/to/dependency.js';
+import { ComponentX } from '../path/to/component';
+import { dependencyY } from '../path/to/dependency';
+import { SomeType } from '../path/to/types';
 
 // Optional: Mock dependencies
-jest.mock('../path/to/dependency.js');
+jest.mock('../path/to/dependency');
 
 describe('ComponentX', () => {
   // Setup and teardown
-  let component;
+  let component: ComponentX;
   
   beforeEach(() => {
     // Reset state
@@ -87,10 +88,10 @@ describe('ComponentX', () => {
   describe('methodA', () => {
     test('should do X when Y', () => {
       // Arrange
-      const input = 'test';
+      const input: string = 'test';
       
       // Act
-      const result = component.methodA(input);
+      const result: SomeType = component.methodA(input);
       
       // Assert
       expect(result).toBe('expected output');
@@ -125,19 +126,33 @@ test('should create an element with correct text', () => {
 
 Core services are mocked to isolate components during testing:
 
-```javascript
-// Example mock file: src/services/__mocks__/LoggingService.js
+```typescript
+// Example mock file: src/services/__mocks__/LoggingService.ts
 import { jest } from '@jest/globals';
 
+// Define enum to match the real service
+export enum LogLevel {
+  DEBUG = 'debug',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error'
+}
+
+// Export mocked service with TypeScript type definitions
 export const loggingService = {
   debug: jest.fn(),
   info: jest.fn(),
   warn: jest.fn(),
-  error: jest.fn()
+  error: jest.fn(),
+  setDebugLogging: jest.fn(),
+  setLogLevel: jest.fn(),
+  isDebugLoggingEnabled: jest.fn().mockReturnValue(false),
+  getStoredLogs: jest.fn().mockReturnValue([]),
+  getFilteredLogs: jest.fn().mockReturnValue([])
 };
 
 // In test file:
-jest.mock('../services/LoggingService.js');
+jest.mock('../services/LoggingService');
 ```
 
 ### Testing Extractors
@@ -220,11 +235,61 @@ Testing ES modules requires special configuration:
 - Reset mocks between tests with `jest.resetAllMocks()`
 - Verify mocks were called with `expect(mockFn).toHaveBeenCalledWith(...)`
 
+## TypeScript Testing
+
+The project has been migrated to TypeScript, and the test suite has been updated to support TypeScript tests.
+
+### TypeScript Test Configuration
+
+- Tests are written in TypeScript with proper type definitions
+- Jest is configured with ts-jest to handle TypeScript files
+- Test files have both .js and .ts versions during the transition period
+- Currently Jest is configured to run .js test files while type issues in .ts files are being fixed
+
+### Writing TypeScript Tests
+
+When writing tests in TypeScript:
+
+1. **Add Type Annotations**: Add proper type annotations for all variables and function parameters
+2. **Import Types**: Import necessary type definitions 
+3. **Mock Types**: Ensure mocks have proper typings
+4. **Type Assertions**: Use type assertions when necessary with `as` syntax
+5. **Handle Non-Null Assertions**: Use optional chaining or proper null checks
+6. **TS-Ignore Comments**: Use `@ts-ignore` comments only when intentionally testing invalid inputs
+
+### Example with Type Annotations
+
+```typescript
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { HeadingExtractor } from '../../../src/models/extractors/notion/headingExtractor';
+import { Slide } from '../../../src/types';
+
+describe('HeadingExtractor', () => {
+  let extractor: HeadingExtractor;
+  let mockDocument: Document;
+  
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    mockDocument = document;
+    extractor = new HeadingExtractor(mockDocument);
+  });
+  
+  test('should convert heading to markdown', () => {
+    const h1 = document.createElement('h1');
+    h1.textContent = 'Test Heading';
+    
+    const markdown: string = extractor.headingToMarkdown(h1, 1);
+    expect(markdown).toBe('# Test Heading');
+  });
+});
+```
+
 ## Future Testing Improvements
 
-1. **Integration Tests**: Add integration tests for component interactions
-2. **End-to-End Tests**: Add E2E tests with Puppeteer or Playwright
-3. **Visual Regression Tests**: Add visual regression tests for UI components
-4. **Performance Tests**: Add performance benchmarks for critical paths
-5. **Markdown Extractor Tests**: Add tests for markdown extractors
-6. **Service Tests**: Add more thorough tests for application services
+1. **Complete TypeScript Test Migration**: Fix remaining type issues in TypeScript test files
+2. **Integration Tests**: Add integration tests for component interactions
+3. **End-to-End Tests**: Add E2E tests with Puppeteer or Playwright
+4. **Visual Regression Tests**: Add visual regression tests for UI components
+5. **Performance Tests**: Add performance benchmarks for critical paths
+6. **Markdown Extractor Tests**: Add tests for markdown extractors
+7. **Service Tests**: Add more thorough tests for application services
