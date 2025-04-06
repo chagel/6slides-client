@@ -6,9 +6,9 @@
 
 import { container } from './dependency_container';
 import { storage } from '../models/storage';
-import { sourceManager } from '../models/sourceManager';
-import { contentProcessor } from '../models/contentProcessor';
-import { configManager } from '../models/configManager';
+import { source_manager } from '../models/source_manager';
+import { content_processor } from '../models/content_processor';
+import { config_manager } from '../models/config_manager';
 import { errorService, ErrorTypes } from './error_service';
 import { loggingService, LogLevel } from './logging_service';
 import { messagingService } from './messaging_service';
@@ -28,9 +28,9 @@ interface LoggingOptions {
 export function registerServices(): void {
   // Register core services
   container.register('storage', storage);
-  container.register('sourceManager', sourceManager);
-  container.register('contentProcessor', contentProcessor);
-  container.register('configManager', configManager);
+  container.register('source_manager', source_manager);
+  container.register('content_processor', content_processor);
+  container.register('config_manager', config_manager);
   container.register('errorService', errorService);
   container.register('loggingService', loggingService);
   container.register('messagingService', messagingService);
@@ -49,14 +49,14 @@ export function registerServices(): void {
   errorService.setTelemetryEnabled(false); // Disable until we have proper telemetry infrastructure
   
   // Register factory functions for services that need dependencies or delayed initialization
-  container.registerFactory('contentController', (container) => {
+  container.registerFactory('content_controller', (container) => {
     // Import directly rather than dynamically to avoid build issues
     // In the future, we can use dynamic imports with proper bundling configuration
     return {
       // Just expose the functionality we need
       extractContent: async (document: Document, url: string) => {
-        const sourceManager = container.get('sourceManager');
-        const contentProcessor = container.get('contentProcessor');
+        const source_manager = container.get('source_manager');
+        const content_processor = container.get('content_processor');
         const storage = container.get('storage');
         const errorService = container.get('errorService');
         const loggingService = container.get('loggingService');
@@ -64,14 +64,14 @@ export function registerServices(): void {
         try {
           loggingService.debug('Extracting content', { url });
           
-          // Use sourceManager to get the appropriate extractor
-          const sourceType = sourceManager.detectSource(document, url);
+          // Use source_manager to get the appropriate extractor
+          const sourceType = source_manager.detectSource(document, url);
           if (!sourceType) {
             loggingService.warn('Unsupported content source', { url });
             return { error: 'Unsupported content source' };
           }
           
-          const extractor = sourceManager.getExtractor(sourceType, document);
+          const extractor = source_manager.getExtractor(sourceType, document);
           const rawSlides = extractor.extract();
           
           if (!rawSlides || rawSlides.length === 0) {
@@ -79,7 +79,7 @@ export function registerServices(): void {
             return { error: 'No slides found' };
           }
           
-          const processedSlides = contentProcessor.process(rawSlides);
+          const processedSlides = content_processor.process(rawSlides);
           await storage.saveSlides(processedSlides);
           
           loggingService.info('Content extraction successful', { 

@@ -4,11 +4,11 @@
  * Export all Notion-specific extractors
  */
 
-export { NotionExtractor } from './notionExtractor.js';
-export { HeadingExtractor } from './headingExtractor.js';
-export { ListExtractor } from './listExtractor.js';
-export { CodeBlockExtractor } from './codeBlockExtractor.js';
-export { TableExtractor } from './tableExtractor.js';
-export { BlockquoteExtractor } from './blockquoteExtractor.js';
-export { ParagraphExtractor } from './paragraphExtractor.js';
-export { ImageExtractor } from './imageExtractor.js';
+export { NotionExtractor } from './notion_extractor.js';
+export { HeadingExtractor } from './heading_extractor.js';
+export { ListExtractor } from './list_extractor.js';
+export { CodeBlockExtractor } from './code_block_extractor.js';
+export { TableExtractor } from './table_extractor.js';
+export { BlockquoteExtractor } from './blockquote_extractor.js';
+export { ParagraphExtractor } from './paragraph_extractor.js';
+export { ImageExtractor } from './image_extractor.js';

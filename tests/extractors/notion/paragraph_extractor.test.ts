@@ -3,7 +3,7 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { ParagraphExtractor } from '../../../src/models/extractors/notion/paragraphExtractor';
+import { ParagraphExtractor } from '../../../src/models/extractors/notion/paragraph_extractor';
 
 describe('ParagraphExtractor', () => {
   // Setup and teardown

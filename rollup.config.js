@@ -76,30 +76,30 @@ const entries = [
     }
   },
   {
-    input: 'src/models/contentExtractor.ts',
+    input: 'src/models/content_extractor.ts',
     output: {
-      file: 'dist/models/contentExtractor.js',
+      file: 'dist/models/content_extractor.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/sourceManager.ts',
+    input: 'src/models/source_manager.ts',
     output: {
-      file: 'dist/models/sourceManager.js',
+      file: 'dist/models/source_manager.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/configManager.ts',
+    input: 'src/models/config_manager.ts',
     output: {
-      file: 'dist/models/configManager.js',
+      file: 'dist/models/config_manager.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/contentProcessor.ts',
+    input: 'src/models/content_processor.ts',
     output: {
-      file: 'dist/models/contentProcessor.js',
+      file: 'dist/models/content_processor.js',
       format: 'esm',
     }
   },
@@ -113,34 +113,34 @@ const entries = [
     }
   },
   {
-    input: 'src/models/domain/Slide.ts',
+    input: 'src/models/domain/slide.ts',
     output: {
-      file: 'dist/models/domain/Slide.js',
+      file: 'dist/models/domain/slide.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/domain/Presentation.ts',
+    input: 'src/models/domain/presentation.ts',
     output: {
-      file: 'dist/models/domain/Presentation.js',
+      file: 'dist/models/domain/presentation.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/controllers/contentController.ts',
+    input: 'src/controllers/content_controller.ts',
     output: {
-      file: 'dist/controllers/contentController.js',
+      file: 'dist/controllers/content_controller.js',
       format: 'esm',
     }
   }
 ];
 
 // Base extractor - add separately
-const baseExtractor = 'src/models/extractors/baseExtractor.ts';
+const baseExtractor = 'src/models/extractors/base_extractor.ts';
 entries.push({
   input: baseExtractor,
   output: {
-    file: `dist/models/extractors/baseExtractor.js`,
+    file: `dist/models/extractors/base_extractor.js`,
     format: 'esm',
   }
 });

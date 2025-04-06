@@ -4,7 +4,7 @@
  * Base class for all content extractors
  */
 
-import { loggingService } from '../../services/LoggingService';
+import { loggingService } from '../../services/logging_service';
 import { Slide, ExtractorResult } from '../../types/index';
 
 /**

@@ -5,7 +5,7 @@
  */
 
 // Base extractor
-export { BaseExtractor } from './baseExtractor.js';
+export { BaseExtractor } from './base_extractor.js';
 
 // Notion extractors
 export { 

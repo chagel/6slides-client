@@ -75,7 +75,7 @@ The extension follows a Domain-Driven Design approach with clear separation of c
 The Content Source Manager serves as a factory that determines which extractor to use based on the current page. This is the key component enabling multi-source support.
 
 ```typescript
-// src/models/sourceManager.ts
+// src/models/source_manager.ts
 class SourceManager {
   detectSource(document: Document, url: string): string | null {
     if (url.includes('notion.so') || url.includes('notion.site')) {
@@ -106,7 +106,7 @@ class SourceManager {
 Each supported content source has its own extractor that knows how to parse content from that source. All extractors conform to a common interface.
 
 ```typescript
-// src/models/extractors/baseExtractor.ts
+// src/models/extractors/base_extractor.ts
 import { Slide } from '../../types';
 
 export abstract class BaseExtractor {
@@ -129,8 +129,8 @@ export abstract class BaseExtractor {
   }
 }
 
-// src/models/extractors/notion/notionExtractor.ts
-import { BaseExtractor } from '../baseExtractor';
+// src/models/extractors/notion/notion_extractor.ts
+import { BaseExtractor } from '../base_extractor';
 import { Slide } from '../../../types';
 
 export class NotionExtractor extends BaseExtractor {
@@ -141,8 +141,8 @@ export class NotionExtractor extends BaseExtractor {
   }
 }
 
-// src/models/extractors/markdown/markdownExtractor.ts
-import { BaseExtractor } from '../baseExtractor';
+// src/models/extractors/markdown/markdown_extractor.ts
+import { BaseExtractor } from '../base_extractor';
 import { Slide } from '../../../types';
 
 export class MarkdownExtractor extends BaseExtractor {
@@ -484,7 +484,7 @@ src/
   │   ├── messaging.ts        # Communication between components
   │   └── utils.ts            # Utility functions
   ├── controllers/            # Controllers connecting models and views
-  │   ├── contentController.ts # Content extraction orchestration
+  │   ├── content_controller.ts # Content extraction orchestration
   │   ├── navigation.ts       # Navigation handling
   │   ├── popup/              # Popup UI controller
   │   │   └── index.ts        # Popup controller
@@ -493,31 +493,31 @@ src/
   │   └── viewer/             # Viewer UI controller
   │       └── index.ts        # Viewer controller
   ├── models/                 # Business logic and data models
-  │   ├── configManager.ts    # Configuration management
-  │   ├── contentExtractor.ts # Main content extraction logic
-  │   ├── contentProcessor.ts # Content normalization and processing
+  │   ├── config_manager.ts   # Configuration management
+  │   ├── content_extractor.ts # Main content extraction logic
+  │   ├── content_processor.ts # Content normalization and processing
   │   ├── domain/             # Domain models
-  │   │   ├── Presentation.ts # Presentation domain model
-  │   │   ├── Slide.ts        # Slide domain model
+  │   │   ├── presentation.ts # Presentation domain model
+  │   │   ├── slide.ts        # Slide domain model
   │   │   └── types.ts        # Domain model type definitions
   │   ├── extractors/         # Content extractors
-  │   │   ├── baseExtractor.ts       # Base extractor class
+  │   │   ├── base_extractor.ts      # Base extractor class
   │   │   ├── index.ts               # Extractor exports
   │   │   ├── markdown/              # Markdown extractors
   │   │   │   ├── index.ts           # Markdown extractor exports
-  │   │   │   └── markdownExtractor.ts # Markdown extraction
+  │   │   │   └── markdown_extractor.ts # Markdown extraction
   │   │   └── notion/                # Notion extractors
-  │   │       ├── blockquoteExtractor.ts # Blockquote extraction
-  │   │       ├── codeBlockExtractor.ts  # Code block extraction
-  │   │       ├── headingExtractor.ts    # Heading extraction
-  │   │       ├── imageExtractor.ts      # Image extraction
+  │   │       ├── blockquote_extractor.ts # Blockquote extraction
+  │   │       ├── code_block_extractor.ts  # Code block extraction
+  │   │       ├── heading_extractor.ts    # Heading extraction
+  │   │       ├── image_extractor.ts      # Image extraction
   │   │       ├── index.ts               # Notion extractor exports
-  │   │       ├── listExtractor.ts       # List extraction
-  │   │       ├── notionExtractor.ts     # Notion extraction coordinator
-  │   │       ├── paragraphExtractor.ts  # Paragraph extraction
-  │   │       └── tableExtractor.ts      # Table extraction
+  │   │       ├── list_extractor.ts       # List extraction
+  │   │       ├── notion_extractor.ts     # Notion extraction coordinator
+  │   │       ├── paragraph_extractor.ts  # Paragraph extraction
+  │   │       └── table_extractor.ts      # Table extraction
   │   ├── renderer.ts         # Presentation rendering
-  │   ├── sourceManager.ts    # Source type detection and management
+  │   ├── source_manager.ts   # Source type detection and management
   │   └── storage.ts          # Data persistence (IndexedDB/localStorage)
   ├── services/               # Application services
   │   ├── dependency_container.ts # Dependency injection container

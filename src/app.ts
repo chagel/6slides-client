@@ -7,8 +7,8 @@
 import { getService } from './services/dependency_container';
 import { loggingService } from './services/logging_service';
 import { errorService, ErrorTypes, ErrorSeverity } from './services/error_service';
-import { configManager } from './models/configManager';
-import { ExtractionResult } from './controllers/contentController';
+import { config_manager } from './models/config_manager';
+import { ExtractionResult } from './controllers/content_controller';
 import { Slide } from './types/index';
 
 // Import to register all services
@@ -40,7 +40,7 @@ async function extractContent(): Promise<Slide[]> {
     }
 
     // Get the content controller from the dependency container
-    const controller = getService('contentController');
+    const controller = getService('content_controller');
     
     // Use the content controller to extract content based on the page type
     const result = await controller.extractContent(document, url) as ExtractionResult;
@@ -125,7 +125,7 @@ function setupContentScriptHandlers(): void {
 export async function initializeApp(): Promise<boolean> {
   try {
     // Get configuration
-    const config = configManager.getConfig();
+    const config = config_manager.getConfig();
     
     // Set debug logging and other service configurations based on config
     loggingService.setDebugLogging(config.debugLogging || false);

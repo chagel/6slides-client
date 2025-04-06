@@ -4,7 +4,7 @@
  * Extracts image elements and converts them to markdown
  */
 
-import { BaseExtractor } from '../baseExtractor';
+import { BaseExtractor } from '../base_extractor';
 import { IImageExtractor } from './types';
 
 export class ImageExtractor extends BaseExtractor implements IImageExtractor {

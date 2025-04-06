@@ -4,7 +4,7 @@
  * Handles the settings page functionality.
  */
 
-import { loggingService } from '../../services/LoggingService';
+import { loggingService } from '../../services/logging_service';
 import { storage } from '../../models/storage';
 import { Settings } from '../../types/storage';
 

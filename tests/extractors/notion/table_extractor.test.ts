@@ -3,8 +3,8 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { TableExtractor } from '../../../src/models/extractors/notion/tableExtractor';
-import { loggingService } from '../../../src/services/LoggingService';
+import { TableExtractor } from '../../../src/models/extractors/notion/table_extractor';
+import { loggingService } from '../../../src/services/logging_service';
 
 describe('TableExtractor', () => {
   // Setup and teardown

@@ -4,7 +4,7 @@
  * Centralized configuration management service
  */
 
-import { loggingService } from '../services/LoggingService';
+import { loggingService } from '../services/logging_service';
 import { storage } from './storage';
 
 /**
@@ -147,4 +147,4 @@ class ConfigManager {
 }
 
 // Export a singleton instance
-export const configManager = new ConfigManager();
+export const config_manager = new ConfigManager();

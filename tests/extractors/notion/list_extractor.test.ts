@@ -3,7 +3,7 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { ListExtractor } from '../../../src/models/extractors/notion/listExtractor';
+import { ListExtractor } from '../../../src/models/extractors/notion/list_extractor';
 
 describe('ListExtractor', () => {
   // Setup and teardown

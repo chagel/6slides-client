@@ -4,10 +4,10 @@
  * Detects and manages different content sources for extraction
  */
 
-import { loggingService } from '../services/LoggingService';
-import { NotionExtractor } from './extractors/notion/notionExtractor';
-import { MarkdownExtractor } from './extractors/markdown/markdownExtractor';
-import { BaseExtractor } from './extractors/baseExtractor';
+import { loggingService } from '../services/logging_service';
+import { NotionExtractor } from './extractors/notion/notion_extractor';
+import { MarkdownExtractor } from './extractors/markdown/markdown_extractor';
+import { BaseExtractor } from './extractors/base_extractor';
 
 /**
  * Available content source types
@@ -99,4 +99,4 @@ class SourceManager {
 }
 
 // Export a singleton instance
-export const sourceManager = new SourceManager();
+export const source_manager = new SourceManager();

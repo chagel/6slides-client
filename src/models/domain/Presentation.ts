@@ -4,7 +4,7 @@
  * Represents a complete presentation with slides
  */
 
-import { Slide } from './Slide';
+import { Slide } from '../domain/slide';
 import { PresentationData, PresentationMetadata, SlideData } from './types';
 
 /**

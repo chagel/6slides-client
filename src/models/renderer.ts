@@ -4,11 +4,11 @@
  * Handles rendering slides with reveal.js
  */
 
-import { loggingService } from '../services/LoggingService';
+import { loggingService } from '../services/logging_service';
 import { storage } from './storage';
-import { Presentation } from './domain/Presentation';
-import { configManager } from './configManager';
-import { errorService, ErrorTypes, ErrorSeverity } from '../services/ErrorService';
+import { Presentation } from './domain/presentation';
+import { config_manager } from './config_manager';
+import { errorService, ErrorTypes, ErrorSeverity } from '../services/error_service';
 import { PresentationSettings } from './domain/types';
 import { Slide } from '../types/index';
 
@@ -71,7 +71,7 @@ export class PresentationRenderer {
       loggingService.debug('Raw slides loaded from storage', { rawSlides });
       
       // Get settings from config manager
-      const settings = configManager.getPresentationSettings();
+      const settings = config_manager.getPresentationSettings();
       
       // Check if we have slides
       if (!Array.isArray(rawSlides) || rawSlides.length === 0) {
