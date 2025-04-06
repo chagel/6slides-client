@@ -1,6 +1,6 @@
 # Notion Slides Architecture
 
-This document outlines the architecture of the Notion Slides Chrome extension, detailing how the system is structured to support multiple content sources and be extensible for future enhancements.
+This document outlines the architecture of the Notion Slides Chrome extension, detailing how the system is structured to support multiple content sources and be extensible for future enhancements. The architecture follows Domain-Driven Design principles with clear domain models, dependency injection, and a layered approach that separates concerns while maintaining flexibility.
 
 ## Business Requirements
 
@@ -19,49 +19,49 @@ This document outlines the architecture of the Notion Slides Chrome extension, d
 
 ## Architectural Overview
 
-The extension follows the Model-View-Controller (MVC) architecture with a focus on modularity and extensibility through the use of strategy and adapter patterns.
+The extension follows a Domain-Driven Design approach with clear separation of concerns, supported by dependency injection and the strategy pattern for extensibility.
 
 ```
-┌────────────────────────────────┐
-│           User Interface       │
-│  (popup.html, settings.html)   │
-└─────────────┬──────────────────┘
-              │
-              v
-┌────────────────────────────────┐
-│          Controllers           │
-│   (coordinate user actions)    │
-└─────────────┬──────────────────┘
-              │
-              v
-┌────────────────────────────────┐
-│     Content Source Manager     │◄────┐
-│  (determines content source)   │     │
-└─────────────┬──────────────────┘     │
-              │                         │
-              v                         │
-┌────────────────────────────────┐     │
-│      Content Extractors        │     │
-│ (source-specific extraction)   │     │
-└─────────────┬──────────────────┘     │
-              │                         │
-              v                         │
-┌────────────────────────────────┐     │
-│       Content Processor        │     │
-│   (normalizes all content)     │     │
-└─────────────┬──────────────────┘     │
-              │                         │
-              v                         │
-┌────────────────────────────────┐     │
-│         Slide Renderer         │     │
-│   (creates slide presentation) │     │
-└─────────────┬──────────────────┘     │
-              │                         │
-              v                         │
-┌────────────────────────────────┐     │
-│        Storage Service         │─────┘
-│  (saves slides & preferences)  │
-└────────────────────────────────┘
+┌─────────────────────────────────┐
+│        User Interface           │
+│ (popup.html, settings.html)     │
+└──────────────┬──────────────────┘
+               │
+               v
+┌──────────────┴──────────────────┐          ┌─────────────────────────────┐
+│          Controllers            │          │        Domain Models         │
+│     (coordinate user actions)   │◄─────────┤ (Slide, Presentation)        │
+└──────────────┬──────────────────┘          └─────────────────────────────┘
+               │                                         ▲
+               v                                         │
+┌──────────────┴──────────────────┐     Strategy   ┌─────┴─────────────────────┐
+│      Content Source Manager     │◄────Pattern────┤        Extractors          │
+│    (determines content source)  │◄─────┐         │ (source-specific parsing)  │
+└──────────────┬──────────────────┘      │         └─────────────────────────┬─┘
+               │                          │                                   │
+               v                          │                                   │
+┌──────────────┴──────────────────┐      │         ┌─────────────────────────┴─┐
+│       Content Processor         │      │         │     Error Service          │
+│     (normalizes all content)    │      │         │  (centralized handling)    │
+└──────────────┬──────────────────┘      │         └───────────────────────────┘
+               │                          │                     ▲
+               v                          │                     │
+┌──────────────┴──────────────────┐      │         ┌───────────┴───────────────┐
+│         Slide Renderer          │      │         │     Config Manager         │
+│    (creates presentation)       │      │         │ (centralized configuration)│
+└──────────────┬──────────────────┘      │         └───────────────────────────┘
+               │                          │                     ▲
+               v                          │                     │
+┌──────────────┴──────────────────┐      │         ┌───────────┴───────────────┐
+│        Storage Service          │──────┘         │  Dependency Container      │
+│  (saves slides & preferences)   │◄───────────────┤  (service locator/DI)      │
+└───────────────────────────────┬─┘                └───────────────────────────┘
+                                │     
+                                v
+┌─────────────────────────────────┐
+│     Persistence Layer            │
+│  (IndexedDB, localStorage)       │
+└─────────────────────────────────┘
 ```
 
 ## Key Components
@@ -177,79 +177,181 @@ Controllers handle user interactions and coordinate the flow between UI and busi
 ```javascript
 // src/controllers/contentController.js
 class ContentController {
-  constructor() {
-    this.sourceManager = new SourceManager();
-    this.contentProcessor = new ContentProcessor();
-    this.storage = new Storage();
+  /**
+   * Constructor with dependency injection
+   */
+  constructor(sourceManager, contentProcessor, storage, errorService) {
+    this.sourceManager = sourceManager;
+    this.contentProcessor = contentProcessor;
+    this.storage = storage;
+    this.errorService = errorService;
   }
   
   async extractContent(document, url) {
-    // Detect source type
-    const sourceType = this.sourceManager.detectSource(document, url);
-    if (!sourceType) {
-      throw new Error('Unsupported content source');
+    try {
+      // Detect source type
+      const sourceType = this.sourceManager.detectSource(document, url);
+      if (!sourceType) {
+        return { error: 'Unsupported content source' };
+      }
+      
+      // Get appropriate extractor
+      const extractor = this.sourceManager.getExtractor(sourceType, document);
+      
+      // Extract raw content
+      const rawSlides = extractor.extract();
+      
+      // Process and normalize content
+      const processedSlides = this.contentProcessor.process(rawSlides);
+      
+      // Save and return
+      await this.storage.saveSlides(processedSlides);
+      return { slides: processedSlides, sourceType };
+    } catch (error) {
+      // Centralized error handling
+      return this.errorService.handleError(error, {
+        type: 'extraction',
+        context: 'content_extraction'
+      });
     }
-    
-    // Get appropriate extractor
-    const extractor = this.sourceManager.getExtractor(sourceType, document);
-    
-    // Extract and process content
-    const rawContent = extractor.extract();
-    const slides = this.contentProcessor.process(rawContent);
-    
-    // Save and return
-    await this.storage.saveSlides(slides);
-    return slides;
   }
 }
 ```
 
-## Implementation Strategy
+### 6. Domain Models
 
-### Phase 1: Refactor Existing Notion Support
+Domain models represent the core business entities and encapsulate both data and behavior.
 
-1. Extract Notion-specific logic into dedicated extractors
-2. Implement the Source Manager
-3. Update the content script to use the new architecture
+```javascript
+// src/models/domain/Slide.js
+export class Slide {
+  constructor(data = {}) {
+    this.title = data.title || '';
+    this.content = data.content || '';
+    this.sourceType = data.sourceType || 'unknown';
+    this.metadata = data.metadata || {};
+  }
+  
+  // Convert to markdown for presentation
+  toMarkdown() {
+    return `# ${this.title}\n\n${this.content}`;
+  }
+  
+  // Validation logic
+  isValid() {
+    return !!this.title.trim();
+  }
+  
+  // Serialization for storage
+  toObject() {
+    return {
+      title: this.title,
+      content: this.content,
+      sourceType: this.sourceType,
+      metadata: { ...this.metadata }
+    };
+  }
+}
+```
 
-### Phase 2: Add Markdown Support
+### 7. Dependency Injection Container
 
-1. Implement the Markdown extractor
-2. Add content detection for Markdown files
-3. Test and refine the Markdown support
+The DI container manages service instances and their dependencies, promoting loose coupling.
 
-### Phase 3: Enhance for Scalability
-
-1. Improve the Source Manager to dynamically load extractors
-2. Create a plugin system for new content sources
-3. Add caching and performance optimizations
+```javascript
+// src/services/DependencyContainer.js
+class DependencyContainer {
+  constructor() {
+    this.services = new Map();
+    this.factories = new Map();
+  }
+  
+  // Register a service instance
+  register(name, instance) {
+    this.services.set(name, instance);
+  }
+  
+  // Register a factory function
+  registerFactory(name, factory) {
+    this.factories.set(name, factory);
+  }
+  
+  // Get service by name
+  get(name) {
+    if (this.services.has(name)) {
+      return this.services.get(name);
+    }
+    
+    if (this.factories.has(name)) {
+      const factory = this.factories.get(name);
+      const instance = factory(this);
+      this.services.set(name, instance);
+      return instance;
+    }
+    
+    throw new Error(`Service "${name}" not found`);
+  }
+}
+```
 
 ## File Structure
 
 ```
 src/
-  ├── common/           # Shared utilities and services
-  ├── models/           # Business logic 
-  │   ├── sourceManager.js        # Source detection and extractor factory
-  │   ├── contentProcessor.js     # Content normalization
-  │   ├── storage.js              # Data persistence
-  │   ├── renderer.js             # Presentation rendering
-  │   └── extractors/             # Source-specific extractors
-  │       ├── baseExtractor.js    # Base extractor interface
-  │       ├── notionExtractor.js  # Notion-specific extraction
-  │       ├── markdownExtractor.js # Markdown-specific extraction
-  │       └── components/         # Shared extraction components
-  │           ├── headingExtractor.js
-  │           ├── listExtractor.js
-  │           └── codeBlockExtractor.js
-  ├── controllers/      # Controllers connecting models and views
-  │   ├── contentController.js   # Content extraction orchestration
-  │   ├── popup/                 # Popup UI controller
-  │   ├── settings/              # Settings UI controller
-  │   └── viewer/                # Presentation viewer controller
-  ├── views/            # HTML views
-  ├── content/          # Content script for injection
-  └── background/       # Background service worker
+  ├── app.js                  # Application bootstrap and initialization
+  ├── background/             # Background service worker
+  │   └── index.js            # Main entry point for the background script
+  ├── common/                 # Shared utilities
+  │   ├── messaging.js        # Communication between components
+  │   └── utils.js            # Utility functions
+  ├── content/                # Content script
+  │   └── entry.js            # Main entry point for content script
+  ├── controllers/            # Controllers connecting models and views
+  │   ├── contentController.js # Content extraction orchestration
+  │   ├── navigation.js       # Navigation handling
+  │   ├── popup/              # Popup UI controller
+  │   │   └── index.js        # Popup controller
+  │   ├── settings/           # Settings UI controller
+  │   │   └── index.js        # Settings controller
+  │   └── viewer/             # Viewer UI controller
+  │       └── index.js        # Viewer controller
+  ├── models/                 # Business logic and data models
+  │   ├── configManager.js    # Configuration management
+  │   ├── contentExtractor.js # Main content extraction logic
+  │   ├── contentProcessor.js # Content normalization and processing
+  │   ├── domain/             # Domain models
+  │   │   ├── Presentation.js # Presentation domain model
+  │   │   └── Slide.js        # Slide domain model
+  │   ├── extractors/         # Content extractors
+  │   │   ├── baseExtractor.js       # Base extractor class
+  │   │   ├── index.js               # Extractor exports
+  │   │   ├── markdown/              # Markdown extractors
+  │   │   │   ├── index.js           # Markdown extractor exports
+  │   │   │   └── markdownExtractor.js # Markdown extraction
+  │   │   └── notion/                # Notion extractors
+  │   │       ├── blockquoteExtractor.js # Blockquote extraction
+  │   │       ├── codeBlockExtractor.js  # Code block extraction
+  │   │       ├── headingExtractor.js    # Heading extraction
+  │   │       ├── imageExtractor.js      # Image extraction
+  │   │       ├── index.js               # Notion extractor exports
+  │   │       ├── listExtractor.js       # List extraction
+  │   │       ├── notionExtractor.js     # Notion extraction coordinator
+  │   │       ├── paragraphExtractor.js  # Paragraph extraction
+  │   │       └── tableExtractor.js      # Table extraction
+  │   ├── renderer.js         # Presentation rendering
+  │   ├── sourceManager.js    # Source type detection and management
+  │   └── storage.js          # Data persistence (IndexedDB/localStorage)
+  ├── services/               # Application services
+  │   ├── DependencyContainer.js # Dependency injection container
+  │   ├── ErrorService.js     # Centralized error handling
+  │   └── serviceRegistry.js  # Service registration
+  ├── views/                  # HTML views
+  │   ├── about.html          # About page
+  │   ├── popup.html          # Popup UI
+  │   ├── settings.html       # Settings page
+  │   ├── sidebar-template.html # Sidebar template
+  │   └── viewer.html         # Presentation viewer
+  └── manifest.json           # Extension manifest
 ```
 
 ## Extension Points
@@ -269,6 +371,221 @@ The architecture supports extension in the following ways:
 4. **Collaboration Features**: Share and collaborate on presentations
 5. **Theming Engine**: More customization options for presentations
 
+## Sequence Flow
+
+The following sequence diagram illustrates the typical flow when a user creates a presentation from a Notion page:
+
+```
+┌─────────┐          ┌───────────┐          ┌────────────────┐          ┌──────────────┐          ┌────────────────┐          ┌──────────┐
+│  User   │          │  Popup    │          │ContentController│          │SourceManager │          │ Content        │          │ Storage  │
+│         │          │           │          │                │          │              │          │ Processor      │          │          │
+└────┬────┘          └─────┬─────┘          └───────┬────────┘          └──────┬───────┘          └───────┬────────┘          └────┬─────┘
+     │                      │                       │                          │                          │                          │
+     │  Click extension     │                       │                          │                          │                          │
+     │ ─────────────────────>                       │                          │                          │                          │
+     │                      │                       │                          │                          │                          │
+     │                      │    Extract content    │                          │                          │                          │
+     │                      │ ─────────────────────>│                          │                          │                          │
+     │                      │                       │                          │                          │                          │
+     │                      │                       │   Detect source type     │                          │                          │
+     │                      │                       │ ─────────────────────────>                          │                          │
+     │                      │                       │                          │                          │                          │
+     │                      │                       │   Return "notion"        │                          │                          │
+     │                      │                       │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                          │                          │
+     │                      │                       │                          │                          │                          │
+     │                      │                       │    Get extractor         │                          │                          │
+     │                      │                       │ ─────────────────────────>                          │                          │
+     │                      │                       │                          │                          │                          │
+     │                      │                       │  Return NotionExtractor  │                          │                          │
+     │                      │                       │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                          │                          │
+     │                      │                       │                          │                          │                          │
+     │                      │                       │      Extract content     │                          │                          │
+     │                      │                       │ ─────────────────────────────────────────────────────────────────────────────>│
+     │                      │                       │                          │                          │                          │
+     │                      │                       │     Raw slides data      │                          │                          │
+     │                      │                       │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+     │                      │                       │                          │                          │                          │
+     │                      │                       │      Process content     │                          │                          │
+     │                      │                       │ ─────────────────────────────────────────────────────>                          │
+     │                      │                       │                          │                          │                          │
+     │                      │                       │   Normalized slides      │                          │                          │
+     │                      │                       │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                          │
+     │                      │                       │                          │                          │                          │
+     │                      │                       │       Save slides        │                          │                          │
+     │                      │                       │ ─────────────────────────────────────────────────────────────────────────────>│
+     │                      │                       │                          │                          │                          │
+     │                      │                       │       Slides saved       │                          │                          │
+     │                      │                       │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+     │                      │                       │                          │                          │                          │
+     │                      │     Open viewer       │                          │                          │                          │
+     │                      │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│                          │                          │                          │
+     │                      │                       │                          │                          │                          │
+     │      Show slides     │                       │                          │                          │                          │
+     │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                       │                          │                          │                          │
+     │                      │                       │                          │                          │                          │
+┌────┴────┐          ┌─────┴─────┐          ┌───────┴────────┐          ┌──────┴───────┐          ┌───────┴────────┐          ┌────┴─────┐
+│  User   │          │  Popup    │          │ContentController│          │SourceManager │          │ Content        │          │ Storage  │
+│         │          │           │          │                │          │              │          │ Processor      │          │          │
+└─────────┘          └───────────┘          └────────────────┘          └──────────────┘          └────────────────┘          └──────────┘
+```
+
+## Viewing a Presentation Sequence
+
+Once the slides are saved, the viewing process follows this flow:
+
+```
+┌─────────┐          ┌────────────┐          ┌──────────────┐          ┌────────────┐          ┌────────────┐
+│  User   │          │   Viewer   │          │ Presentation  │          │ Storage    │          │ RevealJS   │
+│         │          │ Controller │          │ Renderer      │          │            │          │            │
+└────┬────┘          └─────┬──────┘          └──────┬───────┘          └─────┬──────┘          └─────┬──────┘
+     │                      │                       │                        │                        │
+     │     Open viewer      │                       │                        │                        │
+     │ ─────────────────────>                       │                        │                        │
+     │                      │                       │                        │                        │
+     │                      │   Initialize renderer │                        │                        │
+     │                      │ ─────────────────────>│                        │                        │
+     │                      │                       │                        │                        │
+     │                      │                       │    Load slides         │                        │
+     │                      │                       │ ───────────────────────>                        │
+     │                      │                       │                        │                        │
+     │                      │                       │  Return slides data    │                        │
+     │                      │                       │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                        │
+     │                      │                       │                        │                        │
+     │                      │                       │     Create slides      │                        │
+     │                      │                       │ ─────────────────────────────────────────────────>
+     │                      │                       │                        │                        │
+     │                      │                       │    Initialize slides   │                        │
+     │                      │                       │ ─────────────────────────────────────────────────>
+     │                      │                       │                        │                        │
+     │                      │                       │  Presentation ready    │                        │
+     │                      │                       │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+     │                      │                       │                        │                        │
+     │                      │   Rendering complete  │                        │                        │
+     │                      │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│                        │                        │
+     │                      │                       │                        │                        │
+     │     Show slides      │                       │                        │                        │
+     │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                       │                        │                        │
+     │                      │                       │                        │                        │
+     │  Interact with       │                       │                        │                        │
+     │  presentation        │                       │                        │                        │
+     │ ─────────────────────────────────────────────────────────────────────────────────────────────>│
+     │                      │                       │                        │                        │
+     │  Update display      │                       │                        │                        │
+     │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+     │                      │                       │                        │                        │
+┌────┴────┐          ┌─────┴──────┐          ┌──────┴───────┐          ┌─────┴──────┐          ┌─────┴──────┐
+│  User   │          │   Viewer   │          │ Presentation  │          │ Storage    │          │ RevealJS   │
+│         │          │ Controller │          │ Renderer      │          │            │          │            │
+└─────────┘          └────────────┘          └──────────────┘          └────────────┘          └────────────┘
+```
+
+## Dependency Injection Flow
+
+The following diagram illustrates how the dependency injection system works in the application:
+
+```
+┌──────────┐          ┌─────────────────┐          ┌───────────────┐          ┌────────────────┐          ┌───────────────┐
+│   App    │          │ Dependency      │          │ Service       │          │ Content        │          │ Controller    │
+│ Bootstrap│          │ Container       │          │ Registry      │          │ Script         │          │ Components    │
+└────┬─────┘          └───────┬─────────┘          └───────┬───────┘          └────────┬───────┘          └───────┬───────┘
+     │                        │                            │                           │                          │
+     │     Initialize         │                            │                           │                          │
+     │ ─────────────────────>│                            │                           │                          │
+     │                        │                            │                           │                          │
+     │                        │     Register services      │                           │                          │
+     │                        │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─>│                           │                          │
+     │                        │                            │                           │                          │
+     │                        │        Register:           │                           │                          │
+     │                        │        - storage           │                           │                          │
+     │                        │        - configManager     │                           │                          │
+     │                        │        - sourceManager     │                           │                          │
+     │                        │        - errorService      │                           │                          │
+     │                        │        - contentProcessor  │                           │                          │
+     │                        │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                           │                          │
+     │                        │                            │                           │                          │
+     │     Ready              │                            │                           │                          │
+     │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                            │                           │                          │
+     │                        │                            │                           │                          │
+     │                        │                            │     Import app.js         │                          │
+     │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─>│                          │
+     │                        │                            │                           │                          │
+     │                        │        Get service         │                           │                          │
+     │                        │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘                          │
+     │                        │        (contentController) │                           │                          │
+     │                        │                            │                           │                          │
+     │                        │      Return service        │                           │                          │
+     │                        │ ─────────────────────────────────────────────────────>│                          │
+     │                        │                            │                           │                          │
+     │                        │                            │       Use service         │                          │
+     │                        │                            │      (extractContent)     │                          │
+     │                        │                            │ ─────────────────────────────────────────────────────>
+     │                        │                            │                           │                          │
+     │                        │        Get services        │                           │                          │
+     │                        │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+     │                        │        (storage,           │                           │                          │
+     │                        │        errorService)       │                           │                          │
+     │                        │                            │                           │                          │
+     │                        │      Return services       │                           │                          │
+     │                        │ ─────────────────────────────────────────────────────────────────────────────────>
+     │                        │                            │                           │                          │
+┌────┴─────┐          ┌───────┴─────────┐          ┌───────┴───────┐          ┌────────┴───────┐          ┌───────┴───────┐
+│   App    │          │ Dependency      │          │ Service       │          │ Content        │          │ Controller    │
+│ Bootstrap│          │ Container       │          │ Registry      │          │ Script         │          │ Components    │
+└──────────┘          └─────────────────┘          └───────────────┘          └────────────────┘          └───────────────┘
+```
+
+## Domain Model
+
+The following diagram shows the key domain models and their relationships:
+
+```
+┌────────────────┐     contains     ┌──────────────┐
+│                │◄───────────────────             │
+│  Presentation  │                  │    Slide     │
+│                │                  │              │
+└───────┬────────┘                  └──────┬───────┘
+        │                                  │
+        │ has                              │ has
+        │                                  │
+        ▼                                  ▼
+┌────────────────┐                ┌──────────────┐
+│   Source Type  │                │   Content    │
+│  (notion, md)  │                │  (markdown)  │
+└────────────────┘                └──────────────┘
+
+
+┌─────────────────────────────────────────────────┐
+│                                                 │
+│                  ContentProcessor               │
+│                                                 │
+└─────────────┬───────────────────────────────────┘
+              │
+              │ processes
+              │
+              ▼
+┌─────────────────────┐     creates     ┌───────────────────┐
+│                     │────────────────►│                   │
+│     Raw Content     │                 │  Normalized Slides │
+│                     │                 │                   │
+└─────────────────────┘                 └───────────────────┘
+
+
+┌─────────────────────┐     loads      ┌───────────────────┐
+│                     │◄───────────────┤                   │
+│  Storage Service    │                │ Persistence Layer │
+│                     │───────────────►│                   │
+└─────────────────────┘     saves      └───────────────────┘
+```
+
 ---
 
-This architecture enables Notion Slides to support multiple content sources while maintaining a clean, modular, and extensible codebase. The strategy and adapter patterns allow for easy addition of new content sources without significant changes to the core logic.
+This architecture enables Notion Slides to support multiple content sources while maintaining a clean, modular, and extensible codebase. Key architectural benefits include:
+
+1. **Domain-Driven Design** - Clear domain objects (Slide, Presentation) encapsulate business rules and validation logic
+2. **Dependency Injection** - Components request dependencies through constructors rather than creating them directly
+3. **Strategy Pattern** - Content extractors share a common interface but implement source-specific parsing logic
+4. **Separation of Concerns** - Distinct layers for controllers, models, services, and rendering
+5. **Error Handling** - Centralized error management with the ErrorService
+6. **Configuration Management** - Unified configuration through the ConfigManager service
+
+By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked).
