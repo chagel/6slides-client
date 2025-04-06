@@ -4,7 +4,7 @@
  * Normalizes content from different sources into a standard format
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 
 /**
  * Content Processor class
@@ -18,20 +18,20 @@ class ContentProcessor {
    */
   process(rawSlides) {
     try {
-      logDebug('Processing raw content', { slideCount: rawSlides.length });
+      loggingService.debug('Processing raw content', { slideCount: rawSlides.length });
       
       if (!Array.isArray(rawSlides) || rawSlides.length === 0) {
-        logError('No slides to process');
+        loggingService.error('No slides to process');
         return [];
       }
       
       // Normalize each slide
       const processedSlides = rawSlides.map(this.normalizeSlide);
       
-      logDebug('Content processing complete', { processedCount: processedSlides.length });
+      loggingService.debug('Content processing complete', { processedCount: processedSlides.length });
       return processedSlides;
     } catch (error) {
-      logError('Error processing content', error);
+      loggingService.error('Error processing content', error);
       return rawSlides; // Return original content on error
     }
   }

@@ -4,7 +4,7 @@
  * Handles the popup UI and initiates the content extraction process.
  */
 
-import { logDebug, logError } from '../../common/utils.js';
+import { loggingService } from '../../services/LoggingService.js';
 import { sendToContent, sendToBackground } from '../../common/messaging.js';
 import { storage } from '../../models/storage.js';
 
@@ -59,7 +59,7 @@ class PopupController {
     const messageText = document.createTextNode(message);
     this.statusEl.appendChild(messageText);
     
-    logDebug('Status updated', { message, statusType });
+    loggingService.debug('Status updated', { message, statusType });
   }
   
   /**
@@ -79,7 +79,7 @@ class PopupController {
       
       return { compatible: false, tab };
     } catch (error) {
-      logError('Error checking if page is compatible', error);
+      loggingService.error('Error checking if page is compatible', error);
       return { compatible: false, error };
     }
   }
@@ -95,21 +95,21 @@ class PopupController {
       return new Promise((resolve) => {
         chrome.tabs.sendMessage(tab.id, { action: 'ping' }, response => {
           if (chrome.runtime.lastError || !response) {
-            logDebug('Content script not yet loaded, injecting...');
+            loggingService.debug('Content script not yet loaded, injecting...');
             
             // Script not loaded, try to inject it
             chrome.scripting.executeScript({
               target: { tabId: tab.id },
               files: ['content/entry.js']
             }).then(() => {
-              logDebug('Content script injected successfully');
+              loggingService.debug('Content script injected successfully');
               resolve(true);
             }).catch(err => {
-              logError('Failed to inject content script', err);
+              loggingService.error('Failed to inject content script', err);
               resolve(false);
             });
           } else {
-            logDebug('Content script already loaded');
+            loggingService.debug('Content script already loaded');
             resolve(true);
           }
         });
@@ -118,7 +118,7 @@ class PopupController {
         setTimeout(() => resolve(false), 1000);
       });
     } catch (error) {
-      logError('Error ensuring content script loaded', error);
+      loggingService.error('Error ensuring content script loaded', error);
       return false;
     }
   }
@@ -178,7 +178,7 @@ class PopupController {
         // Close the popup
         window.close();
       } else if (response && response.error) {
-        logError('Extraction error details', response);
+        loggingService.error('Extraction error details', response);
         this.updateStatus(`Error: ${response.error}`, 'not-ready');
         
         // Store error info for debugging
@@ -190,7 +190,7 @@ class PopupController {
         this.updateStatus('Error: No slides found. Make sure your page follows the template format and has at least one H1 heading.', 'not-ready');
       }
     } catch (error) {
-      logError('Error converting page', error);
+      loggingService.error('Error converting page', error);
       this.updateStatus(`Error: ${error.message}`, 'not-ready');
     } finally {
       this.convertBtn.disabled = false;
@@ -261,7 +261,7 @@ class PopupController {
         this.updateStatus('Ready! Ensure Notion page with required format.', 'ready');
       }
     } catch (error) {
-      logError('Error checking current page', error);
+      loggingService.error('Error checking current page', error);
       this.updateStatus('Error checking page status.', 'not-ready');
     }
   }
@@ -271,16 +271,16 @@ class PopupController {
  * Initialize the popup
  */
 function initialize() {
-  logDebug('Popup initializing');
+  loggingService.debug('Popup initializing');
   
   // Initialize when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     try {
       // Create popup controller
       const popupController = new PopupController();
-      logDebug('Popup initialization complete');
+      loggingService.debug('Popup initialization complete');
     } catch (error) {
-      logError('Error initializing popup', error);
+      loggingService.error('Error initializing popup', error);
     }
   });
 }

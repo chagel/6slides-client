@@ -4,7 +4,7 @@
  * Manages content extraction from various sources
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { sourceManager } from '../models/sourceManager.js';
 import { contentProcessor } from '../models/contentProcessor.js';
 import { storage } from '../models/storage.js';
@@ -31,7 +31,7 @@ class ContentController {
    */
   async extractContent(document, url) {
     try {
-      logDebug('Extracting content from URL:', url);
+      loggingService.debug('Extracting content from URL:', url);
       
       // Detect content source
       const sourceType = sourceManager.detectSource(document, url);
@@ -43,7 +43,7 @@ class ContentController {
         };
       }
       
-      logDebug(`Using extractor for source type: ${sourceType}`);
+      loggingService.debug(`Using extractor for source type: ${sourceType}`);
       
       // Get appropriate extractor
       const extractor = sourceManager.getExtractor(sourceType, document);
@@ -67,7 +67,7 @@ class ContentController {
       // Process content to normalize it
       const processedSlides = contentProcessor.process(slidesWithSourceType);
       
-      logDebug(`Extracted and processed ${processedSlides.length} slides`);
+      loggingService.debug(`Extracted and processed ${processedSlides.length} slides`);
       
       // Create a domain presentation model
       const presentation = Presentation.fromSlides(processedSlides, sourceType);

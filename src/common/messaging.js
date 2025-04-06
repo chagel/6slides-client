@@ -4,7 +4,7 @@
  * Handles communication between extension components
  */
 
-import { logDebug, logError } from './utils.js';
+import { loggingService } from '../services/LoggingService.js';
 
 /**
  * Send a message to the content script
@@ -17,7 +17,7 @@ export function sendToContent(tabId, message) {
     try {
       chrome.tabs.sendMessage(tabId, message, (response) => {
         if (chrome.runtime.lastError) {
-          logError('Error sending message to content script', chrome.runtime.lastError);
+          loggingService.error('Error sending message to content script', chrome.runtime.lastError);
           reject(chrome.runtime.lastError);
           return;
         }
@@ -30,7 +30,7 @@ export function sendToContent(tabId, message) {
         reject(new Error('Message timeout: No response from content script'));
       }, 10000); // 10 seconds timeout
     } catch (error) {
-      logError('Failed to send message to content script', error);
+      loggingService.error('Failed to send message to content script', error);
       reject(error);
     }
   });
@@ -46,7 +46,7 @@ export function sendToBackground(message) {
     try {
       chrome.runtime.sendMessage(message, (response) => {
         if (chrome.runtime.lastError) {
-          logError('Error sending message to background script', chrome.runtime.lastError);
+          loggingService.error('Error sending message to background script', chrome.runtime.lastError);
           reject(chrome.runtime.lastError);
           return;
         }
@@ -59,7 +59,7 @@ export function sendToBackground(message) {
         reject(new Error('Message timeout: No response from background script'));
       }, 5000); // 5 seconds timeout
     } catch (error) {
-      logError('Failed to send message to background script', error);
+      loggingService.error('Failed to send message to background script', error);
       reject(error);
     }
   });
@@ -81,7 +81,7 @@ export function addMessageListener(listener) {
         result
           .then(sendResponse)
           .catch(error => {
-            logError('Error in async message listener', error);
+            loggingService.error('Error in async message listener', error);
             sendResponse({ error: error.message });
           });
         
@@ -92,7 +92,7 @@ export function addMessageListener(listener) {
         return false;
       }
     } catch (error) {
-      logError('Error in message listener', error);
+      loggingService.error('Error in message listener', error);
       sendResponse({ error: error.message });
       return false;
     }

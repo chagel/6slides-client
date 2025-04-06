@@ -58,10 +58,10 @@ The extension follows a Domain-Driven Design approach with clear separation of c
 └───────────────────────────────┬─┘                └───────────────────────────┘
                                 │     
                                 v
-┌─────────────────────────────────┐
-│     Persistence Layer            │
-│  (IndexedDB, localStorage)       │
-└─────────────────────────────────┘
+┌─────────────────────────────────┐      ┌───────────────────────────┐
+│     Persistence Layer            │      │     Logging Service        │
+│  (IndexedDB, localStorage)       │      │  (centralized logging)     │
+└─────────────────────────────────┘      └───────────────────────────┘
 ```
 
 ## Key Components
@@ -254,7 +254,64 @@ export class Slide {
 }
 ```
 
-### 7. Dependency Injection Container
+### 7. Logging Service
+
+The Logging Service provides centralized logging functionality with support for different log levels and storage of log entries.
+
+```javascript
+// src/services/LoggingService.js
+export const LogLevel = {
+  DEBUG: 'debug',
+  INFO: 'info',
+  WARN: 'warn',
+  ERROR: 'error'
+};
+
+class LoggingService {
+  constructor() {
+    this._enabled = true;
+    this._debugEnabled = false;
+    this._logLevel = LogLevel.INFO;
+    this._prefix = '[Notion Slides]';
+    this._storeDebugLogs = false;
+  }
+  
+  // Initialize with configuration
+  initialize(config = {}) {
+    if (typeof config.debugEnabled === 'boolean') this._debugEnabled = config.debugEnabled;
+    if (config.logLevel) this._logLevel = config.logLevel;
+    // Other initialization...
+  }
+  
+  // Log debug messages
+  debug(message, data) {
+    if (!this._enabled || !this._debugEnabled) return;
+    
+    this._log(LogLevel.DEBUG, message, data);
+  }
+  
+  // Log error messages
+  error(message, error) {
+    if (!this._enabled) return;
+    
+    const fullMessage = `${this._prefix} ${message}`;
+    console.error(fullMessage, error || '');
+    
+    // Store error logs
+    this._storeLog({
+      level: LogLevel.ERROR,
+      message: message,
+      data: error ? (error instanceof Error ? error.message : error) : undefined,
+      stack: error && error.stack ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Additional methods for info, warn, etc.
+}
+```
+
+### 8. Dependency Injection Container
 
 The DI container manages service instances and their dependencies, promoting loose coupling.
 
@@ -344,6 +401,7 @@ src/
   ├── services/               # Application services
   │   ├── DependencyContainer.js # Dependency injection container
   │   ├── ErrorService.js     # Centralized error handling
+  │   ├── LoggingService.js   # Centralized logging service
   │   └── serviceRegistry.js  # Service registration
   ├── views/                  # HTML views
   │   ├── about.html          # About page
@@ -587,5 +645,6 @@ This architecture enables Notion Slides to support multiple content sources whil
 4. **Separation of Concerns** - Distinct layers for controllers, models, services, and rendering
 5. **Error Handling** - Centralized error management with the ErrorService
 6. **Configuration Management** - Unified configuration through the ConfigManager service
+7. **Centralized Logging** - Consistent logging through the LoggingService with support for different levels and storage
 
 By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked).

@@ -10,6 +10,7 @@ import { sourceManager } from '../models/sourceManager.js';
 import { contentProcessor } from '../models/contentProcessor.js';
 import { configManager } from '../models/configManager.js';
 import { errorService } from './ErrorService.js';
+import { loggingService } from './LoggingService.js';
 
 /**
  * Register all services with the DI container
@@ -21,6 +22,15 @@ export function registerServices() {
   container.register('contentProcessor', contentProcessor);
   container.register('configManager', configManager);
   container.register('errorService', errorService);
+  container.register('loggingService', loggingService);
+  
+  // Initialize logging service
+  loggingService.initialize({
+    debugEnabled: false, // Will be updated from config later
+    logLevel: 'info',
+    prefix: '[Notion Slides]',
+    storeDebugLogs: true
+  });
   
   // Register factory functions for services that need dependencies or delayed initialization
   container.registerFactory('contentController', (container) => {
@@ -33,11 +43,15 @@ export function registerServices() {
         const contentProcessor = container.get('contentProcessor');
         const storage = container.get('storage');
         const errorService = container.get('errorService');
+        const loggingService = container.get('loggingService');
         
         try {
+          loggingService.debug('Extracting content', { url });
+          
           // Use sourceManager to get the appropriate extractor
           const sourceType = sourceManager.detectSource(document, url);
           if (!sourceType) {
+            loggingService.warn('Unsupported content source', { url });
             return { error: 'Unsupported content source' };
           }
           
@@ -45,11 +59,17 @@ export function registerServices() {
           const rawSlides = extractor.extract();
           
           if (!rawSlides || rawSlides.length === 0) {
+            loggingService.warn('No slides found', { url, sourceType });
             return { error: 'No slides found' };
           }
           
           const processedSlides = contentProcessor.process(rawSlides);
           await storage.saveSlides(processedSlides);
+          
+          loggingService.info('Content extraction successful', { 
+            slideCount: processedSlides.length,
+            sourceType 
+          });
           
           return { slides: processedSlides, sourceType };
         } catch (error) {

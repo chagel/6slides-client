@@ -4,7 +4,7 @@
  * Handles the settings page functionality.
  */
 
-import { logDebug, logError } from '../../common/utils.js';
+import { loggingService } from '../../services/LoggingService.js';
 import { storage } from '../../models/storage.js';
 
 /**
@@ -58,9 +58,9 @@ class SettingsController {
       this.slideNumberSelector.value = settings.slideNumber || defaults.slideNumber;
       this.centerSelector.value = settings.center || defaults.center;
       
-      logDebug('Settings loaded', settings);
+      loggingService.debug('Settings loaded', settings);
     } catch (error) {
-      logError('Error loading settings', error);
+      loggingService.error('Error loading settings', error);
     }
   }
   
@@ -77,7 +77,7 @@ class SettingsController {
       };
       
       await storage.saveSettings(settings);
-      logDebug('Settings saved', settings);
+      loggingService.debug('Settings saved', settings);
       
       // Show feedback
       this.saveButton.textContent = 'Saved!';
@@ -89,7 +89,7 @@ class SettingsController {
         this.saveButton.style.backgroundColor = '#3F51B5';
       }, 1500);
     } catch (error) {
-      logError('Error saving settings', error);
+      loggingService.error('Error saving settings', error);
       
       // Show error feedback
       this.saveButton.textContent = 'Error!';
@@ -116,16 +116,16 @@ class SettingsController {
  * Initialize the settings page
  */
 function initialize() {
-  logDebug('Settings page initializing');
+  loggingService.debug('Settings page initializing');
   
   // Initialize when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     try {
       // Create settings controller
       const settingsController = new SettingsController();
-      logDebug('Settings initialization complete');
+      loggingService.debug('Settings initialization complete');
     } catch (error) {
-      logError('Error initializing settings', error);
+      loggingService.error('Error initializing settings', error);
     }
   });
 }

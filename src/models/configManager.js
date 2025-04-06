@@ -4,7 +4,7 @@
  * Centralized configuration management service
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { storage } from './storage.js';
 
 // Default configuration values
@@ -39,7 +39,7 @@ class ConfigManager {
         ...savedConfig
       };
     } catch (error) {
-      logError('Error loading configuration', error);
+      loggingService.error('Error loading configuration', error);
       return { ...DEFAULT_CONFIG };
     }
   }
@@ -52,9 +52,9 @@ class ConfigManager {
   async saveConfig(config) {
     try {
       await storage.saveSettings(config);
-      logDebug('Configuration saved');
+      loggingService.debug('Configuration saved');
     } catch (error) {
-      logError('Error saving configuration', error);
+      loggingService.error('Error saving configuration', error);
       throw error;
     }
   }
@@ -88,7 +88,7 @@ class ConfigManager {
    */
   async resetToDefaults() {
     await this.saveConfig({ ...DEFAULT_CONFIG });
-    logDebug('Configuration reset to defaults');
+    loggingService.debug('Configuration reset to defaults');
   }
   
   /**
@@ -113,10 +113,8 @@ class ConfigManager {
   async setDebugLogging(enabled) {
     await this.setValue('debugLogging', !!enabled);
     
-    // Also update the runtime flag in utils.js
-    if (typeof setDebugLogging === 'function') {
-      setDebugLogging(!!enabled);
-    }
+    // Update the logging service directly
+    loggingService.setDebugLogging(!!enabled);
   }
 }
 

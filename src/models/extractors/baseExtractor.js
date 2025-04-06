@@ -4,7 +4,7 @@
  * Base class for all content extractors
  */
 
-import { logDebug, logError } from '../../common/utils.js';
+import { loggingService } from '../../services/LoggingService.js';
 
 export class BaseExtractor {
   /**
@@ -37,7 +37,7 @@ export class BaseExtractor {
     try {
       // Basic validation
       if (!Array.isArray(slides) || slides.length === 0) {
-        logError('Invalid slides: Empty or not an array');
+        loggingService.error('Invalid slides: Empty or not an array');
         return false;
       }
       
@@ -45,14 +45,14 @@ export class BaseExtractor {
       for (let i = 0; i < slides.length; i++) {
         const slide = slides[i];
         if (!slide.title && !slide.content) {
-          logError(`Invalid slide at index ${i}: Missing title and content`);
+          loggingService.error(`Invalid slide at index ${i}: Missing title and content`);
           return false;
         }
       }
       
       return true;
     } catch (error) {
-      logError('Error validating content', error);
+      loggingService.error('Error validating content', error);
       return false;
     }
   }
@@ -102,6 +102,6 @@ export class BaseExtractor {
    * @param {any} data - Optional debug data
    */
   debug(message, data) {
-    logDebug(`[${this.constructor.name}] ${message}`, data);
+    loggingService.debug(`[${this.constructor.name}] ${message}`, data);
   }
 }

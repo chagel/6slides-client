@@ -4,7 +4,7 @@
  * Centralized error handling and reporting
  */
 
-import { logError } from '../common/utils.js';
+import { loggingService } from './LoggingService.js';
 import { storage } from '../models/storage.js';
 
 /**
@@ -48,8 +48,8 @@ class ErrorService {
     const severity = options.severity || ErrorSeverity.ERROR;
     const context = options.context || 'unknown';
     
-    // Log the error
-    logError(`[${severity.toUpperCase()}] [${type}] ${context}: ${errorObj.message}`, errorObj);
+    // Log the error using LoggingService
+    loggingService.error(`[${severity.toUpperCase()}] [${type}] ${context}: ${errorObj.message}`, errorObj);
     
     // Store error info for debugging
     this._storeError({
@@ -75,7 +75,7 @@ class ErrorService {
       storage.saveErrorInfo(errorInfo);
     } catch (storeError) {
       // If storing the error fails, just log it
-      console.error('Failed to store error info', storeError);
+      loggingService.error('Failed to store error info', storeError);
     }
   }
   
@@ -97,6 +97,7 @@ class ErrorService {
     // 1. Retry if a retry function is provided
     if (typeof options.onRetry === 'function') {
       try {
+        loggingService.debug(`Attempting retry for error: ${error instanceof Error ? error.message : error}`);
         return await options.onRetry();
       } catch (retryError) {
         // If retry fails, continue to fallback
@@ -110,6 +111,7 @@ class ErrorService {
     // 2. Use fallback if provided
     if (typeof options.onFallback === 'function') {
       try {
+        loggingService.debug(`Using fallback for error: ${error instanceof Error ? error.message : error}`);
         return await options.onFallback();
       } catch (fallbackError) {
         // If fallback fails too, give up

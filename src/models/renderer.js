@@ -4,7 +4,7 @@
  * Handles rendering slides with reveal.js
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { storage } from './storage.js';
 import { Presentation } from './domain/Presentation.js';
 import { configManager } from './configManager.js';
@@ -24,7 +24,7 @@ export class PresentationRenderer {
       throw new Error(`Slide container element with ID "${this.containerId}" not found`);
     }
     
-    logDebug('Presentation renderer initialized', {
+    loggingService.debug('Presentation renderer initialized', {
       containerId: this.containerId
     });
   }
@@ -61,7 +61,7 @@ export class PresentationRenderer {
       // Create a domain presentation model
       const presentation = Presentation.fromSlides(rawSlides);
       
-      logDebug(`Creating presentation with ${presentation.slideCount} slides`);
+      loggingService.debug(`Creating presentation with ${presentation.slideCount} slides`);
       
       // Create slides from the presentation model
       presentation.slides.forEach(slide => {
@@ -92,7 +92,7 @@ export class PresentationRenderer {
   createMarkdownSlide(slide) {
     // Validate slide object
     if (!slide || typeof slide !== 'object') {
-      logError('Invalid slide format: Expected an object', slide);
+      loggingService.error('Invalid slide format: Expected an object', slide);
       return;
     }
     
@@ -112,7 +112,7 @@ export class PresentationRenderer {
     
     // Log which source type we're rendering
     const sourceType = slide.sourceType || 'unknown';
-    logDebug(`Rendering slide from source: ${sourceType}`, { 
+    loggingService.debug(`Rendering slide from source: ${sourceType}`, { 
       title: title.substring(0, 30) + (title.length > 30 ? '...' : ''),
       contentLength: content.length
     });
@@ -144,7 +144,7 @@ export class PresentationRenderer {
   initReveal(settings = {}) {
     // Check if markdown plugin is available
     if (typeof RevealMarkdown === 'undefined') {
-      logError('Error: RevealMarkdown plugin is not available!');
+      loggingService.error('Error: RevealMarkdown plugin is not available!');
       alert('Error: Required plugin for markdown is missing. Slides may not render properly.');
       
       // Fall back to basic reveal initialization
@@ -158,7 +158,7 @@ export class PresentationRenderer {
     // Define plugins to use
     let plugins = [RevealMarkdown];
     
-    logDebug('Initializing reveal.js with markdown plugin');
+    loggingService.debug('Initializing reveal.js with markdown plugin');
     
     // Get presentation settings with defaults
     const theme = settings.theme || 'default';
@@ -166,7 +166,7 @@ export class PresentationRenderer {
     const slideNumber = settings.slideNumber === 'true';
     const center = settings.center !== 'false';
     
-    logDebug('Using presentation settings', { theme, transition, slideNumber, center });
+    loggingService.debug('Using presentation settings', { theme, transition, slideNumber, center });
     
     // Set the theme
     document.getElementById('theme-stylesheet').href = `lib/reveal.js/theme/${theme}.css`;
@@ -190,7 +190,7 @@ export class PresentationRenderer {
       // Plugins
       plugins: plugins,
     }).then(() => {
-      logDebug('Reveal.js initialization complete');
+      loggingService.debug('Reveal.js initialization complete');
     });
   }
   
@@ -207,7 +207,7 @@ export class PresentationRenderer {
     this.container.appendChild(errorSection);
     
     Reveal.initialize({ controls: true });
-    logError('No slides found in storage');
+    loggingService.error('No slides found in storage');
   }
   
   /**

@@ -4,7 +4,7 @@
  * Handles data persistence using localStorage with fallback to IndexedDB for large data
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 
 // IndexedDB database name and version
 const DB_NAME = 'notionSlides';
@@ -33,15 +33,15 @@ class Storage {
       
       // Use localStorage for small data, IndexedDB for large data
       if (dataSize < SIZE_THRESHOLD) {
-        logDebug(`Saving ${slides.length} slides to localStorage (${dataSize} bytes)`);
+        loggingService.debug(`Saving ${slides.length} slides to localStorage (${dataSize} bytes)`);
         localStorage.setItem('slides', data);
         return Promise.resolve();
       } else {
-        logDebug(`Saving ${slides.length} slides to IndexedDB (${dataSize} bytes)`);
+        loggingService.debug(`Saving ${slides.length} slides to IndexedDB (${dataSize} bytes)`);
         return this._saveToIndexedDB(SLIDES_STORE, { id: 'current', slides });
       }
     } catch (error) {
-      logError('Failed to save slides', error);
+      loggingService.error('Failed to save slides', error);
       return Promise.reject(error);
     }
   }
@@ -57,7 +57,7 @@ class Storage {
       
       if (localData) {
         const slides = JSON.parse(localData);
-        logDebug(`Retrieved ${slides.length} slides from localStorage`);
+        loggingService.debug(`Retrieved ${slides.length} slides from localStorage`);
         return slides;
       }
       
@@ -65,14 +65,15 @@ class Storage {
       const dbData = await this._getFromIndexedDB(SLIDES_STORE, 'current');
       
       if (dbData && dbData.slides) {
-        logDebug(`Retrieved ${dbData.slides.length} slides from IndexedDB`);
+        loggingService.debug(`Retrieved ${dbData.slides.length} slides from IndexedDB`);
         return dbData.slides;
       }
       
       // No slides found
+      loggingService.debug('No slides found in storage');
       return [];
     } catch (error) {
-      logError('Failed to get slides', error);
+      loggingService.error('Failed to get slides', error);
       return [];
     }
   }
@@ -85,10 +86,10 @@ class Storage {
   saveSettings(settings) {
     try {
       localStorage.setItem('notionSlidesSettings', JSON.stringify(settings));
-      logDebug('Settings saved to localStorage', settings);
+      loggingService.debug('Settings saved to localStorage', settings);
       return Promise.resolve();
     } catch (error) {
-      logError('Failed to save settings', error);
+      loggingService.error('Failed to save settings', error);
       return Promise.reject(error);
     }
   }
@@ -102,7 +103,7 @@ class Storage {
       const settings = JSON.parse(localStorage.getItem('notionSlidesSettings') || '{}');
       return settings;
     } catch (error) {
-      logError('Failed to get settings', error);
+      loggingService.error('Failed to get settings', error);
       return {};
     }
   }
@@ -115,7 +116,7 @@ class Storage {
     try {
       localStorage.setItem('slideDebugInfo', JSON.stringify(info));
     } catch (error) {
-      logError('Failed to save debug info', error);
+      loggingService.error('Failed to save debug info', error);
     }
   }
   
@@ -130,7 +131,7 @@ class Storage {
         timestamp: new Date().toISOString()
       }));
     } catch (err) {
-      logError('Failed to save error info', err);
+      loggingService.error('Failed to save error info', err);
     }
   }
   
@@ -158,12 +159,12 @@ class Storage {
       return new Promise((resolve) => {
         tx.oncomplete = () => {
           db.close();
-          logDebug('All cache data cleared successfully');
+          loggingService.debug('All cache data cleared successfully');
           resolve();
         };
       });
     } catch (error) {
-      logError('Failed to clear all data', error);
+      loggingService.error('Failed to clear all data', error);
       return Promise.reject(error);
     }
   }
@@ -195,7 +196,7 @@ class Storage {
       };
       
       request.onerror = (event) => {
-        logError('IndexedDB open error', event.target.error);
+        loggingService.error('IndexedDB open error', event.target.error);
         reject(event.target.error);
       };
     });
@@ -222,7 +223,7 @@ class Storage {
       };
       
       request.onerror = (event) => {
-        logError(`IndexedDB save error (${storeName})`, event.target.error);
+        loggingService.error(`IndexedDB save error (${storeName})`, event.target.error);
         reject(event.target.error);
       };
       
@@ -253,7 +254,7 @@ class Storage {
       };
       
       request.onerror = (event) => {
-        logError(`IndexedDB get error (${storeName})`, event.target.error);
+        loggingService.error(`IndexedDB get error (${storeName})`, event.target.error);
         reject(event.target.error);
       };
       

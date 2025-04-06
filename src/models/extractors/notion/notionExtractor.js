@@ -4,7 +4,7 @@
  * Extracts content from Notion pages
  */
 
-import { logDebug, logError } from '../../../common/utils.js';
+import { loggingService } from '../../../services/LoggingService.js';
 import { BaseExtractor } from '../baseExtractor.js';
 import { HeadingExtractor } from './headingExtractor.js';
 import { ListExtractor } from './listExtractor.js';
@@ -48,7 +48,7 @@ export class NotionExtractor extends BaseExtractor {
       this.debug(`Found ${slideBreaks.length} potential slides (H1 elements)`);
       
       if (slideBreaks.length === 0) {
-        logError('No slide breaks (H1 elements) found in the document');
+        loggingService.error('No slide breaks (H1 elements) found in the document');
         return [];
       }
       
@@ -91,7 +91,7 @@ export class NotionExtractor extends BaseExtractor {
       this.debug(`Extraction complete: ${slides.length} slides`);
       return slides;
     } catch (error) {
-      logError('Error extracting content from Notion page', error);
+      loggingService.error('Error extracting content from Notion page', error);
       return [];
     }
   }
@@ -180,7 +180,7 @@ export class NotionExtractor extends BaseExtractor {
       // Join all parts with double newlines for proper markdown spacing
       return markdownParts.join('\n\n');
     } catch (error) {
-      logError('Error extracting content between breaks', error);
+      loggingService.error('Error extracting content between breaks', error);
       return '';
     }
   }

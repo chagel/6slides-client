@@ -4,7 +4,7 @@
  * Main content extraction module that coordinates all specialized extractors
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { 
   HeadingExtractor, 
   ListExtractor, 
@@ -32,7 +32,7 @@ export class ContentExtractor {
     this.paragraphExtractor = new ParagraphExtractor(document);
     this.imageExtractor = new ImageExtractor(document);
     
-    logDebug('Content extractor initialized');
+    loggingService.debug('Content extractor initialized');
   }
   
   /**
@@ -40,18 +40,18 @@ export class ContentExtractor {
    * @returns {string[]} - Array of markdown strings, one per slide
    */
   extract() {
-    logDebug('Starting content extraction');
+    loggingService.debug('Starting content extraction');
     
     try {
       // Find all H1 headings to identify slide boundaries
       const h1Elements = this.headingExtractor.extractHeadingsOfLevel(1);
       
       if (h1Elements.length === 0) {
-        logError('No H1 headings found. Template format requires H1 headings to define slides.');
+        loggingService.error('No H1 headings found. Template format requires H1 headings to define slides.');
         return [];
       }
       
-      logDebug(`Found ${h1Elements.length} H1 headings for slides`);
+      loggingService.debug(`Found ${h1Elements.length} H1 headings for slides`);
       
       const slides = [];
       
@@ -66,11 +66,11 @@ export class ContentExtractor {
         }
       });
       
-      logDebug(`Created ${slides.length} slides from template format`);
+      loggingService.debug(`Created ${slides.length} slides from template format`);
       
       // Debug output
       slides.forEach((slide, index) => {
-        logDebug(`Slide ${index + 1}:`, {
+        loggingService.debug(`Slide ${index + 1}:`, {
           length: slide.length,
           h1Count: (slide.match(/^# /gm) || []).length,
           h2Count: (slide.match(/^## /gm) || []).length,
@@ -80,7 +80,7 @@ export class ContentExtractor {
       
       return slides;
     } catch (error) {
-      logError('Error extracting content', error);
+      loggingService.error('Error extracting content', error);
       throw error;
     }
   }

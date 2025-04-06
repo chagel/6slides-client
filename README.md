@@ -43,7 +43,6 @@ The project uses a clean modular architecture with domain-driven design patterns
 src/
   ├── app.js            # Application bootstrap and initialization
   ├── common/           # Shared utilities
-  │   ├── utils.js      # Utility functions
   │   └── messaging.js  # Component communication
   ├── models/           # Business logic and data models
   │   ├── domain/       # Domain models
@@ -62,6 +61,7 @@ src/
   ├── services/         # Application services
   │   ├── DependencyContainer.js   # Dependency injection
   │   ├── ErrorService.js          # Centralized error handling
+  │   ├── LoggingService.js        # Centralized logging
   │   └── serviceRegistry.js       # Service registration
   ├── controllers/      # Controllers connecting models and views
   │   ├── contentController.js     # Content orchestration
@@ -119,6 +119,14 @@ The build process:
 - Add new entries to rollup.config.js if necessary
 
 ## Version History
+
+### Version 1.2.0
+- Implemented centralized logging with LoggingService
+- Removed utils.js in favor of a proper service architecture
+- Improved error handling with integration between LoggingService and ErrorService
+- Enhanced storage management with better IndexedDB/localStorage integration
+- Improved dependency management in the DI container
+- Updated architectural documentation
 
 ### Version 1.1.1
 - Implemented domain models for Slide and Presentation

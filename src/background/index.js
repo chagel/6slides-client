@@ -4,7 +4,7 @@
  * Handles communication between popup and content scripts.
  */
 
-import { logDebug } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { addMessageListener } from '../common/messaging.js';
 import { errorService, ErrorTypes } from '../services/ErrorService.js';
 
@@ -28,7 +28,7 @@ function openViewer() {
  */
 function setupMessageHandlers() {
   addMessageListener((message, sender) => {
-    logDebug('Background script received message', { message, sender });
+    loggingService.debug('Background script received message', { message, sender });
     
     // Handle any messages that should be processed by the background script
     if (message.action === 'open_viewer') {
@@ -44,9 +44,9 @@ function setupMessageHandlers() {
  * Initialize the background script
  */
 function initialize() {
-  logDebug('Background service worker initializing');
+  loggingService.debug('Background service worker initializing');
   setupMessageHandlers();
-  logDebug('Background service worker initialized');
+  loggingService.debug('Background service worker initialized');
 }
 
 // Start initialization

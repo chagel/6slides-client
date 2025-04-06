@@ -4,7 +4,7 @@
  * Extracts table elements from documents and converts to markdown format
  */
 
-import { logDebug, logError } from '../../../common/utils.js';
+import { loggingService } from '../../../services/LoggingService.js';
 import { BaseExtractor } from '../baseExtractor.js';
 
 export class TableExtractor extends BaseExtractor {
@@ -52,7 +52,7 @@ export class TableExtractor extends BaseExtractor {
       
       return markdownRows.join('\n');
     } catch (error) {
-      logError('Error converting table to markdown', error);
+      loggingService.error('Error converting table to markdown', error);
       return '';
     }
   }
@@ -105,7 +105,7 @@ export class TableExtractor extends BaseExtractor {
       
       return markdownRows.join('\n');
     } catch (error) {
-      logError('Error converting Notion table to markdown', error);
+      loggingService.error('Error converting Notion table to markdown', error);
       return '';
     }
   }

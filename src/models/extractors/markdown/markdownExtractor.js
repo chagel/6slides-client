@@ -4,7 +4,7 @@
  * Extracts content from Markdown files or rendered Markdown content
  */
 
-import { logDebug, logError } from '../../../common/utils.js';
+import { loggingService } from '../../../services/LoggingService.js';
 import { BaseExtractor } from '../baseExtractor.js';
 
 /**
@@ -44,7 +44,7 @@ export class MarkdownExtractor extends BaseExtractor {
         return this.extractFromRawMarkdown();
       }
     } catch (error) {
-      logError('Error extracting content from Markdown', error);
+      loggingService.error('Error extracting content from Markdown', error);
       return [];
     }
   }
@@ -84,7 +84,7 @@ export class MarkdownExtractor extends BaseExtractor {
       this.debug(`Found ${slideBreaks.length} potential slides (H1 elements)`);
       
       if (slideBreaks.length === 0) {
-        logError('No slide breaks (H1 elements) found in the markdown');
+        loggingService.error('No slide breaks (H1 elements) found in the markdown');
         return [];
       }
       
@@ -115,7 +115,7 @@ export class MarkdownExtractor extends BaseExtractor {
       this.debug(`Extracted ${slides.length} slides from rendered markdown`);
       return slides;
     } catch (error) {
-      logError('Error extracting from rendered markdown', error);
+      loggingService.error('Error extracting from rendered markdown', error);
       return [];
     }
   }
@@ -262,7 +262,7 @@ export class MarkdownExtractor extends BaseExtractor {
       
       return markdownRows.join('\n');
     } catch (error) {
-      logError('Error converting table to markdown', error);
+      loggingService.error('Error converting table to markdown', error);
       return '';
     }
   }
@@ -321,7 +321,7 @@ export class MarkdownExtractor extends BaseExtractor {
       
       return processedSlides;
     } catch (error) {
-      logError('Error extracting from raw markdown', error);
+      loggingService.error('Error extracting from raw markdown', error);
       return [{
         title: 'Parsing Error',
         content: 'Failed to parse markdown content.',

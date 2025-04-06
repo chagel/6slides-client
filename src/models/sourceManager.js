@@ -4,7 +4,7 @@
  * Detects and manages different content sources for extraction
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { NotionExtractor } from './extractors/notion/notionExtractor.js';
 import { MarkdownExtractor } from './extractors/markdown/markdownExtractor.js';
 
@@ -20,41 +20,41 @@ class SourceManager {
    * @returns {string|null} - The source type or null if unknown
    */
   detectSource(document, url) {
-    logDebug('Detecting source type for:', url);
+    loggingService.debug('Detecting source type for:', url);
     
     // Check for Notion
     if (url.includes('notion.so') || url.includes('notion.site')) {
-      logDebug('Detected Notion source');
+      loggingService.debug('Detected Notion source');
       return 'notion';
     }
     
     // Check for Markdown file
     if (url.endsWith('.md') || url.endsWith('.markdown')) {
-      logDebug('Detected raw Markdown file source');
+      loggingService.debug('Detected raw Markdown file source');
       return 'markdown';
     }
 
     // Check for GitHub markdown
     if (url.includes('github.com') && document.querySelector('.markdown-body')) {
-      logDebug('Detected GitHub markdown source');
+      loggingService.debug('Detected GitHub markdown source');
       return 'github-markdown';
     }
     
     // Check for GitLab markdown
     if (url.includes('gitlab.com') && document.querySelector('.md-content, .wiki-content')) {
-      logDebug('Detected GitLab markdown source');
+      loggingService.debug('Detected GitLab markdown source');
       return 'gitlab-markdown';
     }
     
     // Check for generic rendered markdown
     if (document.querySelector('.markdown, .markdown-body, .md-content')) {
-      logDebug('Detected generic rendered markdown source');
+      loggingService.debug('Detected generic rendered markdown source');
       return 'rendered-markdown';
     }
     
     // Future: Add more source type detection here
     
-    logDebug('Unknown source type');
+    loggingService.debug('Unknown source type');
     return null;
   }
   
@@ -65,7 +65,7 @@ class SourceManager {
    * @returns {BaseExtractor} - The extractor instance
    */
   getExtractor(sourceType, document) {
-    logDebug('Getting extractor for:', sourceType);
+    loggingService.debug('Getting extractor for:', sourceType);
     
     switch (sourceType) {
       case 'notion':
@@ -77,7 +77,7 @@ class SourceManager {
       // Future: Add more extractors here
       default: {
         const error = new Error(`Unsupported source type: ${sourceType}`);
-        logError('Failed to get extractor', error);
+        loggingService.error('Failed to get extractor', error);
         throw error;
       }
     }

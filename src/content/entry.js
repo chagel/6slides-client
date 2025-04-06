@@ -4,7 +4,7 @@
  * Main content script for extracting content from various page types
  */
 
-import { logDebug, logError } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { contentController } from '../controllers/contentController.js';
 
 // Import app initialization to ensure services are registered
@@ -40,7 +40,7 @@ async function extractContent() {
     
     return Promise.resolve(result.slides);
   } catch (error) {
-    logError('Error in content extraction', error);
+    loggingService.error('Error in content extraction', error);
     return Promise.reject(error);
   }
 }
@@ -59,7 +59,7 @@ function logMessage(type, message, data) {
 function setupMessageHandlers() {
   // Add listener for messages from popup/background
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    logDebug('Content script received message', message);
+    loggingService.debug('Content script received message', message);
     
     // Ping action to check if content script is loaded
     if (message.action === 'ping') {
@@ -69,7 +69,7 @@ function setupMessageHandlers() {
     
     // Extract content action
     if (message.action === 'extract_content') {
-      logDebug('Extracting content from Notion page');
+      loggingService.debug('Extracting content from Notion page');
       
       // Use setTimeout to ensure the DOM is fully loaded and accessible
       setTimeout(async () => {
@@ -81,11 +81,11 @@ function setupMessageHandlers() {
               error: 'No slides found. Make sure your page has H1 headings to define slides.' 
             });
           } else {
-            logDebug(`Successfully extracted ${slides.length} slides`);
+            loggingService.debug(`Successfully extracted ${slides.length} slides`);
             sendResponse({ slides });
           }
         } catch (error) {
-          logError('Error during extraction', error);
+          loggingService.error('Error during extraction', error);
           
           // Create a detailed error response
           sendResponse({ 
@@ -103,7 +103,7 @@ function setupMessageHandlers() {
     return false;
   });
   
-  logDebug('Message handlers set up');
+  loggingService.debug('Message handlers set up');
 }
 
 // Initialize the content script

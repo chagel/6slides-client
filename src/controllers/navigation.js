@@ -4,7 +4,7 @@
  * Handles the sidebar navigation functionality.
  */
 
-import { logDebug, setDebugLogging, isDebugLoggingEnabled } from '../common/utils.js';
+import { loggingService } from '../services/LoggingService.js';
 import { storage } from '../models/storage.js';
 
 /**
@@ -56,10 +56,10 @@ function initNavigation() {
       debugLoggingSelector.value = debugLogging;
       
       // Apply debug logging setting
-      setDebugLogging(debugLogging === 'true');
+      loggingService.setDebugLogging(debugLogging === 'true');
     }
     
-    logDebug('Navigation: Settings loaded', settings);
+    loggingService.debug('Navigation: Settings loaded', settings);
   }
   
   // Save settings
@@ -76,11 +76,11 @@ function initNavigation() {
       settings.debugLogging = debugLoggingSelector.value;
       
       // Apply debug logging setting immediately
-      setDebugLogging(debugLoggingSelector.value === 'true');
+      loggingService.setDebugLogging(debugLoggingSelector.value === 'true');
     }
     
     await storage.saveSettings(settings);
-    logDebug('Navigation: Settings saved', settings);
+    loggingService.debug('Navigation: Settings saved', settings);
     
     // Show feedback
     if (saveStatus) {
