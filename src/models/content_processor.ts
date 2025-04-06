@@ -4,7 +4,7 @@
  * Normalizes content from different sources into a standard format
  */
 
-import { loggingService } from '../services/LoggingService';
+import { loggingService } from '../services/logging_service';
 import { Slide } from './domain/index';
 
 /**
@@ -84,4 +84,4 @@ class ContentProcessor {
 }
 
 // Export a singleton instance
-export const contentProcessor = new ContentProcessor();
+export const content_processor = new ContentProcessor();

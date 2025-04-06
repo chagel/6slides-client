@@ -7,22 +7,22 @@ import fs from 'fs';
 
 // Define the main entry points for our bundles
 const entries = [
-  // Background script
+  // Service worker
   {
-    input: 'src/background/index.ts', // Changed to .ts
+    input: 'src/services/worker.ts',
     output: {
-      file: 'dist/background/index.js',
+      file: 'dist/services/worker.js',
       format: 'esm', // Service worker supports ES modules
     }
   },
   
-  // Content script (consolidated)
+  // App script (includes content script functionality)
   {
-    input: 'src/content/entry.ts',
+    input: 'src/app.ts',
     output: {
-      file: 'dist/content/entry.js',
+      file: 'dist/app.js',
       format: 'iife', // Immediately invoked function for content script context
-      name: 'notionSlidesContent'
+      name: 'notionSlidesApp'
     }
   },
   
@@ -76,30 +76,30 @@ const entries = [
     }
   },
   {
-    input: 'src/models/contentExtractor.ts',
+    input: 'src/models/content_extractor.ts',
     output: {
-      file: 'dist/models/contentExtractor.js',
+      file: 'dist/models/content_extractor.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/sourceManager.ts',
+    input: 'src/models/source_manager.ts',
     output: {
-      file: 'dist/models/sourceManager.js',
+      file: 'dist/models/source_manager.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/configManager.ts',
+    input: 'src/models/config_manager.ts',
     output: {
-      file: 'dist/models/configManager.js',
+      file: 'dist/models/config_manager.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/contentProcessor.ts',
+    input: 'src/models/content_processor.ts',
     output: {
-      file: 'dist/models/contentProcessor.js',
+      file: 'dist/models/content_processor.js',
       format: 'esm',
     }
   },
@@ -113,41 +113,34 @@ const entries = [
     }
   },
   {
-    input: 'src/models/domain/Slide.ts',
+    input: 'src/models/domain/slide.ts',
     output: {
-      file: 'dist/models/domain/Slide.js',
+      file: 'dist/models/domain/slide.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/models/domain/Presentation.ts',
+    input: 'src/models/domain/presentation.ts',
     output: {
-      file: 'dist/models/domain/Presentation.js',
+      file: 'dist/models/domain/presentation.js',
       format: 'esm',
     }
   },
   {
-    input: 'src/app.ts',
+    input: 'src/controllers/content_controller.ts',
     output: {
-      file: 'dist/app.js',
-      format: 'esm',
-    }
-  },
-  {
-    input: 'src/controllers/contentController.ts',
-    output: {
-      file: 'dist/controllers/contentController.js',
+      file: 'dist/controllers/content_controller.js',
       format: 'esm',
     }
   }
 ];
 
 // Base extractor - add separately
-const baseExtractor = 'src/models/extractors/baseExtractor.ts';
+const baseExtractor = 'src/models/extractors/base_extractor.ts';
 entries.push({
   input: baseExtractor,
   output: {
-    file: `dist/models/extractors/baseExtractor.js`,
+    file: `dist/models/extractors/base_extractor.js`,
     format: 'esm',
   }
 });
@@ -205,44 +198,45 @@ entries.push({
   }
 });
 
-// Common utilities
-entries.push({
-  input: 'src/common/messaging.ts',
-  output: {
-    file: 'dist/common/messaging.js',
-    format: 'esm',
-  }
-});
+// Common utilities (removed messaging.ts, now a service)
 
 // Services
 entries.push({
-  input: 'src/services/LoggingService.ts',
+  input: 'src/services/logging_service.ts',
   output: {
-    file: 'dist/services/LoggingService.js',
+    file: 'dist/services/logging_service.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/services/ErrorService.ts',
+  input: 'src/services/error_service.ts',
   output: {
-    file: 'dist/services/ErrorService.js',
+    file: 'dist/services/error_service.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/services/DependencyContainer.ts',
+  input: 'src/services/dependency_container.ts',
   output: {
-    file: 'dist/services/DependencyContainer.js',
+    file: 'dist/services/dependency_container.js',
     format: 'esm',
   }
 });
 
 entries.push({
-  input: 'src/services/serviceRegistry.ts',
+  input: 'src/services/messaging_service.ts',
   output: {
-    file: 'dist/services/serviceRegistry.js',
+    file: 'dist/services/messaging_service.js',
+    format: 'esm',
+  }
+});
+
+entries.push({
+  input: 'src/services/service_registry.ts',
+  output: {
+    file: 'dist/services/service_registry.js',
     format: 'esm',
   }
 });

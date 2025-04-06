@@ -4,8 +4,8 @@
  * Extracts content from Markdown files or rendered Markdown content
  */
 
-import { loggingService } from '../../../services/LoggingService';
-import { BaseExtractor } from '../baseExtractor';
+import { loggingService } from '../../../services/logging_service';
+import { BaseExtractor } from '../base_extractor';
 import { IMarkdownExtractor } from './types';
 import { Slide } from '../../../types/index';
 

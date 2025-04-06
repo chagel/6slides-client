@@ -4,7 +4,7 @@
  * Extracts list elements from Notion pages
  */
 
-import { BaseExtractor } from '../baseExtractor';
+import { BaseExtractor } from '../base_extractor';
 import { IListExtractor } from './types';
 
 /**

@@ -4,12 +4,12 @@
  * Manages content extraction from various sources
  */
 
-import { loggingService } from '../services/LoggingService';
-import { sourceManager, SourceType } from '../models/sourceManager';
-import { contentProcessor } from '../models/contentProcessor';
+import { loggingService } from '../services/logging_service';
+import { source_manager, SourceType } from '../models/source_manager';
+import { content_processor } from '../models/content_processor';
 import { storage } from '../models/storage';
-import { Presentation } from '../models/domain/Presentation';
-import { errorService, ErrorTypes } from '../services/ErrorService';
+import { Presentation } from '../models/domain/presentation';
+import { errorService, ErrorTypes } from '../services/error_service';
 import { Slide } from '../types/index';
 
 /**
@@ -49,7 +49,7 @@ class ContentController {
       loggingService.debug('Extracting content from URL:', url);
       
       // Detect content source
-      const sourceType = sourceManager.detectSource(document, url);
+      const sourceType = source_manager.detectSource(document, url);
       
       if (!sourceType) {
         return {
@@ -61,7 +61,7 @@ class ContentController {
       loggingService.debug(`Using extractor for source type: ${sourceType}`);
       
       // Get appropriate extractor
-      const extractor = sourceManager.getExtractor(sourceType, document);
+      const extractor = source_manager.getExtractor(sourceType, document);
       
       // Extract raw content
       const rawSlides = extractor.extract();
@@ -80,7 +80,7 @@ class ContentController {
       }));
       
       // Process content to normalize it
-      const processedSlides = contentProcessor.process(slidesWithSourceType);
+      const processedSlides = content_processor.process(slidesWithSourceType);
       
       loggingService.debug(`Extracted and processed ${processedSlides.length} slides`);
       
@@ -134,4 +134,4 @@ class ContentController {
 }
 
 // Export a singleton instance
-export const contentController = new ContentController();
+export const content_controller = new ContentController();

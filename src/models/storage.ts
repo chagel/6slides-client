@@ -4,7 +4,7 @@
  * Handles data persistence using localStorage with fallback to IndexedDB for large data
  */
 
-import { loggingService } from '../services/LoggingService';
+import { loggingService } from '../services/logging_service';
 import { Slide } from '../types/index';
 import { DebugInfo, ErrorInfo, Settings } from '../types/storage';
 

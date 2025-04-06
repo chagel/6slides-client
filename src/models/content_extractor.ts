@@ -4,7 +4,7 @@
  * Main content extraction module that coordinates all specialized extractors
  */
 
-import { loggingService } from '../services/LoggingService';
+import { loggingService } from '../services/logging_service';
 import { 
   HeadingExtractor, 
   ListExtractor, 
@@ -17,13 +17,13 @@ import {
 
 export class ContentExtractor {
   private document: Document;
-  private headingExtractor: HeadingExtractor;
-  private listExtractor: ListExtractor;
-  private codeBlockExtractor: CodeBlockExtractor;
-  private tableExtractor: TableExtractor;
-  private blockquoteExtractor: BlockquoteExtractor;
-  private paragraphExtractor: ParagraphExtractor;
-  private imageExtractor: ImageExtractor;
+  private heading_extractor: HeadingExtractor;
+  private list_extractor: ListExtractor;
+  private code_block_extractor: CodeBlockExtractor;
+  private table_extractor: TableExtractor;
+  private blockquote_extractor: BlockquoteExtractor;
+  private paragraph_extractor: ParagraphExtractor;
+  private image_extractor: ImageExtractor;
 
   /**
    * Constructor for the content extractor
@@ -33,13 +33,13 @@ export class ContentExtractor {
     this.document = document;
     
     // Initialize specialized extractors
-    this.headingExtractor = new HeadingExtractor(document);
-    this.listExtractor = new ListExtractor(document);
-    this.codeBlockExtractor = new CodeBlockExtractor(document);
-    this.tableExtractor = new TableExtractor(document);
-    this.blockquoteExtractor = new BlockquoteExtractor(document);
-    this.paragraphExtractor = new ParagraphExtractor(document);
-    this.imageExtractor = new ImageExtractor(document);
+    this.heading_extractor = new HeadingExtractor(document);
+    this.list_extractor = new ListExtractor(document);
+    this.code_block_extractor = new CodeBlockExtractor(document);
+    this.table_extractor = new TableExtractor(document);
+    this.blockquote_extractor = new BlockquoteExtractor(document);
+    this.paragraph_extractor = new ParagraphExtractor(document);
+    this.image_extractor = new ImageExtractor(document);
     
     loggingService.debug('Content extractor initialized');
   }
@@ -53,7 +53,7 @@ export class ContentExtractor {
     
     try {
       // Find all H1 headings to identify slide boundaries
-      const h1Elements = this.headingExtractor.extractHeadingsOfLevel(1);
+      const h1Elements = this.heading_extractor.extractHeadingsOfLevel(1);
       
       if (h1Elements.length === 0) {
         loggingService.error('No H1 headings found. Template format requires H1 headings to define slides.');
@@ -144,42 +144,42 @@ export class ContentExtractor {
     }
     
     // Check for headings (H2, H3)
-    if (this.headingExtractor.isHeadingElement(element, 2)) {
-      return this.headingExtractor.headingToMarkdown(element, 2);
+    if (this.heading_extractor.isHeadingElement(element, 2)) {
+      return this.heading_extractor.headingToMarkdown(element, 2);
     }
     
-    if (this.headingExtractor.isHeadingElement(element, 3)) {
-      return this.headingExtractor.headingToMarkdown(element, 3);
+    if (this.heading_extractor.isHeadingElement(element, 3)) {
+      return this.heading_extractor.headingToMarkdown(element, 3);
     }
     
     // Check for lists
-    if (this.listExtractor.isList(element)) {
-      return this.listExtractor.listToMarkdown(element);
+    if (this.list_extractor.isList(element)) {
+      return this.list_extractor.listToMarkdown(element);
     }
     
     // Check for code blocks
-    if (this.codeBlockExtractor.isCodeBlock(element)) {
-      return this.codeBlockExtractor.codeBlockToMarkdown(element);
+    if (this.code_block_extractor.isCodeBlock(element)) {
+      return this.code_block_extractor.codeBlockToMarkdown(element);
     }
     
     // Check for tables
-    if (this.tableExtractor.isTableElement(element)) {
-      return this.tableExtractor.tableToMarkdown(element);
+    if (this.table_extractor.isTableElement(element)) {
+      return this.table_extractor.tableToMarkdown(element);
     }
     
     // Check for blockquotes
-    if (this.blockquoteExtractor.isBlockquote(element)) {
-      return this.blockquoteExtractor.blockquoteToMarkdown(element);
+    if (this.blockquote_extractor.isBlockquote(element)) {
+      return this.blockquote_extractor.blockquoteToMarkdown(element);
     }
     
     // Check for paragraphs with formatting
-    if (this.paragraphExtractor.isParagraph(element)) {
-      return this.paragraphExtractor.paragraphToMarkdown(element);
+    if (this.paragraph_extractor.isParagraph(element)) {
+      return this.paragraph_extractor.paragraphToMarkdown(element);
     }
     
     // Check for images
-    if (this.imageExtractor.isImage(element)) {
-      return this.imageExtractor.imageToMarkdown(element);
+    if (this.image_extractor.isImage(element)) {
+      return this.image_extractor.imageToMarkdown(element);
     }
     
     // Check for horizontal rule

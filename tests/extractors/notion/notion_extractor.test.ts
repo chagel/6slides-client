@@ -3,8 +3,8 @@
  */
 
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { NotionExtractor } from '../../../src/models/extractors/notion/notionExtractor';
-import { loggingService } from '../../../src/services/LoggingService';
+import { NotionExtractor } from '../../../src/models/extractors/notion/notion_extractor';
+import { loggingService } from '../../../src/services/logging_service';
 
 describe('NotionExtractor', () => {
   // Setup and teardown
@@ -20,13 +20,13 @@ describe('NotionExtractor', () => {
     extractor = new NotionExtractor(mockDocument);
     
     // Spy on component extractors
-    jest.spyOn(extractor.headingExtractor, 'isHeadingElement');
-    jest.spyOn(extractor.listExtractor, 'isList');
-    jest.spyOn(extractor.codeBlockExtractor, 'isCodeBlock');
-    jest.spyOn(extractor.tableExtractor, 'isTableElement');
-    jest.spyOn(extractor.blockquoteExtractor, 'isBlockquote');
-    jest.spyOn(extractor.paragraphExtractor, 'isParagraph');
-    jest.spyOn(extractor.imageExtractor, 'isImage');
+    jest.spyOn(extractor.heading_extractor, 'isHeadingElement');
+    jest.spyOn(extractor.list_extractor, 'isList');
+    jest.spyOn(extractor.code_block_extractor, 'isCodeBlock');
+    jest.spyOn(extractor.table_extractor, 'isTableElement');
+    jest.spyOn(extractor.blockquote_extractor, 'isBlockquote');
+    jest.spyOn(extractor.paragraph_extractor, 'isParagraph');
+    jest.spyOn(extractor.image_extractor, 'isImage');
   });
 
   describe('extract', () => {
@@ -111,9 +111,9 @@ describe('NotionExtractor', () => {
       extractor.processElementToMarkdown(div);
       
       // Verify the right extractors were called
-      expect(extractor.headingExtractor.isHeadingElement).toHaveBeenCalledWith(h2, 2);
-      expect(extractor.listExtractor.isList).toHaveBeenCalledWith(list);
-      expect(extractor.codeBlockExtractor.isCodeBlock).toHaveBeenCalledWith(codeBlock);
+      expect(extractor.heading_extractor.isHeadingElement).toHaveBeenCalledWith(h2, 2);
+      expect(extractor.list_extractor.isList).toHaveBeenCalledWith(list);
+      expect(extractor.code_block_extractor.isCodeBlock).toHaveBeenCalledWith(codeBlock);
     });
     
     test('should handle horizontal rules', () => {
@@ -195,10 +195,10 @@ describe('NotionExtractor', () => {
       // Check if the blockquote is correctly identified
       const blockquote = document.querySelector('.notion-quote-block');
       // Use non-null assertion since we know it exists in this test
-      expect(extractor.blockquoteExtractor.isBlockquote(blockquote!)).toBe(true);
+      expect(extractor.blockquote_extractor.isBlockquote(blockquote!)).toBe(true);
       
       // This is the key test - ensure the blockquote is not mistaken for a table
-      expect(extractor.tableExtractor.isTableElement(blockquote!)).toBe(false);
+      expect(extractor.table_extractor.isTableElement(blockquote!)).toBe(false);
       
       // Check the extracted content
       const slideBreak = document.querySelector('h1');

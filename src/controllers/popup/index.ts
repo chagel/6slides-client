@@ -4,8 +4,8 @@
  * Handles the popup UI and initiates the content extraction process.
  */
 
-import { loggingService } from '../../services/LoggingService';
-import { sendToContent, sendToBackground } from '../../common/messaging';
+import { loggingService } from '../../services/logging_service';
+import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
 import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';
@@ -184,7 +184,7 @@ class PopupController {
       this.updateStatus('Extracting content from page...');
       
       // Send message to content script
-      const response = await sendToContent((pageInfo.tab as chrome.tabs.Tab).id as number, { 
+      const response = await messagingService.sendToContent((pageInfo.tab as chrome.tabs.Tab).id as number, { 
         action: 'extract_content',
         pageType: pageInfo.type
       }) as ContentResponse;

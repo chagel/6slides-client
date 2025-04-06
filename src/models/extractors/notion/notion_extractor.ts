@@ -4,15 +4,15 @@
  * Extracts content from Notion pages
  */
 
-import { loggingService } from '../../../services/LoggingService';
-import { BaseExtractor } from '../baseExtractor';
-import { HeadingExtractor } from './headingExtractor';
-import { ListExtractor } from './listExtractor';
-import { CodeBlockExtractor } from './codeBlockExtractor';
-import { TableExtractor } from './tableExtractor';
-import { BlockquoteExtractor } from './blockquoteExtractor';
-import { ParagraphExtractor } from './paragraphExtractor';
-import { ImageExtractor } from './imageExtractor';
+import { loggingService } from '../../../services/logging_service';
+import { BaseExtractor } from '../base_extractor';
+import { HeadingExtractor } from './heading_extractor';
+import { ListExtractor } from './list_extractor';
+import { CodeBlockExtractor } from './code_block_extractor';
+import { TableExtractor } from './table_extractor';
+import { BlockquoteExtractor } from './blockquote_extractor';
+import { ParagraphExtractor } from './paragraph_extractor';
+import { ImageExtractor } from './image_extractor';
 import { 
   IHeadingExtractor, 
   IListExtractor, 
@@ -28,13 +28,13 @@ import { Slide } from '../../../types/index';
  * Extracts content from Notion pages
  */
 export class NotionExtractor extends BaseExtractor {
-  headingExtractor: IHeadingExtractor;
-  listExtractor: IListExtractor;
-  codeBlockExtractor: ICodeBlockExtractor;
-  tableExtractor: ITableExtractor;
-  blockquoteExtractor: IBlockquoteExtractor;
-  paragraphExtractor: IParagraphExtractor;
-  imageExtractor: IImageExtractor;
+  heading_extractor: IHeadingExtractor;
+  list_extractor: IListExtractor;
+  code_block_extractor: ICodeBlockExtractor;
+  table_extractor: ITableExtractor;
+  blockquote_extractor: IBlockquoteExtractor;
+  paragraph_extractor: IParagraphExtractor;
+  image_extractor: IImageExtractor;
 
   /**
    * Constructor
@@ -44,13 +44,13 @@ export class NotionExtractor extends BaseExtractor {
     super(document);
     
     // Initialize component extractors
-    this.headingExtractor = new HeadingExtractor(document);
-    this.listExtractor = new ListExtractor(document);
-    this.codeBlockExtractor = new CodeBlockExtractor(document);
-    this.tableExtractor = new TableExtractor(document);
-    this.blockquoteExtractor = new BlockquoteExtractor(document);
-    this.paragraphExtractor = new ParagraphExtractor(document);
-    this.imageExtractor = new ImageExtractor(document);
+    this.heading_extractor = new HeadingExtractor(document);
+    this.list_extractor = new ListExtractor(document);
+    this.code_block_extractor = new CodeBlockExtractor(document);
+    this.table_extractor = new TableExtractor(document);
+    this.blockquote_extractor = new BlockquoteExtractor(document);
+    this.paragraph_extractor = new ParagraphExtractor(document);
+    this.image_extractor = new ImageExtractor(document);
   }
   
   /**
@@ -123,41 +123,41 @@ export class NotionExtractor extends BaseExtractor {
     // Process based on element type using Strategy pattern with extractors
     
     // 1. Headings (Level 2 & 3)
-    if (this.headingExtractor.isHeadingElement(element, 2)) {
-      return this.headingExtractor.headingToMarkdown(element, 2);
+    if (this.heading_extractor.isHeadingElement(element, 2)) {
+      return this.heading_extractor.headingToMarkdown(element, 2);
     } 
-    else if (this.headingExtractor.isHeadingElement(element, 3)) {
-      return this.headingExtractor.headingToMarkdown(element, 3);
+    else if (this.heading_extractor.isHeadingElement(element, 3)) {
+      return this.heading_extractor.headingToMarkdown(element, 3);
     }
     
     // 2. Lists
-    else if (this.listExtractor.isList(element)) {
-      return this.listExtractor.listToMarkdown(element);
+    else if (this.list_extractor.isList(element)) {
+      return this.list_extractor.listToMarkdown(element);
     }
     
     // 3. Code blocks
-    else if (this.codeBlockExtractor.isCodeBlock(element)) {
-      return this.codeBlockExtractor.codeBlockToMarkdown(element);
+    else if (this.code_block_extractor.isCodeBlock(element)) {
+      return this.code_block_extractor.codeBlockToMarkdown(element);
     }
     
     // 4. Tables
-    else if (this.tableExtractor.isTableElement(element)) {
-      return this.tableExtractor.tableToMarkdown(element);
+    else if (this.table_extractor.isTableElement(element)) {
+      return this.table_extractor.tableToMarkdown(element);
     }
     
     // 5. Blockquotes
-    else if (this.blockquoteExtractor.isBlockquote(element)) {
-      return this.blockquoteExtractor.blockquoteToMarkdown(element);
+    else if (this.blockquote_extractor.isBlockquote(element)) {
+      return this.blockquote_extractor.blockquoteToMarkdown(element);
     }
     
     // 6. Paragraphs with formatting
-    else if (this.paragraphExtractor.isParagraph(element)) {
-      return this.paragraphExtractor.paragraphToMarkdown(element);
+    else if (this.paragraph_extractor.isParagraph(element)) {
+      return this.paragraph_extractor.paragraphToMarkdown(element);
     }
     
     // 7. Images
-    else if (this.imageExtractor.isImage(element)) {
-      return this.imageExtractor.imageToMarkdown(element);
+    else if (this.image_extractor.isImage(element)) {
+      return this.image_extractor.imageToMarkdown(element);
     }
     
     // 8. Horizontal rule

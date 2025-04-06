@@ -4,6 +4,6 @@
  * Export all domain models for easy access
  */
 
-export { Slide } from './Slide.js';
-export { Presentation } from './Presentation.js';
+export { Slide } from '../domain/slide.js';
+export { Presentation } from '../domain/presentation.js';
 export * from './types.js';
