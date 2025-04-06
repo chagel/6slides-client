@@ -1,23 +1,37 @@
 /**
  * Notion to Slides - Content Script
  * 
- * Main content script for extracting content from Notion pages
+ * Main content script for extracting content from various page types
  */
 
 import { logDebug, logError } from '../common/utils.js';
-import { ContentExtractor } from '../models/contentExtractor.js';
+import { contentController } from '../controllers/contentController.js';
 
 /**
  * Extract content from the current page
- * @returns {Promise<string[]>} - Array of markdown strings, one per slide
+ * @returns {Promise<Object[]>} - Array of slide objects
  */
-function extractContent() {
+async function extractContent() {
   try {
-    // Create content extractor
-    const extractor = new ContentExtractor(document);
+    // Get current URL
+    const url = window.location.href;
     
-    // Extract slides
-    return Promise.resolve(extractor.extract());
+    // Clear storage to ensure we get fresh content each extraction
+    // This makes the extension more predictable for users
+    localStorage.removeItem('slides');
+
+    // Use the content controller to extract content based on the page type
+    const result = await contentController.extractContent(document, url);
+    
+    if (result.error) {
+      return Promise.reject(new Error(result.error));
+    }
+    
+    // Add debug logging to see what was extracted before storage
+    console.log('EXTRACTED SLIDES BEFORE STORAGE:');
+    console.log(JSON.stringify(result.slides, null, 2));
+    
+    return Promise.resolve(result.slides);
   } catch (error) {
     logError('Error in content extraction', error);
     return Promise.reject(error);

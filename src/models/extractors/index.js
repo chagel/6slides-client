@@ -4,8 +4,20 @@
  * Export all content extractors for easy access
  */
 
-export { HeadingExtractor } from './headingExtractor.js';
-export { ListExtractor } from './listExtractor.js';
-export { CodeBlockExtractor } from './codeBlockExtractor.js';
+// Base extractor
+export { BaseExtractor } from './baseExtractor.js';
 
-// Add other extractors as needed
+// Notion extractors
+export { 
+  NotionExtractor,
+  HeadingExtractor,
+  ListExtractor,
+  CodeBlockExtractor,
+  TableExtractor,
+  BlockquoteExtractor,
+  ParagraphExtractor,
+  ImageExtractor
+} from './notion/index.js';
+
+// Markdown extractors
+export { MarkdownExtractor } from './markdown/index.js';

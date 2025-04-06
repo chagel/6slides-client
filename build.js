@@ -75,10 +75,8 @@ function copyStaticFiles() {
     fs.mkdirSync(extractorsDestDir, { recursive: true });
   }
   
-  const extractorFiles = fs.readdirSync(extractorsDir);
-  for (const file of extractorFiles) {
-    fs.copyFileSync(path.join(extractorsDir, file), path.join(extractorsDestDir, file));
-  }
+  // Copy extractors directory with subdirectories
+  copyFiles(extractorsDir, extractorsDestDir);
   
   // Copy icons directory
   copyFiles(path.join(__dirname, 'icons'), path.join(DIST_DIR, 'icons'));

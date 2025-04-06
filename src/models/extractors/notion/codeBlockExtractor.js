@@ -4,7 +4,7 @@
  * Extracts code blocks from Notion pages
  */
 
-import { BaseExtractor } from './baseExtractor.js';
+import { BaseExtractor } from '../baseExtractor.js';
 
 export class CodeBlockExtractor extends BaseExtractor {
   /**

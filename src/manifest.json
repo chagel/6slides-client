@@ -19,7 +19,16 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.notion.so/*", "https://*.notion.site/*"],
+      "matches": [
+        "https://www.notion.so/*", 
+        "https://*.notion.site/*",
+        "https://github.com/*",
+        "https://gitlab.com/*",
+        "https://*/*/*.md",
+        "https://*/*/*.markdown",
+        "file://*/*.md",
+        "file://*/*.markdown"
+      ],
       "js": ["content/entry.js"],
       "run_at": "document_idle"
     }

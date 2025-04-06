@@ -2,6 +2,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { globSync } from 'glob';
 import path from 'path';
+import fs from 'fs';
 
 // Define the main entry points for our bundles
 const entries = [
@@ -79,20 +80,75 @@ const entries = [
       file: 'dist/models/contentExtractor.js',
       format: 'esm',
     }
+  },
+  {
+    input: 'src/models/sourceManager.js',
+    output: {
+      file: 'dist/models/sourceManager.js',
+      format: 'esm',
+    }
+  },
+  {
+    input: 'src/controllers/contentController.js',
+    output: {
+      file: 'dist/controllers/contentController.js',
+      format: 'esm',
+    }
   }
 ];
 
-// Extractors need to be bundled separately as they are dynamically loaded
-const extractors = globSync('src/models/extractors/*.js', { ignore: 'src/models/extractors/index.js' });
-extractors.forEach(file => {
+// Base extractor - add separately
+const baseExtractor = 'src/models/extractors/baseExtractor.js';
+entries.push({
+  input: baseExtractor,
+  output: {
+    file: `dist/models/extractors/baseExtractor.js`,
+    format: 'esm',
+  }
+});
+
+// Add notion extractors
+const notionExtractors = globSync('src/models/extractors/notion/*.js', { ignore: 'src/models/extractors/notion/index.js' });
+notionExtractors.forEach(file => {
   const name = path.basename(file);
   entries.push({
     input: file,
     output: {
-      file: `dist/models/extractors/${name}`,
+      file: `dist/models/extractors/notion/${name}`,
       format: 'esm',
     }
   });
+});
+
+// Add notion extractors index
+entries.push({
+  input: 'src/models/extractors/notion/index.js',
+  output: {
+    file: 'dist/models/extractors/notion/index.js',
+    format: 'esm',
+  }
+});
+
+// Add markdown extractors
+const markdownExtractors = globSync('src/models/extractors/markdown/*.js', { ignore: 'src/models/extractors/markdown/index.js' });
+markdownExtractors.forEach(file => {
+  const name = path.basename(file);
+  entries.push({
+    input: file,
+    output: {
+      file: `dist/models/extractors/markdown/${name}`,
+      format: 'esm',
+    }
+  });
+});
+
+// Add markdown extractors index
+entries.push({
+  input: 'src/models/extractors/markdown/index.js',
+  output: {
+    file: 'dist/models/extractors/markdown/index.js',
+    format: 'esm',
+  }
 });
 
 // Separate entry for extractors index

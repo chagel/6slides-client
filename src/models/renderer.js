@@ -35,6 +35,11 @@ export class PresentationRenderer {
       // Get slides from storage
       const slides = await storage.getSlides();
       
+      // Log the raw slides data from storage
+      console.log('==== RAW SLIDES FROM STORAGE ====');
+      console.log(JSON.stringify(slides, null, 2));
+      console.log('=================================');
+      
       // Get settings
       const settings = storage.getSettings();
       
@@ -59,14 +64,51 @@ export class PresentationRenderer {
   }
   
   /**
-   * Create a slide from markdown content
-   * @param {string} markdown - Markdown content for the slide
+   * Create a slide from slide data
+   * @param {Object} slide - Slide data object
+   * @param {string} slide.title - Slide title
+   * @param {string} slide.content - Slide content
+   * @param {string} slide.sourceType - Content source type (notion, markdown, etc.)
    */
-  createMarkdownSlide(markdown) {
-    if (!markdown || !markdown.trim()) return;
+  createMarkdownSlide(slide) {
+    // Validate slide object
+    if (!slide || typeof slide !== 'object') {
+      logError('Invalid slide format: Expected an object', slide);
+      return;
+    }
+    
+    // Ensure we have string values for title and content
+    let title = 'Untitled Slide';
+    if (slide.title !== undefined && slide.title !== null) {
+      title = String(slide.title).trim();
+    }
+    
+    let content = '';
+    if (slide.content !== undefined && slide.content !== null) {
+      content = String(slide.content).trim();
+      
+      // Handle escaped newlines that might have come from storage
+      content = content.replace(/\\n/g, '\n');
+    }
+    
+    // Log which source type we're rendering
+    const sourceType = slide.sourceType || 'unknown';
+    logDebug(`Rendering slide from source: ${sourceType}`, { 
+      title: title.substring(0, 30) + (title.length > 30 ? '...' : ''),
+      contentLength: content.length
+    });
+    
+    // Create markdown with title as h1 and content below
+    const markdown = `# ${title}\n\n${content}`;
+    
+    // Log the exact markdown content being sent to reveal.js
+    console.log('==== MARKDOWN CONTENT PASSED TO REVEAL.JS ====');
+    console.log(markdown);
+    console.log('==============================================');
     
     const section = document.createElement('section');
     section.setAttribute('data-markdown', '');
+    section.setAttribute('data-source-type', sourceType);
     
     const textarea = document.createElement('textarea');
     textarea.setAttribute('data-template', '');

@@ -5,7 +5,15 @@
  */
 
 import { logDebug, logError } from '../common/utils.js';
-import { HeadingExtractor, ListExtractor, CodeBlockExtractor } from './extractors/index.js';
+import { 
+  HeadingExtractor, 
+  ListExtractor, 
+  CodeBlockExtractor,
+  TableExtractor,
+  BlockquoteExtractor,
+  ParagraphExtractor,
+  ImageExtractor
+} from './extractors/index.js';
 
 export class ContentExtractor {
   /**
@@ -19,6 +27,10 @@ export class ContentExtractor {
     this.headingExtractor = new HeadingExtractor(document);
     this.listExtractor = new ListExtractor(document);
     this.codeBlockExtractor = new CodeBlockExtractor(document);
+    this.tableExtractor = new TableExtractor(document);
+    this.blockquoteExtractor = new BlockquoteExtractor(document);
+    this.paragraphExtractor = new ParagraphExtractor(document);
+    this.imageExtractor = new ImageExtractor(document);
     
     logDebug('Content extractor initialized');
   }
@@ -139,7 +151,30 @@ export class ContentExtractor {
       return this.codeBlockExtractor.codeBlockToMarkdown(element);
     }
     
-    // Add processing for other element types (can be extended later)
+    // Check for tables
+    if (this.tableExtractor.isTableElement(element)) {
+      return this.tableExtractor.tableToMarkdown(element);
+    }
+    
+    // Check for blockquotes
+    if (this.blockquoteExtractor.isBlockquote(element)) {
+      return this.blockquoteExtractor.blockquoteToMarkdown(element);
+    }
+    
+    // Check for paragraphs with formatting
+    if (this.paragraphExtractor.isParagraph(element)) {
+      return this.paragraphExtractor.paragraphToMarkdown(element);
+    }
+    
+    // Check for images
+    if (this.imageExtractor.isImage(element)) {
+      return this.imageExtractor.imageToMarkdown(element);
+    }
+    
+    // Check for horizontal rule
+    if (element.tagName === 'HR') {
+      return '---';
+    }
     
     // Default: treat as regular paragraph
     const text = element.innerText.trim();

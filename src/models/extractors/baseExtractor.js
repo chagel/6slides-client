@@ -4,7 +4,7 @@
  * Base class for all content extractors
  */
 
-import { logDebug } from '../../common/utils.js';
+import { logDebug, logError } from '../../common/utils.js';
 
 export class BaseExtractor {
   /**
@@ -12,7 +12,60 @@ export class BaseExtractor {
    * @param {Document} document - DOM document to extract from
    */
   constructor(document) {
+    if (new.target === BaseExtractor) {
+      throw new Error('BaseExtractor is an abstract class and cannot be instantiated directly');
+    }
+    
     this.document = document;
+  }
+  
+  /**
+   * Extract content from the document
+   * This method must be implemented by subclasses
+   * @returns {Object[]} - Array of slide objects with content
+   */
+  extract() {
+    throw new Error('extract() method must be implemented by subclass');
+  }
+  
+  /**
+   * Validates extracted content
+   * @param {Object[]} slides - The extracted slides
+   * @returns {boolean} - Whether the content is valid
+   */
+  validateContent(slides) {
+    try {
+      // Basic validation
+      if (!Array.isArray(slides) || slides.length === 0) {
+        logError('Invalid slides: Empty or not an array');
+        return false;
+      }
+      
+      // Check if each slide has the required properties
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i];
+        if (!slide.title && !slide.content) {
+          logError(`Invalid slide at index ${i}: Missing title and content`);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      logError('Error validating content', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Process and normalize extracted content
+   * @param {Object[]} rawSlides - The raw extracted slides
+   * @returns {Object[]} - Normalized slides
+   */
+  processContent(rawSlides) {
+    // Default implementation just returns the raw slides
+    // Subclasses can override this to provide custom processing
+    return rawSlides;
   }
   
   /**
