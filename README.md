@@ -37,6 +37,10 @@ A Chrome extension that converts Notion pages to beautiful presentations using r
 
 ## Development
 
+For detailed architectural information, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+For a comprehensive testing guide, see [TESTING.md](docs/TESTING.md).
+
 ### Project Structure
 
 The project uses a clean modular architecture with domain-driven design patterns:
@@ -101,6 +105,8 @@ src/
 3. Reload the extension in Chrome to test the changes
 4. Use `npm run watch` to automatically rebuild on file changes
 5. Use `npm run lint` to check for code style issues
+6. Use `npm test` to run Jest tests
+7. Use `npm test -- --coverage` to view test coverage
 
 ### Build Process
 
@@ -121,6 +127,13 @@ The build process:
 - Add new entries to rollup.config.js if necessary
 
 ## Version History
+
+### Version 1.3.0
+- Added comprehensive Jest test suite for extractors
+- Implemented unit tests for all Notion extractors with >90% code coverage
+- Fixed JSDOM compatibility issues in extractors for better testing
+- Added test setup and configuration for Jest with ES modules
+- Improved error handling in extractors for edge cases
 
 ### Version 1.2.0
 - Implemented centralized logging with LoggingService

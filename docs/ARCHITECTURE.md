@@ -646,5 +646,43 @@ This architecture enables Notion Slides to support multiple content sources whil
 5. **Error Handling** - Centralized error management with the ErrorService
 6. **Configuration Management** - Unified configuration through the ConfigManager service
 7. **Centralized Logging** - Consistent logging through the LoggingService with support for different levels and storage
+8. **Comprehensive Testing** - Unit tests with Jest provide high code coverage for core components
 
 By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked).
+
+## Testing Architecture
+
+The project uses Jest as its testing framework with a focus on unit testing core components:
+
+```
+tests/
+  ├── setup.js                # Test environment setup with global mocks
+  ├── extractors/             # Tests for content extractors
+  │   ├── baseExtractor.test.js        # Tests for base extractor functionality
+  │   └── notion/                      # Notion-specific extractor tests
+  │       ├── blockquoteExtractor.test.js  # Tests for blockquote extraction
+  │       ├── codeBlockExtractor.test.js   # Tests for code block extraction
+  │       ├── headingExtractor.test.js     # Tests for heading extraction
+  │       ├── imageExtractor.test.js       # Tests for image extraction
+  │       ├── listExtractor.test.js        # Tests for list extraction
+  │       ├── notionExtractor.test.js      # Tests for main Notion extractor
+  │       ├── paragraphExtractor.test.js   # Tests for paragraph extraction
+  │       └── tableExtractor.test.js       # Tests for table extraction
+  └── services/               # Tests for application services
+      └── __mocks__/          # Service mocks for testing
+          └── LoggingService.js         # Mock for logging service
+```
+
+### Testing Strategy
+
+1. **JSDOM Integration**: Tests use JSDOM to simulate DOM manipulation without a browser
+2. **Mocking Services**: Core services are mocked to isolate components during testing
+3. **High Coverage**: Focus on high test coverage for extractors (>90%) as they contain core business logic
+4. **ES Module Support**: Configuration for testing ES modules with Jest
+5. **Test Isolation**: Each test file focuses on a specific component with proper setup and teardown
+
+### Running Tests
+
+- Use `npm test` to run the test suite
+- Use `npm test -- --coverage` to generate coverage reports
+- Use `npm test -- <pattern>` to run specific test files
