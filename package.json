@@ -1,6 +1,6 @@
 {
   "name": "notion-slides",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Present your Notion pages as simple, elegant, and secure slides",
   "main": "src/services/worker.ts",
   "type": "module",

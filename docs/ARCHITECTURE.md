@@ -77,25 +77,40 @@ The Content Source Manager serves as a factory that determines which extractor t
 ```typescript
 // src/models/source_manager.ts
 class SourceManager {
-  detectSource(document: Document, url: string): string | null {
+  detectSource(document: Document, url: string): SourceType | null {
+    loggingService.debug('Detecting source type for:', url);
+    
+    // Check for Notion
     if (url.includes('notion.so') || url.includes('notion.site')) {
-      return 'notion';
-    } else if (url.endsWith('.md') || url.endsWith('.markdown')) {
-      return 'markdown';
+      loggingService.debug('Detected Notion source');
+      return SourceType.NOTION;
     }
-    // Future sources can be added here
+    
+    // Check for Markdown file
+    if (url.endsWith('.md') || url.endsWith('.markdown')) {
+      loggingService.debug('Detected raw Markdown file source');
+      return SourceType.MARKDOWN;
+    }
+
+    // Future sources can be added here (GitHub, GitLab, etc.)
     return null;
   }
   
-  getExtractor(sourceType: string, document: Document): BaseExtractor {
+  getExtractor(sourceType: SourceType | string, document: Document): BaseExtractor {
+    loggingService.debug('Getting extractor for:', sourceType);
+    
     switch (sourceType) {
-      case 'notion':
+      case SourceType.NOTION:
         return new NotionExtractor(document);
-      case 'markdown':
+      case SourceType.MARKDOWN:
+      case SourceType.GITHUB_MARKDOWN:
+      case SourceType.GITLAB_MARKDOWN:
         return new MarkdownExtractor(document);
       // Additional sources can be added here
       default:
-        throw new Error(`Unsupported source type: ${sourceType}`);
+        const error = new Error(`Unsupported source type: ${sourceType}`);
+        loggingService.error('Failed to get extractor', error);
+        throw error;
     }
   }
 }
@@ -107,7 +122,8 @@ Each supported content source has its own extractor that knows how to parse cont
 
 ```typescript
 // src/models/extractors/base_extractor.ts
-import { Slide } from '../../types';
+import { loggingService } from '../../services/logging_service';
+import { Slide, ExtractorResult } from '../../types/index';
 
 export abstract class BaseExtractor {
   protected document: Document;
@@ -122,34 +138,115 @@ export abstract class BaseExtractor {
   
   abstract extract(): Slide[];
   
-  // Other shared utility methods
-  protected validateContent(slides: Slide[]): boolean {
-    // Validate the extracted slides
-    return true;
+  // Validates extracted content
+  validateContent(slides: Slide[]): boolean {
+    try {
+      // Basic validation
+      if (!Array.isArray(slides) || slides.length === 0) {
+        loggingService.error('Invalid slides: Empty or not an array');
+        return false;
+      }
+      
+      // Check if each slide has the required properties
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i];
+        if (!slide.title && !slide.content) {
+          loggingService.error(`Invalid slide at index ${i}: Missing title and content`);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      loggingService.error('Error validating content', error);
+      return false;
+    }
+  }
+  
+  // Utility methods available to all extractors
+  findElements(selector: string): Element[] {
+    return Array.from(this.document.querySelectorAll(selector));
+  }
+  
+  hasClass(element: Element | null, className: string): boolean {
+    if (!element || !element.className) return false;
+    return typeof element.className === 'string' && 
+           element.className.includes(className);
+  }
+  
+  getElementText(element: Element | null): string {
+    if (!element) return '';
+    const text = (element as HTMLElement).innerText || element.textContent || '';
+    return text.trim();
+  }
+  
+  debug(message: string, data?: unknown): void {
+    loggingService.debug(`[${this.constructor.name}] ${message}`, data || undefined);
   }
 }
 
 // src/models/extractors/notion/notion_extractor.ts
+import { loggingService } from '../../../services/logging_service';
 import { BaseExtractor } from '../base_extractor';
-import { Slide } from '../../../types';
+import { Slide } from '../../../types/index';
 
 export class NotionExtractor extends BaseExtractor {
+  heading_extractor: IHeadingExtractor;
+  list_extractor: IListExtractor;
+  code_block_extractor: ICodeBlockExtractor;
+  table_extractor: ITableExtractor;
+  blockquote_extractor: IBlockquoteExtractor;
+  paragraph_extractor: IParagraphExtractor;
+  image_extractor: IImageExtractor;
+
+  constructor(document: Document) {
+    super(document);
+    
+    // Initialize component extractors
+    this.heading_extractor = new HeadingExtractor(document);
+    this.list_extractor = new ListExtractor(document);
+    this.code_block_extractor = new CodeBlockExtractor(document);
+    this.table_extractor = new TableExtractor(document);
+    this.blockquote_extractor = new BlockquoteExtractor(document);
+    this.paragraph_extractor = new ParagraphExtractor(document);
+    this.image_extractor = new ImageExtractor(document);
+  }
+
   extract(): Slide[] {
-    // Notion-specific extraction logic
-    // Extract H1s, content between them, etc.
-    return [];
+    try {
+      this.debug('Starting extraction from Notion page');
+      
+      // Notion-specific extraction logic using component extractors
+      // Find H1 headings, extract content between them, etc.
+      return [];
+    } catch (error) {
+      loggingService.error('Error extracting content from Notion page', error);
+      return [];
+    }
   }
 }
 
 // src/models/extractors/markdown/markdown_extractor.ts
+import { loggingService } from '../../../services/logging_service';
 import { BaseExtractor } from '../base_extractor';
-import { Slide } from '../../../types';
+import { Slide } from '../../../types/index';
 
 export class MarkdownExtractor extends BaseExtractor {
+  constructor(document: Document) {
+    super(document);
+  }
+
   extract(): Slide[] {
-    // Markdown-specific extraction logic
-    // Parse markdown content and structure it into slides
-    return [];
+    try {
+      this.debug('Starting extraction from Markdown');
+      
+      // Markdown-specific extraction logic
+      // Parse markdown content and structure it into slides
+      return [];
+    } catch (error) {
+      loggingService.error('Error extracting content from Markdown', error);
+      return [];
+    }
   }
 }
 ```
@@ -475,13 +572,25 @@ class DependencyContainer {
 }
 ```
 
+## Coding Standards
+
+### File Naming Convention
+
+All files in the codebase follow the `snake_case` naming convention:
+
+- **Services**: `logging_service.ts`, `error_service.ts`, `dependency_container.ts`
+- **Models**: `source_manager.ts`, `content_extractor.ts` 
+- **Extractors**: `base_extractor.ts`, `notion_extractor.ts`, `markdown_extractor.ts`
+- **Controllers**: `content_controller.ts`, `navigation.ts`
+
+The `snake_case` convention was chosen for consistency and readability across the codebase.
+
 ## File Structure
 
 ```
 src/
   ├── app.ts                  # Application bootstrap and content script functionality
   ├── common/                 # Shared utilities
-  │   ├── messaging.ts        # Communication between components
   │   └── utils.ts            # Utility functions
   ├── controllers/            # Controllers connecting models and views
   │   ├── content_controller.ts # Content extraction orchestration
@@ -523,7 +632,7 @@ src/
   │   ├── dependency_container.ts # Dependency injection container
   │   ├── error_service.ts     # Centralized error handling
   │   ├── logging_service.ts   # Centralized logging service
-  │   ├── messaging_service.ts # Inter-component communication
+  │   ├── messaging_service.ts # Inter-component communication (formerly in common/)
   │   ├── service_registry.ts  # Service registration
   │   └── worker.ts           # Service worker (background script)
   ├── types/                  # TypeScript type definitions
@@ -770,11 +879,13 @@ This architecture enables Notion Slides to support multiple content sources whil
 3. **Dependency Injection** - Components request dependencies through type-safe constructors
 4. **Strategy Pattern** - Content extractors share a common abstract class and interfaces but implement source-specific parsing logic
 5. **Separation of Concerns** - Distinct layers for controllers, models, services, and rendering with appropriate interfaces
-6. **Error Handling** - Centralized error management with the ErrorService and proper error typing
-7. **Configuration Management** - Unified configuration through the ConfigManager service with typed configs
-8. **Centralized Logging** - Consistent logging through the LoggingService with type-safe logging methods and enums
-9. **Comprehensive Testing** - TypeScript-based unit tests with Jest provide high code coverage for core components
-10. **Service Worker Awareness** - Environment detection for cross-context compatibility (browser vs. service worker)
+6. **Error Handling** - Centralized error management with the error_service and proper error typing
+7. **Configuration Management** - Unified configuration through the config_manager service with typed configs
+8. **Centralized Logging** - Consistent logging through the logging_service with type-safe logging methods and enums
+9. **Consistent Naming Convention** - All files follow the snake_case naming convention for improved readability and consistency
+10. **Service-Oriented Architecture** - Common utilities like messaging are implemented as services to promote better dependency management
+11. **Comprehensive Testing** - TypeScript-based unit tests with Jest provide high code coverage for core components
+12. **Service Worker Awareness** - Environment detection for cross-context compatibility (browser vs. service worker)
 
 By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked). The TypeScript integration ensures type safety across the entire codebase, reducing runtime errors and improving developer productivity.
 
@@ -786,19 +897,19 @@ The project uses Jest as its testing framework with a focus on unit testing core
 tests/
   ├── setup.ts                # Test environment setup with global mocks
   ├── extractors/             # Tests for content extractors
-  │   ├── baseExtractor.test.ts        # Tests for base extractor functionality
+  │   ├── base_extractor.test.ts        # Tests for base extractor functionality
   │   └── notion/                      # Notion-specific extractor tests
-  │       ├── blockquoteExtractor.test.ts  # Tests for blockquote extraction
-  │       ├── codeBlockExtractor.test.ts   # Tests for code block extraction
-  │       ├── headingExtractor.test.ts     # Tests for heading extraction
-  │       ├── imageExtractor.test.ts       # Tests for image extraction
-  │       ├── listExtractor.test.ts        # Tests for list extraction
-  │       ├── notionExtractor.test.ts      # Tests for main Notion extractor
-  │       ├── paragraphExtractor.test.ts   # Tests for paragraph extraction
-  │       └── tableExtractor.test.ts       # Tests for table extraction
+  │       ├── blockquote_extractor.test.ts  # Tests for blockquote extraction
+  │       ├── code_block_extractor.test.ts   # Tests for code block extraction
+  │       ├── heading_extractor.test.ts     # Tests for heading extraction
+  │       ├── image_extractor.test.ts       # Tests for image extraction
+  │       ├── list_extractor.test.ts        # Tests for list extraction
+  │       ├── notion_extractor.test.ts      # Tests for main Notion extractor
+  │       ├── paragraph_extractor.test.ts   # Tests for paragraph extraction
+  │       └── table_extractor.test.ts       # Tests for table extraction
   └── services/               # Tests for application services
       └── __mocks__/          # Service mocks for testing
-          └── services.ts     # Type-safe mock services for testing
+          └── logging_service.ts     # Type-safe mock services for testing
 ```
 
 ### Testing Strategy

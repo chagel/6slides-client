@@ -3,14 +3,19 @@
   "name": "Notion to Slides",
   "version": "1.1.0",
   "description": "Present your Notion pages as simple, elegant, and secure slides",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
   "permissions": ["scripting", "activeTab", "tabs", "storage"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     }
   },
   "background": {
@@ -39,13 +44,14 @@
         "viewer.html", 
         "lib/reveal.js/**", 
         "about.html", 
-        "icons/**", 
         "controllers/viewer/index.js", 
-        "icons/ui/**",
         "app.js",
         "models/*.js",
         "models/extractors/*.js",
-        "services/*.js"
+        "services/*.js",
+        "assets/styles/*.css",
+        "assets/icons/**",
+        "assets/data/*.js"
       ],
       "matches": ["<all_urls>"]
     }

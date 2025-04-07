@@ -200,6 +200,16 @@ entries.push({
 
 // Common utilities (removed messaging.ts, now a service)
 
+// Data files
+entries.push({
+  input: 'src/assets/data/changelog.ts',
+  output: {
+    file: 'dist/assets/data/changelog.js',
+    format: 'iife',
+    name: 'changelog'
+  }
+});
+
 // Services
 entries.push({
   input: 'src/services/logging_service.ts',

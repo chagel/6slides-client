@@ -1,0 +1,20 @@
+1.5.0|April 2025
+- Improved code organization with external CSS files
+- Added minimalistic design improvements
+- Restructured assets directory for better organization
+- Fixed icon display in Chrome extensions page
+
+1.4.0|March 2025
+- Added debug logging controls
+- Improved cache management
+- Fixed rendering of complex Notion tables
+
+1.3.0|March 2025
+- Refactored content extractors for better reliability
+- Added support for Notion toggles
+- Unified version across all components
+
+1.2.0|March 2025
+- Restructured source directories
+- Improved file operations
+- Added Catppuccin themes
