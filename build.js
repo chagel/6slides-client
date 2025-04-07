@@ -96,8 +96,7 @@ function copyStaticFiles() {
   // Copy extractors directory with subdirectories
   copyFiles(extractorsDir, extractorsDestDir);
   
-  // Copy icons directory
-  copyFiles(path.join(__dirname, 'icons'), path.join(DIST_DIR, 'icons'));
+  // Icons are now in src/assets/icons - no need to copy them separately
   
   // Copy lib directory
   copyFiles(path.join(__dirname, 'lib'), path.join(DIST_DIR, 'lib'));

@@ -8,9 +8,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     }
   },
   "background": {
@@ -39,14 +39,13 @@
         "viewer.html", 
         "lib/reveal.js/**", 
         "about.html", 
-        "icons/**", 
         "controllers/viewer/index.js", 
-        "icons/ui/**",
         "app.js",
         "models/*.js",
         "models/extractors/*.js",
         "services/*.js",
-        "assets/styles/*.css"
+        "assets/styles/*.css",
+        "assets/icons/**"
       ],
       "matches": ["<all_urls>"]
     }
