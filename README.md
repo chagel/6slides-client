@@ -10,6 +10,8 @@ A Chrome extension that converts Notion pages to beautiful presentations using r
 - Convert to reveal.js presentations with markdown support
 - Multiple themes: Default (Dark), Catppuccin Latte (Light), and Catppuccin Mocha (Dark)
 - Support for Notion blocks: headings, lists, code blocks, tables, images, quotes, and more
+- Offline usage with no data sent to external servers
+- Minimalist design focused on content readability
 
 ## How to Use
 
@@ -47,42 +49,47 @@ The project uses a clean modular architecture with domain-driven design patterns
 
 ```
 src/
-  ├── app.ts            # Application bootstrap and initialization
-  ├── common/           # Shared utilities
-  │   └── messaging.ts  # Component communication
-  ├── models/           # Business logic and data models
-  │   ├── domain/       # Domain models
-  │   │   ├── Slide.ts             # Slide domain model
-  │   │   ├── Presentation.ts      # Presentation domain model
-  │   │   └── types.ts             # Domain type definitions
-  │   ├── configManager.ts         # Configuration management
-  │   ├── contentExtractor.ts      # Content extraction coordination
-  │   ├── contentProcessor.ts      # Content normalization
-  │   ├── renderer.ts              # Presentation rendering
-  │   ├── sourceManager.ts         # Source detection
-  │   ├── storage.ts               # Data persistence
-  │   └── extractors/              # Specialized extractors
-  │       ├── baseExtractor.ts     # Base extractor interface
-  │       ├── markdown/            # Markdown extractors
-  │       └── notion/              # Notion extractors
-  ├── services/         # Application services
-  │   ├── DependencyContainer.ts   # Dependency injection
-  │   ├── ErrorService.ts          # Centralized error handling
-  │   ├── LoggingService.ts        # Centralized logging
-  │   └── serviceRegistry.ts       # Service registration
-  ├── controllers/      # Controllers connecting models and views
-  │   ├── contentController.ts     # Content orchestration
-  │   ├── popup/                   # Extension popup controller
-  │   ├── settings/                # Settings controller
-  │   └── viewer/                  # Presentation viewer controller
-  ├── types/            # TypeScript type definitions
-  │   ├── index.ts                 # Type exports
-  │   └── storage.ts               # Storage-related types
-  ├── views/            # HTML views
-  ├── content/          # Content script
-  │   └── entry.ts      # Content script entry point
-  └── background/       # Background script
-      └── index.ts      # Service worker
+  ├── app.ts                 # Application bootstrap and initialization
+  ├── assets/                # Static assets
+  │   ├── data/              # Data files (changelog, etc.)
+  │   ├── icons/             # Icon assets
+  │   └── styles/            # CSS stylesheets
+  ├── common/                # Shared utilities
+  │   └── utils.ts           # Utility functions
+  ├── models/                # Business logic and data models
+  │   ├── domain/            # Domain models
+  │   │   ├── slide.ts       # Slide domain model
+  │   │   ├── presentation.ts # Presentation domain model
+  │   │   └── types.ts       # Domain type definitions
+  │   ├── config_manager.ts  # Configuration management
+  │   ├── content_extractor.ts # Content extraction coordination
+  │   ├── content_processor.ts # Content normalization
+  │   ├── renderer.ts        # Presentation rendering
+  │   ├── source_manager.ts  # Source detection
+  │   ├── storage.ts         # Data persistence
+  │   └── extractors/        # Specialized extractors
+  │       ├── base_extractor.ts # Base extractor interface
+  │       ├── markdown/      # Markdown extractors
+  │       └── notion/        # Notion extractors
+  ├── services/              # Application services
+  │   ├── dependency_container.ts # Dependency injection
+  │   ├── error_service.ts   # Centralized error handling
+  │   ├── logging_service.ts # Centralized logging
+  │   ├── messaging_service.ts # Component communication (formerly in common/)
+  │   └── service_registry.ts # Service registration
+  ├── controllers/           # Controllers connecting models and views
+  │   ├── content_controller.ts # Content orchestration
+  │   ├── popup/             # Extension popup controller
+  │   ├── settings/          # Settings controller
+  │   └── viewer/            # Presentation viewer controller
+  ├── types/                 # TypeScript type definitions
+  │   ├── index.ts           # Type exports
+  │   └── storage.ts         # Storage-related types
+  ├── views/                 # HTML views
+  ├── content/               # Content script
+  │   └── entry.ts           # Content script entry point
+  └── background/            # Background script
+      └── index.ts           # Service worker
 ```
 
 ### Setup
@@ -115,24 +122,48 @@ src/
 ### Build Process
 
 The build process:
-1. Uses Rollup to bundle JavaScript modules
+1. Uses Rollup to bundle TypeScript modules
 2. Converts ES modules to IIFE for compatibility with Chrome extension context
 3. Handles proper module formats for different parts of the extension:
    - Background service worker: ESM format
    - Content script: Single IIFE bundle with all dependencies included
    - Popup/UI scripts: IIFE format for maximum compatibility
-4. Copies static assets and updates HTML files to use bundled scripts
+4. Copies static assets including:
+   - HTML files from views directory
+   - CSS files from assets/styles directory
+   - Icon files from assets/icons directory
+   - Data files from assets/data directory
+5. Updates version number and other placeholders in output files
+6. Ensures all resources are properly referenced in manifest.json
 
 ### Adding New Features
 
 - For new content types, add a new extractor in `src/models/extractors/`
 - For UI enhancements, modify the relevant controller in `src/controllers/` and view in `src/views/`
-- For new presentation features, extend the renderer in `src/models/renderer.js`
+- For stylistic changes, update the CSS files in `src/assets/styles/`
+- For presentation features, extend the renderer in `src/models/renderer.ts`
 - Add new entries to rollup.config.js if necessary
+
+### Coding Standards
+
+- All files follow the `snake_case` naming convention for consistency
+- TypeScript is used throughout the codebase for type safety
+- CSS is maintained in separate files from HTML for better organization
+- External data sources (like changelog.txt) are used for easily-updatable content
 
 ## Version History
 
+### Version 1.5.0 (Current)
+- Improved code organization with external CSS files
+- Added minimalistic design improvements
+- Restructured assets directory for better organization
+- Fixed icon display in Chrome extensions page
+- Added external data source for changelog
+- Enhanced developer and about pages
+
 ### Version 1.4.0
+- Added debug logging controls and cache management
+- Fixed rendering of complex Notion tables
 - Migrated codebase from JavaScript to TypeScript
 - Added TypeScript type definitions for all files
 - Configured TypeScript build process and ESLint integration
