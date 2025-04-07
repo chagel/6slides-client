@@ -2,7 +2,7 @@
 
 ## Notion Slides Extension License
 
-Copyright (c) 2025 Flakes.ai
+Copyright (c) 2025 Notion Slides
 
 
 ## Third-Party Licenses
