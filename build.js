@@ -101,6 +101,9 @@ function copyStaticFiles() {
   
   // Copy lib directory
   copyFiles(path.join(__dirname, 'lib'), path.join(DIST_DIR, 'lib'));
+  
+  // Copy assets directory (for CSS files)
+  copyFiles(path.join(SRC_DIR, 'assets'), path.join(DIST_DIR, 'assets'));
 }
 
 // Run rollup to bundle JavaScript modules

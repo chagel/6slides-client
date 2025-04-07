@@ -45,7 +45,8 @@
         "app.js",
         "models/*.js",
         "models/extractors/*.js",
-        "services/*.js"
+        "services/*.js",
+        "assets/styles/*.css"
       ],
       "matches": ["<all_urls>"]
     }
