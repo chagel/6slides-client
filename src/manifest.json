@@ -50,7 +50,8 @@
         "models/extractors/*.js",
         "services/*.js",
         "assets/styles/*.css",
-        "assets/icons/**"
+        "assets/icons/**",
+        "assets/data/*.js"
       ],
       "matches": ["<all_urls>"]
     }
