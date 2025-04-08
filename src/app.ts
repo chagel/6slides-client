@@ -128,14 +128,38 @@ export async function initializeApp(): Promise<boolean> {
     const config = configManager.getConfig();
     
     // Set debug logging and other service configurations based on config
-    loggingService.setDebugLogging(config.debugLogging || false);
-    loggingService.setStoreDebugLogs(true); // Always store logs for now
+    const debugEnabled = config.debugLogging || false;
+    loggingService.setDebugLogging(debugEnabled);
     
-    // Set console logging from config or via explicit debug mode setting
-    if (config.logConsole !== undefined) {
-      loggingService.setConsoleLogging(config.logConsole);
-    } else {
-      loggingService.setConsoleLogging(config.debugLogging || false);
+    // Always store logs to localStorage when debug is enabled
+    loggingService.setStoreDebugLogs(debugEnabled);
+    
+    // Always enable console logging if debug mode is enabled
+    loggingService.setConsoleLogging(debugEnabled);
+    
+    // Generate first logs when debug is enabled
+    if (debugEnabled) {
+      loggingService.debug('Debug logging enabled - logs are being stored');
+    }
+    
+    // Log initialization to confirm logging is working
+    if (debugEnabled) {
+      // Get subscription status
+      const hasPro = configManager.hasPro();
+      const level = configManager.getSubscriptionLevel();
+      const expiry = configManager.getValue('subscriptionExpiry', null);
+      
+      console.log('%c[Notion Slides Debug Mode]', 'background: #3F51B5; color: white; padding: 2px 6px; border-radius: 4px;', 
+        'Debug logging enabled - check console for logs', { 
+          version: '1.4.0', 
+          context: typeof chrome !== 'undefined' && chrome.runtime ? 'content_script' : 'extension',
+          subscription: {
+            level: level,
+            hasPro: hasPro,
+            expiry: expiry ? new Date(expiry).toLocaleString() : 'Never'
+          }
+        }
+      );
     }
     
     // Set up content script message handlers if we're in that context

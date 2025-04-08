@@ -325,6 +325,178 @@ select, input {
   color: #555;
 }
 
+/* Log viewer styles */
+.log-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.log-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #666;
+}
+
+.log-filter {
+  padding: 5px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+
+.log-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.copy-logs-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #2196f3;
+  padding: 8px 12px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.copy-logs-btn:hover {
+  background-color: #1976d2;
+}
+
+.copy-logs-btn:active {
+  background-color: #0d47a1;
+}
+
+.copy-logs-btn:disabled {
+  background-color: #b0bec5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.copy-logs-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.log-entry {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+  line-height: 1.4;
+  background-color: #fafafa;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+
+.log-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.log-level {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.log-level.debug {
+  background-color: #8bc34a;
+}
+
+.log-level.info {
+  background-color: #2196f3;
+}
+
+.log-level.warn {
+  background-color: #ff9800;
+}
+
+.log-level.error {
+  background-color: #f44336;
+}
+
+.log-context {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  background-color: #f1f1f1;
+  color: #666;
+}
+
+.log-context.content_script {
+  background-color: #e1f5fe;
+  color: #0277bd;
+}
+
+.log-context.viewer {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.log-context.popup {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.log-context.settings {
+  background-color: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.log-timestamp {
+  color: #777;
+  font-size: 11px;
+}
+
+.log-message {
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.log-data {
+  padding: 8px 0 4px 25px;
+  color: #666;
+  font-size: 11px;
+}
+
+.log-data pre {
+  margin: 5px 0;
+  padding: 8px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow-x: auto;
+  font-size: 11px;
+}
+
 /* Changelog styles - Minimalistic Design */
 .changelog-container {
   margin-top: 15px;

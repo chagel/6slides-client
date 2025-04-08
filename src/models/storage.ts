@@ -10,9 +10,10 @@ import { DebugInfo, ErrorInfo, Settings } from '../types/storage';
 
 // IndexedDB database name and version
 const DB_NAME = 'notionSlides';
-const DB_VERSION = 1;
+const DB_VERSION = 3; // Increased version to add new indexes for logs store
 const SLIDES_STORE = 'slides';
 const SETTINGS_STORE = 'settings';
+const LOGS_STORE = 'logs';
 
 // Size threshold in bytes before using IndexedDB instead of localStorage (1MB)
 const SIZE_THRESHOLD = 1 * 1024 * 1024; 
@@ -185,6 +186,122 @@ class Storage {
   }
   
   /**
+   * Save a single debug log entry to IndexedDB
+   * @param logEntry - The log entry to save
+   * @returns Promise that resolves when save is complete
+   */
+  async saveDebugLog(logEntry: any): Promise<void> {
+    try {
+      if (this.isServiceWorker) {
+        console.debug('Debug log in service worker:', logEntry);
+        return;
+      }
+      
+      // Ensure log entry has a timestamp if not already present
+      if (!logEntry.timestamp) {
+        logEntry.timestamp = new Date().toISOString();
+      }
+      
+      // Ensure metadata exists
+      if (!logEntry.metadata) {
+        logEntry.metadata = {};
+      }
+      
+      // Ensure context metadata exists
+      if (!logEntry.metadata.context) {
+        // Try to determine context from window.location if available
+        try {
+          const url = window.location.href || '';
+          let context = 'unknown';
+          
+          if (url.includes('viewer.html')) {
+            context = 'viewer';
+          } else if (url.includes('popup.html')) {
+            context = 'popup';
+          } else if (url.includes('about.html')) {
+            context = 'about';
+          } else if (url.includes('settings.html')) {
+            context = 'settings';
+          } else if (url.includes('sidebar-template.html')) {
+            context = 'sidebar';
+          } else if (typeof chrome !== 'undefined' && chrome.runtime) {
+            context = 'content_script';
+          }
+          
+          logEntry.metadata.context = context;
+        } catch (e) {
+          logEntry.metadata.context = 'unknown';
+        }
+      }
+      
+      // Clean debug logging to console
+      console.log(`[${logEntry.metadata.context}] ${logEntry.message}`);
+      
+      // Generate a more deterministic ID for the log entry to help prevent duplicates
+      // This creates a hash based on content that will be consistent for identical logs
+      const idComponents = [
+        logEntry.timestamp,
+        logEntry.level,
+        logEntry.message,
+        logEntry.metadata.context
+      ];
+      
+      // Create a simple hash from these components to use as ID
+      const idBase = idComponents.join('|');
+      const simpleHash = btoa(idBase).replace(/[/+=]/g, '').substring(0, 20);
+      logEntry.id = simpleHash;
+      
+      // Save to IndexedDB using put - this will automatically replace identical logs
+      // rather than creating duplicates, because we're using a content-based ID
+      await this._saveToIndexedDB(LOGS_STORE, logEntry);
+      
+      // Update localStorage cache
+      this._updateLocalStorageLogCache(logEntry);
+    } catch (error) {
+      console.error('Failed to save debug log to IndexedDB', error);
+    }
+  }
+  
+  
+  
+  /**
+   * Update localStorage cache with new log entry
+   * @param logEntry - Log entry to add to cache
+   * @private
+   */
+  private _updateLocalStorageLogCache(logEntry: any): void {
+    try {
+      // Get current logs from localStorage
+      const CROSS_PAGE_LOG_KEY = 'notion_slides_debug_logs';
+      let logs: any[] = [];
+      
+      // Try to get existing logs
+      const logsJson = localStorage.getItem(CROSS_PAGE_LOG_KEY);
+      if (logsJson) {
+        try {
+          logs = JSON.parse(logsJson);
+          if (!Array.isArray(logs)) logs = [];
+        } catch (e) {
+          logs = [];
+        }
+      }
+      
+      // Add new log to beginning (newest first)
+      logs.unshift(logEntry);
+      
+      // Keep only last 100 logs in localStorage to avoid storage issues
+      if (logs.length > 100) {
+        logs.length = 100;
+      }
+      
+      // Save updated logs back to localStorage
+      localStorage.setItem(CROSS_PAGE_LOG_KEY, JSON.stringify(logs));
+    } catch (error) {
+      console.error('Failed to update localStorage log cache', error);
+    }
+  }
+
+  /**
    * Save debug info
    * @param info - Debug info object
    */
@@ -199,16 +316,37 @@ class Storage {
       // Get existing debug info
       const existingDebugInfo = this.getDebugInfo();
       
-      // Merge the existing logs with the new debug info
+      // If info contains logs, save them to IndexedDB individually
+      if (info.logs && info.logs.length > 0) {
+        // Save each log to IndexedDB 
+        // We're not adding them to updatedLogs to avoid duplication
+        // since saveDebugLog handles deduplication internally now
+        info.logs.forEach(log => {
+          this.saveDebugLog(log).catch(err => 
+            console.error('Failed to save individual log to IDB', err)
+          );
+        });
+        
+        // Log info about storage
+        console.log(`Saving ${info.logs.length} logs directly to IndexedDB`);
+        
+        // Remove logs from the info object to avoid duplicate storage
+        // The logs are already saved to IndexedDB, no need to store in localStorage too
+        const { logs, ...infoWithoutLogs } = info;
+        info = infoWithoutLogs;
+      }
+      
+      // Create full debug info (without including logs to avoid duplication)
       const debugInfo: DebugInfo = { 
-        ...info,
-        logs: existingDebugInfo.logs || [] 
+        ...existingDebugInfo,  // Start with existing debug info
+        ...info,               // Override with new info
+        // Keep existing logs if any
+        logs: existingDebugInfo.logs || []
       };
       
       localStorage.setItem('slideDebugInfo', JSON.stringify(debugInfo));
     } catch (error) {
       // Don't use loggingService here to avoid circular dependency
-      // Only log in console to avoid spam
       console.error('Failed to save debug info', error);
     }
   }
@@ -235,6 +373,85 @@ class Storage {
   }
   
   /**
+   * Get debug logs from IndexedDB
+   * @param limit - Maximum number of logs to retrieve
+   * @returns Promise resolving to array of log entries
+   */
+  async getDebugLogs(limit: number = 100): Promise<any[]> {
+    try {
+      if (this.isServiceWorker) {
+        return [];
+      }
+      
+      // Get logs from IndexedDB as the single source of truth
+      try {
+        const db = await this._openDatabase();
+        
+        // Check if logs store exists
+        if (!db.objectStoreNames.contains(LOGS_STORE)) {
+          return [];
+        }
+        
+        // Get logs from IndexedDB in descending order (newest first)
+        const logs = await new Promise<any[]>((resolve, reject) => {
+          const tx = db.transaction([LOGS_STORE], 'readonly');
+          const store = tx.objectStore(LOGS_STORE);
+          
+          // Use timestamp index for sorting if available, otherwise use main cursor
+          const request = store.index('timestamp').openCursor(null, 'prev');
+          const result: any[] = [];
+          
+          request.onsuccess = (event) => {
+            const cursor = (event.target as IDBRequest).result;
+            
+            if (cursor && result.length < limit) {
+              result.push(cursor.value);
+              cursor.continue();
+            } else {
+              resolve(result);
+            }
+          };
+          
+          request.onerror = (event) => {
+            console.error('Error getting logs', (event.target as IDBRequest).error);
+            reject((event.target as IDBRequest).error);
+          };
+          
+          tx.oncomplete = () => {
+            db.close();
+          };
+        });
+        
+        // No localStorage cache - just return the logs directly
+        return logs;
+        
+      } catch (error) {
+        console.error('Failed to get logs from IndexedDB:', error);
+        
+        // Fallback to localStorage only if IndexedDB completely fails
+        try {
+          const CROSS_PAGE_LOG_KEY = 'notion_slides_debug_logs';
+          const logsJson = localStorage.getItem(CROSS_PAGE_LOG_KEY);
+          
+          if (logsJson) {
+            const localLogs = JSON.parse(logsJson);
+            if (Array.isArray(localLogs)) {
+              return localLogs.slice(0, limit);
+            }
+          }
+        } catch (e) {
+          console.error('Failed to get logs from localStorage fallback:', e);
+        }
+        
+        return [];
+      }
+    } catch (error) {
+      console.error('Failed to get debug logs', error);
+      return [];
+    }
+  }
+  
+  /**
    * Save error info
    * @param error - Error info object
    */
@@ -255,6 +472,44 @@ class Storage {
     }
   }
   
+  /**
+   * Clear all log data from IndexedDB
+   * @returns Promise resolving when clearing completes
+   */
+  async clearLogs(): Promise<void> {
+    try {
+      if (this.isServiceWorker) return;
+      
+      // Clear logs from localStorage
+      localStorage.removeItem('slideDebugInfo');
+      localStorage.removeItem('notion_slides_debug_logs');
+      
+      // Clear logs from IndexedDB
+      const db = await this._openDatabase();
+      
+      // Check if logs store exists
+      if (db.objectStoreNames.contains(LOGS_STORE)) {
+        const tx = db.transaction([LOGS_STORE], 'readwrite');
+        const logsStore = tx.objectStore(LOGS_STORE);
+        
+        logsStore.clear();
+        
+        return new Promise((resolve) => {
+          tx.oncomplete = () => {
+            db.close();
+            console.log('All logs cleared successfully');
+            resolve();
+          };
+        });
+      }
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Failed to clear logs', error);
+      return Promise.reject(error);
+    }
+  }
+
   /**
    * Clear all stored data
    * @returns Promise resolving when clearing completes
@@ -278,23 +533,32 @@ class Storage {
       localStorage.removeItem('slideDebugInfo');
       localStorage.removeItem('slideError');
       localStorage.removeItem('notionSlidesSettings');
+      localStorage.removeItem('notion_slides_debug_logs');
       
       // Clear IndexedDB
       const db = await this._openDatabase();
-      const tx = db.transaction([SLIDES_STORE, SETTINGS_STORE], 'readwrite');
-      const slidesStore = tx.objectStore(SLIDES_STORE);
-      const settingsStore = tx.objectStore(SETTINGS_STORE);
       
-      slidesStore.clear();
-      settingsStore.clear();
+      // Get all store names
+      const storeNames = Array.from(db.objectStoreNames);
       
-      return new Promise((resolve) => {
-        tx.oncomplete = () => {
-          db.close();
-          loggingService.debug('All cache data cleared successfully');
-          resolve();
-        };
-      });
+      if (storeNames.length > 0) {
+        const tx = db.transaction(storeNames, 'readwrite');
+        
+        // Clear all stores
+        storeNames.forEach(storeName => {
+          tx.objectStore(storeName).clear();
+        });
+        
+        return new Promise((resolve) => {
+          tx.oncomplete = () => {
+            db.close();
+            loggingService.debug('All cache data cleared successfully');
+            resolve();
+          };
+        });
+      }
+      
+      return Promise.resolve();
     } catch (error) {
       loggingService.error('Failed to clear all data', error);
       return Promise.reject(error);
@@ -320,6 +584,24 @@ class Storage {
         
         if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
           db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' });
+        }
+        
+        // Add logs store with the id as the key
+        if (!db.objectStoreNames.contains(LOGS_STORE)) {
+          const logsStore = db.createObjectStore(LOGS_STORE, { 
+            keyPath: 'id'
+          });
+          
+          // Add indexes for easier querying
+          logsStore.createIndex('timestamp', 'timestamp', { unique: false });
+          logsStore.createIndex('level', 'level', { unique: false });
+          logsStore.createIndex('context', 'metadata.context', { unique: false });
+          
+          // Add a compound index for timestamp+message to help detect duplicates
+          logsStore.createIndex('timestamp_message', ['timestamp', 'message'], { unique: false });
+          
+          // Add a compound index for context+timestamp for faster retrieval of context-specific logs
+          logsStore.createIndex('context_timestamp', ['metadata.context', 'timestamp'], { unique: false });
         }
       };
       

@@ -6,6 +6,7 @@
 
 import { loggingService } from '../services/logging_service';
 import { configManager } from './config_manager';
+import { storage } from './storage';
 import { 
   HeadingExtractor, 
   ListExtractor, 
@@ -42,7 +43,7 @@ export class ContentExtractor {
     this.paragraph_extractor = new ParagraphExtractor(document);
     this.image_extractor = new ImageExtractor(document);
     
-    loggingService.debug('Content extractor initialized');
+    loggingService.debug('Content extractor initialized', null, 'extractor');
   }
   
   /**
@@ -50,18 +51,19 @@ export class ContentExtractor {
    * @returns Array of markdown strings, one per slide
    */
   extract(): string[] {
-    loggingService.debug('Starting content extraction');
+    // Single log entry for extraction start
+    loggingService.debug('Starting content extraction', null, 'extractor');
     
     try {
       // Find all H1 headings to identify slide boundaries
       const h1Elements = this.heading_extractor.extractHeadingsOfLevel(1);
       
       if (h1Elements.length === 0) {
-        loggingService.error('No H1 headings found. Template format requires H1 headings to define slides.');
+        loggingService.error('No H1 headings found. Template format requires H1 headings to define slides.', null, 'extractor');
         return [];
       }
       
-      loggingService.debug(`Found ${h1Elements.length} H1 headings for slides`);
+      loggingService.debug(`Found ${h1Elements.length} H1 headings for slides`, null, 'extractor');
       
       const slides: string[] = [];
       
@@ -76,7 +78,7 @@ export class ContentExtractor {
         }
       });
       
-      loggingService.debug(`Created ${slides.length} slides from template format`);
+      loggingService.debug(`Created ${slides.length} slides from template format`, null, 'extractor');
       
       // Debug output
       slides.forEach((slide, index) => {
@@ -85,13 +87,13 @@ export class ContentExtractor {
           h1Count: (slide.match(/^# /gm) || []).length,
           h2Count: (slide.match(/^## /gm) || []).length,
           h3Count: (slide.match(/^### /gm) || []).length
-        });
+        }, 'extractor');
       });
       
       // Apply slide limit for free users
       return this.applySlideLimit(slides);
     } catch (error) {
-      loggingService.error('Error extracting content', error);
+      loggingService.error('Error extracting content', error, 'extractor');
       throw error;
     }
   }
@@ -208,41 +210,23 @@ export class ContentExtractor {
   }
   
   /**
-   * Apply slide limit for free users
+   * Apply slide limit for free users - DEPRECATED, limit is now applied in ContentController
    * @param slides - Array of slide markdown content
-   * @returns Limited array of slides based on subscription
+   * @returns Raw slides without limiting (limiting happens in ContentController)
    */
   private applySlideLimit(slides: string[]): string[] {
-    const FREE_SLIDE_LIMIT = 10;
+    // The slide limit is now handled in ContentController.applyFreeUserSlideLimit
+    // This function remains for backward compatibility but no longer limits slides
     
-    // If user has pro subscription, no need to limit slides
+    const slidesCount = slides.length;
+    
     if (configManager.hasPro()) {
-      return slides;
+      loggingService.debug(`Pro user - no slide limit needed in extractor. Slides: ${slidesCount}`, null, 'extractor');
+    } else {
+      loggingService.debug(`Free user slide extraction complete. Slides will be limited in controller. Extracted: ${slidesCount}`, null, 'extractor');
     }
     
-    // For free users, limit to the defined count
-    if (slides.length > FREE_SLIDE_LIMIT) {
-      loggingService.debug(`Free user slide limit applied: ${FREE_SLIDE_LIMIT}/${slides.length} slides`);
-      
-      // Get the first slides up to the limit
-      const limitedSlides = slides.slice(0, FREE_SLIDE_LIMIT);
-      
-      // Add a "Upgrade to Pro" slide at the end
-      const upgradeSlide = `# Unlock More Slides with Pro
-
-You've reached the free limit of ${FREE_SLIDE_LIMIT} slides.
-
-## Upgrade to Pro to unlock:
-- **Unlimited slides** for all your presentations
-- **Premium themes** to make your slides stand out
-- **Markdown support** for more advanced usage
-
-[Upgrade Now](https://notion-slides.com/pricing)`;
-
-      limitedSlides.push(upgradeSlide);
-      return limitedSlides;
-    }
-    
+    // Return all slides - limiting happens in ContentController
     return slides;
   }
 }

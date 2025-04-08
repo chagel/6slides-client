@@ -12,6 +12,7 @@ import { configManager } from '../models/config_manager';
 import { errorService, ErrorTypes } from './error_service';
 import { loggingService, LogLevel } from './logging_service';
 import { messagingService } from './messaging_service';
+import { debugService } from './debug_service';
 
 interface LoggingOptions {
   debugEnabled: boolean;
@@ -34,6 +35,7 @@ export function registerServices(): void {
   container.register('errorService', errorService);
   container.register('loggingService', loggingService);
   container.register('messagingService', messagingService);
+  container.register('debugService', debugService);
   
   // Initialize loggingService (still used as a singleton through direct imports)
   loggingService.initialize({

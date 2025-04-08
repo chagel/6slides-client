@@ -7,6 +7,8 @@
 import { loggingService } from '../../services/logging_service';
 import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
+import { configManager } from '../../models/config_manager';
+import { debugService } from '../../services/debug_service';
 import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';
 
@@ -49,8 +51,35 @@ class PopupController {
     this.aboutLink = document.getElementById('aboutLink') as HTMLAnchorElement;
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
     
+    // Add debug indicator if debug mode is enabled
+    this.setupDebugIndicator();
+    
     this.bindEventHandlers();
     this.checkCurrentPage();
+  }
+  
+  /**
+   * Setup debug indicator if debug is enabled
+   */
+  private setupDebugIndicator(): void {
+    // Check if debug mode is enabled from storage
+    const settings = storage.getSettings();
+    const debugEnabled = settings.debugLogging === true;
+    
+    // Configure the debug service
+    debugService.setDebugEnabled(debugEnabled);
+    
+    if (debugEnabled) {
+      // Setup the debug indicator with popup-specific options
+      debugService.setupDebugIndicator({
+        position: 'top-right',
+        text: 'DEBUG',
+        zIndex: 1000
+      });
+      
+      // Log the current settings
+      debugService.logAppInfo('popup', { settings });
+    }
   }
   
   /**
@@ -86,7 +115,7 @@ class PopupController {
     const messageText = document.createTextNode(message);
     this.statusEl.appendChild(messageText);
     
-    loggingService.debug('Status updated', { message, statusType });
+    // No need to log every status update
   }
   
   /**
@@ -106,7 +135,7 @@ class PopupController {
       
       return { compatible: false, tab };
     } catch (error) {
-      loggingService.error('Error checking if page is compatible', error);
+      loggingService.error('Error checking if page is compatible', error, 'popup');
       return { compatible: false, error: error as Error };
     }
   }
@@ -127,21 +156,18 @@ class PopupController {
         chrome.tabs.sendMessage(tab.id as number, { action: 'ping' }, response => {
           // Check for runtime error (happens when content script is not loaded)
           if (chrome.runtime.lastError || !response) {
-            loggingService.debug('Content script not yet loaded, injecting...');
-            
             // Script not loaded, try to inject it
             chrome.scripting.executeScript({
               target: { tabId: tab.id as number },
-              files: ['content/entry.js']
+              files: ['app.js']
             }).then(() => {
-              loggingService.debug('Content script injected successfully');
               resolve(true);
             }).catch(err => {
-              loggingService.error('Failed to inject content script', err);
+              loggingService.error('Failed to inject content script', err, 'popup');
               resolve(false);
             });
           } else {
-            loggingService.debug('Content script already loaded');
+            // Content script is already loaded
             resolve(true);
           }
         });
@@ -161,6 +187,12 @@ class PopupController {
   private async handleConvertClick(): Promise<void> {
     // Disable button during processing
     this.convertBtn.disabled = true;
+    
+    // Log subscription status when beginning extraction
+    const hasPro = configManager.hasPro();
+    const level = configManager.getSubscriptionLevel();
+    console.log('%c[Presentation Extraction]', 'background: #673ab7; color: white; padding: 4px 8px; font-weight: bold; border-radius: 4px;',
+      `Starting extraction with subscription level: ${level.toUpperCase()} (Has Pro: ${hasPro ? 'Yes' : 'No'})`);
     
     try {
       const pageInfo = await this.checkIsCompatiblePage();
@@ -184,10 +216,18 @@ class PopupController {
       this.updateStatus('Extracting content from page...');
       
       // Send message to content script
+      // Log that we're starting extraction
+      console.log('%c[Notion Slides Extraction]', 'background: #4caf50; color: white; padding: 2px 6px; border-radius: 4px;', 
+        'Starting content extraction process');
+      
       const response = await messagingService.sendToContent((pageInfo.tab as chrome.tabs.Tab).id as number, { 
         action: 'extract_content',
         pageType: pageInfo.type
       }) as ContentResponse;
+      
+      // Log extraction response for debugging
+      console.log('%c[Notion Slides Extraction Response]', 'background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px;', 
+        response);
       
       if (response && response.slides && response.slides.length > 0) {
         this.updateStatus(`Found ${response.slides.length} slides! Creating presentation...`, 'ready');
@@ -277,10 +317,50 @@ class PopupController {
   }
   
   /**
+   * Update subscription badge based on current subscription status
+   */
+  private updateSubscriptionBadge(): void {
+    try {
+      const subscriptionBadge = document.getElementById('subscription-badge');
+      if (!subscriptionBadge) return;
+      
+      // Get subscription status from config manager
+      const hasPro = configManager.hasPro();
+      const level = configManager.getSubscriptionLevel();
+      
+      // Reset all classes
+      subscriptionBadge.className = 'subscription-badge';
+      
+      // Set appropriate class and text based on subscription
+      if (hasPro) {
+        if (level === 'pro') {
+          subscriptionBadge.classList.add('pro');
+          subscriptionBadge.textContent = 'PRO';
+        } else if (level === 'team') {
+          subscriptionBadge.classList.add('team');
+          subscriptionBadge.textContent = 'TEAM';
+        }
+      } else {
+        subscriptionBadge.classList.add('free');
+        subscriptionBadge.textContent = 'FREE';
+      }
+      
+      // Log subscription status
+      console.log('%c[Subscription Status]', 'background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px;', 
+        { level, hasPro, expiry: configManager.getValue('subscriptionExpiry', null) });
+    } catch (error) {
+      console.error('Error updating subscription badge', error);
+    }
+  }
+  
+  /**
    * Check the current page and update UI accordingly
    */
   private async checkCurrentPage(): Promise<void> {
     try {
+      // Update subscription badge
+      this.updateSubscriptionBadge();
+      
       const [pageInfo, isViewer] = await Promise.all([
         this.checkIsCompatiblePage(),
         this.isCurrentTabViewer()
@@ -298,28 +378,38 @@ class PopupController {
         this.updateStatus('Ready! Ensure Notion page with required format.', 'ready');
       }
     } catch (error) {
-      loggingService.error('Error checking current page', error);
+      loggingService.error('Error checking current page', error, 'popup');
       this.updateStatus('Error checking page status.', 'not-ready');
     }
   }
 }
 
+// Flag to track initialization in this popup instance
+let popupInitialized = false;
+
 /**
  * Initialize the popup
  */
 function initialize(): void {
-  loggingService.debug('Popup initializing');
-  
-  // Initialize when DOM is ready
+  // Initialize when DOM is ready - use the once option to prevent multiple triggers
   document.addEventListener('DOMContentLoaded', () => {
+    if (popupInitialized) {
+      return;
+    }
+    
     try {
+      // Set flag to prevent double initialization within a single popup session
+      popupInitialized = true;
+      
       // Create popup controller
       const popupController = new PopupController();
-      loggingService.debug('Popup initialization complete');
+      
+      // Add a single log to indicate popup is ready
+      loggingService.info('Popup initialized', null, 'popup');
     } catch (error) {
-      loggingService.error('Error initializing popup', error);
+      loggingService.error('Error initializing popup', error, 'popup');
     }
-  });
+  }, { once: true }); // Use once: true for extra protection
 }
 
 // Start initialization
