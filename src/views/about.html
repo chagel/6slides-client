@@ -139,8 +139,8 @@
         </div>
         
         <div class="pro-cta-container">
-          <a href="#" class="pro-cta-button">Upgrade to Pro</a>
-          <p class="pro-cta-text">Unlock premium features like multiple themes and Markdown support</p>
+          <a href="#pricing" id="upgradeProButton" class="pro-cta-button">Upgrade to Pro</a>
+          <p class="pro-cta-text">Unlock premium features like unlimited slides, multiple themes, and Markdown support</p>
         </div>
         
         <h2>Contact</h2>
@@ -215,6 +215,41 @@
               <option value="false">No</option>
             </select>
           </div>
+        </div>
+      </div>
+      
+      <div class="setting-section subscription-section">
+        <h2>Subscription</h2>
+        
+        <div id="freeSubscriptionInfo" class="subscription-info">
+          <div class="subscription-status">
+            <div class="subscription-badge free">FREE</div>
+            <div class="subscription-limits">
+              <p>You're using the free version with basic features</p>
+              <ul class="limits-list">
+                <li>Limited to 10 slides per presentation</li>
+                <li>Basic theme options only</li>
+                <li>No Markdown support</li>
+              </ul>
+            </div>
+          </div>
+          <button id="upgradeToPro" class="upgrade-button">Upgrade to Pro</button>
+        </div>
+        
+        <div id="proSubscriptionInfo" class="subscription-info" style="display:none;">
+          <div class="subscription-status">
+            <div class="subscription-badge pro">PRO</div>
+            <div class="subscription-limits">
+              <p>You have access to all premium features</p>
+              <ul class="benefits-list">
+                <li>Unlimited slides per presentation</li>
+                <li>Advanced theme customization</li>
+                <li>Markdown support</li>
+              </ul>
+            </div>
+          </div>
+          <div class="expiry-info">Subscription expires: <span id="subscriptionExpiry">Never</span></div>
+          <button id="manageSubscription" class="manage-button">Manage Subscription</button>
         </div>
       </div>
       
@@ -441,5 +476,7 @@ Final slide content...
 
   <script src="assets/data/changelog.js"></script>
   <script src="controllers/navigation.js"></script>
+  <script src="controllers/about/index.js"></script>
+  <!-- Main UI controller handles both about and settings functionality -->
 </body>
 </html>

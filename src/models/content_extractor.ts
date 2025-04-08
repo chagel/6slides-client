@@ -5,6 +5,7 @@
  */
 
 import { loggingService } from '../services/logging_service';
+import { configManager } from './config_manager';
 import { 
   HeadingExtractor, 
   ListExtractor, 
@@ -87,7 +88,8 @@ export class ContentExtractor {
         });
       });
       
-      return slides;
+      // Apply slide limit for free users
+      return this.applySlideLimit(slides);
     } catch (error) {
       loggingService.error('Error extracting content', error);
       throw error;
@@ -203,5 +205,44 @@ export class ContentExtractor {
     
     // Regular paragraph
     return text;
+  }
+  
+  /**
+   * Apply slide limit for free users
+   * @param slides - Array of slide markdown content
+   * @returns Limited array of slides based on subscription
+   */
+  private applySlideLimit(slides: string[]): string[] {
+    const FREE_SLIDE_LIMIT = 10;
+    
+    // If user has pro subscription, no need to limit slides
+    if (configManager.hasPro()) {
+      return slides;
+    }
+    
+    // For free users, limit to the defined count
+    if (slides.length > FREE_SLIDE_LIMIT) {
+      loggingService.debug(`Free user slide limit applied: ${FREE_SLIDE_LIMIT}/${slides.length} slides`);
+      
+      // Get the first slides up to the limit
+      const limitedSlides = slides.slice(0, FREE_SLIDE_LIMIT);
+      
+      // Add a "Upgrade to Pro" slide at the end
+      const upgradeSlide = `# Unlock More Slides with Pro
+
+You've reached the free limit of ${FREE_SLIDE_LIMIT} slides.
+
+## Upgrade to Pro to unlock:
+- **Unlimited slides** for all your presentations
+- **Premium themes** to make your slides stand out
+- **Markdown support** for more advanced usage
+
+[Upgrade Now](https://notion-slides.com/pricing)`;
+
+      limitedSlides.push(upgradeSlide);
+      return limitedSlides;
+    }
+    
+    return slides;
   }
 }

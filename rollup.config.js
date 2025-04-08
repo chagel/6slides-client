@@ -26,7 +26,7 @@ const entries = [
     }
   },
   
-  // UI Controllers (popup, settings)
+  // UI Controllers (popup, settings, about)
   {
     input: 'src/controllers/popup/index.ts',
     output: {
@@ -35,12 +35,13 @@ const entries = [
       name: 'notionSlidesPopup'
     }
   },
+  // Settings controller removed - functionality moved to about/index.ts
   {
-    input: 'src/controllers/settings/index.ts',
+    input: 'src/controllers/about/index.ts',
     output: {
-      file: 'dist/controllers/settings/index.js',
-      format: 'iife', // Regular script for settings
-      name: 'notionSlidesSettings'
+      file: 'dist/controllers/about/index.js',
+      format: 'iife', // Regular script for about page
+      name: 'notionSlidesAbout'
     }
   },
   {

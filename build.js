@@ -180,11 +180,14 @@ async function build() {
     console.log('Building Notion Slides extension...');
   }
   
-  // Clean dist directory
+  // Clean dist directory - add debug message
+  console.log('Cleaning dist directory for a fresh build...');
   if (fs.existsSync(DIST_DIR)) {
     fs.rmSync(DIST_DIR, { recursive: true, force: true });
+    console.log('Previous dist directory removed');
   }
   fs.mkdirSync(DIST_DIR);
+  console.log('Created fresh dist directory');
   
   // Copy static files
   copyStaticFiles();

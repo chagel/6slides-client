@@ -8,6 +8,15 @@ import { loggingService } from '../services/logging_service';
 import { storage } from './storage';
 
 /**
+ * Subscription level enum
+ */
+export enum SubscriptionLevel {
+  FREE = 'free',
+  PRO = 'pro',
+  TEAM = 'team'
+}
+
+/**
  * Configuration interface
  */
 export interface Config {
@@ -20,6 +29,10 @@ export interface Config {
   // Extension settings
   debugLogging: boolean;
   extractionTimeout: number; // seconds
+  
+  // Subscription settings
+  subscriptionLevel: SubscriptionLevel;
+  subscriptionExpiry: number | null; // timestamp
   
   // Allow additional properties
   [key: string]: any;
@@ -45,7 +58,11 @@ const DEFAULT_CONFIG: Config = {
   
   // Extension settings
   debugLogging: false,
-  extractionTimeout: 30 // seconds
+  extractionTimeout: 30, // seconds
+  
+  // Subscription settings
+  subscriptionLevel: SubscriptionLevel.FREE,
+  subscriptionExpiry: null
 };
 
 /**
@@ -144,7 +161,62 @@ class ConfigManager {
     // Update the logging service directly
     loggingService.setDebugLogging(!!enabled);
   }
+
+  /**
+   * Get current subscription level
+   * @returns Current subscription level
+   */
+  getSubscriptionLevel(): SubscriptionLevel {
+    return this.getValue('subscriptionLevel', SubscriptionLevel.FREE);
+  }
+
+  /**
+   * Check if user has pro subscription or higher
+   * @returns True if user has pro features
+   */
+  hasPro(): boolean {
+    const level = this.getSubscriptionLevel();
+    const expiry = this.getValue('subscriptionExpiry', null);
+    
+    // Check for valid subscription and not expired
+    return (
+      (level === SubscriptionLevel.PRO || level === SubscriptionLevel.TEAM) && 
+      (expiry === null || expiry > Date.now())
+    );
+  }
+
+  /**
+   * Set subscription level and expiry
+   * @param level - Subscription level
+   * @param expiryDate - Expiry date timestamp or null for no expiry
+   * @returns Promise that resolves when subscription is updated
+   */
+  async setSubscription(level: SubscriptionLevel, expiryDate: number | null = null): Promise<void> {
+    await this.saveConfig({
+      subscriptionLevel: level,
+      subscriptionExpiry: expiryDate
+    });
+    
+    loggingService.debug(`Subscription updated to ${level}`);
+  }
+  
+  /**
+   * Check if remaining slides are available for free users
+   * @param currentSlideCount - Current number of slides in presentation
+   * @returns True if more slides are allowed
+   */
+  hasRemainingSlides(currentSlideCount: number): boolean {
+    const FREE_SLIDE_LIMIT = 10;
+    
+    // Pro users have unlimited slides
+    if (this.hasPro()) {
+      return true;
+    }
+    
+    // Free users have limited slides
+    return currentSlideCount <= FREE_SLIDE_LIMIT;
+  }
 }
 
 // Export a singleton instance
-export const config_manager = new ConfigManager();
+export const configManager = new ConfigManager();

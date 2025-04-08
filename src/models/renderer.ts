@@ -7,7 +7,7 @@
 import { loggingService } from '../services/logging_service';
 import { storage } from './storage';
 import { Presentation } from './domain/presentation';
-import { config_manager } from './config_manager';
+import { configManager } from './config_manager';
 import { errorService, ErrorTypes, ErrorSeverity } from '../services/error_service';
 import { PresentationSettings } from './domain/types';
 import { Slide } from '../types/index';
@@ -71,7 +71,7 @@ export class PresentationRenderer {
       loggingService.debug('Raw slides loaded from storage', { rawSlides });
       
       // Get settings from config manager
-      const settings = config_manager.getPresentationSettings();
+      const settings = configManager.getPresentationSettings();
       
       // Check if we have slides
       if (!Array.isArray(rawSlides) || rawSlides.length === 0) {

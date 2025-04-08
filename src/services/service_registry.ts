@@ -8,7 +8,7 @@ import { container } from './dependency_container';
 import { storage } from '../models/storage';
 import { source_manager } from '../models/source_manager';
 import { content_processor } from '../models/content_processor';
-import { config_manager } from '../models/config_manager';
+import { configManager } from '../models/config_manager';
 import { errorService, ErrorTypes } from './error_service';
 import { loggingService, LogLevel } from './logging_service';
 import { messagingService } from './messaging_service';
@@ -30,7 +30,7 @@ export function registerServices(): void {
   container.register('storage', storage);
   container.register('source_manager', source_manager);
   container.register('content_processor', content_processor);
-  container.register('config_manager', config_manager);
+  container.register('config_manager', configManager);
   container.register('errorService', errorService);
   container.register('loggingService', loggingService);
   container.register('messagingService', messagingService);

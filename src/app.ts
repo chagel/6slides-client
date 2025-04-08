@@ -7,7 +7,7 @@
 import { getService } from './services/dependency_container';
 import { loggingService } from './services/logging_service';
 import { errorService, ErrorTypes, ErrorSeverity } from './services/error_service';
-import { config_manager } from './models/config_manager';
+import { configManager } from './models/config_manager';
 import { ExtractionResult } from './controllers/content_controller';
 import { Slide } from './types/index';
 
@@ -125,7 +125,7 @@ function setupContentScriptHandlers(): void {
 export async function initializeApp(): Promise<boolean> {
   try {
     // Get configuration
-    const config = config_manager.getConfig();
+    const config = configManager.getConfig();
     
     // Set debug logging and other service configurations based on config
     loggingService.setDebugLogging(config.debugLogging || false);

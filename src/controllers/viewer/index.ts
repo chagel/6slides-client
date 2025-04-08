@@ -6,7 +6,7 @@
 
 import { loggingService } from '../../services/logging_service';
 import { PresentationRenderer } from '../../models/renderer';
-import { config_manager } from '../../models/config_manager';
+import { configManager } from '../../models/config_manager';
 import { errorService, ErrorTypes, ErrorSeverity } from '../../services/error_service';
 
 /**
@@ -24,7 +24,7 @@ function initialize(): void {
       loggingService.debug('DOM content loaded, creating renderer');
       
       // Get any renderer settings from the config manager
-      const settings = config_manager.getPresentationSettings();
+      const settings = configManager.getPresentationSettings();
       
       // Create and initialize the renderer
       const renderer = new PresentationRenderer({
