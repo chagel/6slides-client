@@ -677,7 +677,7 @@ class LoggingService {
       return 'about';
     } else if (url.includes('settings.html')) {
       return 'settings';
-    } else if (url.includes('sidebar-template.html')) {
+    } else if (url.includes('components/sidebar.html')) {
       return 'sidebar';
     } else if (typeof chrome !== 'undefined' && chrome.runtime) {
       return 'content_script';

@@ -642,7 +642,10 @@ src/
   │   ├── about.html          # About page
   │   ├── popup.html          # Popup UI
   │   ├── settings.html       # Settings page
-  │   ├── sidebar-template.html # Sidebar template
+  │   ├── components/          # Component templates 
+  │   │   ├── sidebar.html     # Sidebar component
+  │   │   ├── about-content.html  # About content
+  │   │   └── ...              # Other components
   │   └── viewer.html         # Presentation viewer
   └── manifest.json           # Extension manifest
 ```

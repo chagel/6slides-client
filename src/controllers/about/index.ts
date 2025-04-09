@@ -9,41 +9,112 @@ import { debugService } from '../../services/debug_service';
 import { SettingsController } from './settings_controller';
 import { SubscriptionController } from './subscription_controller';
 import { DeveloperController } from './developer_controller';
+import { pageLoader } from '../../services/page_loader';
 
 /**
  * AboutPageController class to coordinate all UI controllers for the about page interface
  */
 class AboutPageController {
   // Sub-controllers
-  private settingsController: SettingsController;
-  private subscriptionController: SubscriptionController;
-  private developerController: DeveloperController;
+  private settingsController!: SettingsController;
+  private subscriptionController!: SubscriptionController;
+  private developerController!: DeveloperController;
   
   // Navigation elements
-  private navLinks: NodeListOf<Element>;
+  private navLinks!: NodeListOf<Element>;
   private activeSection: string = '';
   
   /**
    * Constructor for the About Page controller
    */
   constructor() {
-    // Initialize sub-controllers
-    this.settingsController = new SettingsController();
-    this.subscriptionController = new SubscriptionController();
-    this.developerController = new DeveloperController();
-    
-    // Get navigation elements
-    this.navLinks = document.querySelectorAll('.nav-item');
-    
-    // Setup theme change handling
-    this.setupThemeChangeHandler();
-    
-    // Initialize navigation
-    this.bindNavigationEvents();
-    this.handleHashChange();
-    
-    // Log initialization
-    loggingService.debug('About page controller initialized', { controllers: ['settings', 'subscription', 'developer'] });
+    // Load the page components first
+    this.loadPageComponents().then(() => {
+      // Initialize sub-controllers (only after components are loaded)
+      this.settingsController = new SettingsController();
+      this.subscriptionController = new SubscriptionController();
+      this.developerController = new DeveloperController();
+      
+      // Get navigation elements
+      this.navLinks = document.querySelectorAll('.nav-item');
+      
+      // Setup theme change handling
+      this.setupThemeChangeHandler();
+      
+      // Initialize navigation
+      this.bindNavigationEvents();
+      this.handleHashChange();
+      
+      // Log initialization
+      loggingService.debug('About page controller initialized', { controllers: ['settings', 'subscription', 'developer'] });
+    }).catch(error => {
+      loggingService.error('Failed to initialize About page controller', error);
+    });
+  }
+  
+  /**
+   * Load page components
+   */
+  private async loadPageComponents(): Promise<void> {
+    try {
+      const pageContainer = document.getElementById('page-container');
+      if (!pageContainer) {
+        throw new Error('Page container element not found');
+      }
+      
+      // Show loading indicator
+      pageContainer.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100%;">
+          <p>Loading...</p>
+        </div>
+      `;
+      
+      // Fetch the HTML components
+      const [sidebar, aboutContent, settingsContent, helpContent, developerContent] = await Promise.all([
+        fetch('components/sidebar.html').then(response => response.text()),
+        fetch('components/about-content.html').then(response => response.text()),
+        fetch('components/settings-content.html').then(response => response.text()),
+        fetch('components/help-content.html').then(response => response.text()),
+        fetch('components/developer-content.html').then(response => response.text())
+      ]);
+      
+      // Combine all parts
+      const combinedHTML = `
+        <!-- Sidebar -->
+        ${sidebar}
+        
+        <!-- Content area -->
+        <div class="content">
+          ${aboutContent}
+          ${settingsContent}
+          ${helpContent}
+          ${developerContent}
+        </div>
+      `;
+      
+      // Replace loading placeholder with content
+      pageContainer.innerHTML = combinedHTML;
+      
+      // Replace version placeholders
+      const versionNumber = chrome.runtime.getManifest().version || '1.0.0';
+      document.body.innerHTML = document.body.innerHTML.replace(/{{VERSION_NO_V}}/g, versionNumber);
+      document.body.innerHTML = document.body.innerHTML.replace(/{{VERSION}}/g, `v${versionNumber}`);
+      
+      loggingService.debug('Page components loaded successfully');
+    } catch (error) {
+      loggingService.error('Failed to load page components', error);
+      const pageContainer = document.getElementById('page-container');
+      if (pageContainer) {
+        pageContainer.innerHTML = `
+          <div style="padding: 20px; color: #e53935;">
+            <h1>Error Loading Page</h1>
+            <p>There was a problem loading the page components.</p>
+            <p>Error: ${(error as Error).message}</p>
+          </div>
+        `;
+      }
+      throw error;
+    }
   }
   
   /**

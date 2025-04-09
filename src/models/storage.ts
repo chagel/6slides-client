@@ -222,7 +222,7 @@ class Storage {
             context = 'about';
           } else if (url.includes('settings.html')) {
             context = 'settings';
-          } else if (url.includes('sidebar-template.html')) {
+          } else if (url.includes('components/sidebar.html')) {
             context = 'sidebar';
           } else if (typeof chrome !== 'undefined' && chrome.runtime) {
             context = 'content_script';

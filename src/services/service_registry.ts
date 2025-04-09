@@ -13,6 +13,8 @@ import { errorService, ErrorTypes } from './error_service';
 import { loggingService, LogLevel } from './logging_service';
 import { messagingService } from './messaging_service';
 import { debugService } from './debug_service';
+import { templateService } from './template_service';
+import { pageLoader } from './page_loader';
 
 interface LoggingOptions {
   debugEnabled: boolean;
@@ -36,6 +38,8 @@ export function registerServices(): void {
   container.register('loggingService', loggingService);
   container.register('messagingService', messagingService);
   container.register('debugService', debugService);
+  container.register('templateService', templateService);
+  container.register('pageLoader', pageLoader);
   
   // Initialize loggingService (still used as a singleton through direct imports)
   loggingService.initialize({

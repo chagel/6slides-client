@@ -96,15 +96,19 @@ body {
   flex-grow: 1;
   margin-left: var(--sidebar-width);
   padding: 30px;
-  max-width: calc(100% - var(--sidebar-width));
+  width: calc(100% - var(--sidebar-width));
+  box-sizing: border-box;
 }
 
 .page-section {
   display: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .page-section.active {
   display: block;
+  width: 100%;
 }
 
 h1 {
@@ -136,13 +140,7 @@ button:hover {
 }
 
 /* Settings specific styles */
-.setting-section {
-  background-color: white;
-  border-radius: 4px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
+/* Setting section styles now combined with about-section and help-section */
 
 .setting-row {
   display: flex;
@@ -150,6 +148,7 @@ button:hover {
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid var(--border-color);
+  width: 100%;
 }
 
 .setting-row:last-child {
@@ -180,12 +179,15 @@ select, input {
 }
 
 /* About specific styles */
-.about-section {
+.about-section, .setting-section, .help-section {
   background-color: white;
   border-radius: 4px;
   padding: 20px;
   margin-bottom: 25px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
 }
 
 .hero-section {
@@ -197,6 +199,9 @@ select, input {
   text-align: center;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
 }
 
 .hero-content {
@@ -567,6 +572,17 @@ select, input {
   margin-top: 10px;
 }
 
+/* Subscription styles */
+.subscription-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.subscription-info {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Help specific styles */
 .help-section {
   background-color: white;
@@ -598,6 +614,9 @@ select, input {
 /* Tab styles */
 .help-tabs {
   margin-bottom: 30px;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 .tab-nav {
@@ -631,8 +650,10 @@ select, input {
 
 .tab-content {
   display: none;
+  width: 100%;
 }
 
 .tab-content.active {
   display: block;
+  width: 100%;
 }
