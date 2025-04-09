@@ -234,29 +234,41 @@ class Storage {
         }
       }
       
-      // Clean debug logging to console
-      console.log(`[${logEntry.metadata.context}] ${logEntry.message}`);
+      // Generate a MongoDB-like ObjectID for the log entry
+      // Format: timestamp (seconds) + machine/context hash + random counter
       
-      // Generate a more deterministic ID for the log entry to help prevent duplicates
-      // This creates a hash based on content that will be consistent for identical logs
-      const idComponents = [
-        logEntry.timestamp,
-        logEntry.level,
-        logEntry.message,
-        logEntry.metadata.context
-      ];
+      // 1. Timestamp component (seconds since epoch)
+      const timestampSecs = Math.floor(Date.now() / 1000);
+      const timestampHex = timestampSecs.toString(16).padStart(8, '0');
       
-      // Create a simple hash from these components to use as ID
-      const idBase = idComponents.join('|');
-      const simpleHash = btoa(idBase).replace(/[/+=]/g, '').substring(0, 20);
-      logEntry.id = simpleHash;
+      // 2. Context identifier (hash of context, similar to machine ID in MongoDB)
+      const contextStr = logEntry.metadata.context || 'unknown';
+      let contextHash = 0;
+      for (let i = 0; i < contextStr.length; i++) {
+        contextHash = ((contextHash << 5) - contextHash) + contextStr.charCodeAt(i);
+        contextHash |= 0; // Convert to 32bit integer
+      }
+      // Take absolute value and get 6 hex digits (3 bytes)
+      const contextHex = Math.abs(contextHash).toString(16).padStart(6, '0').slice(-6);
+      
+      // 3. Random counter (3 bytes)
+      const randomCounter = Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0');
+      
+      // Combine all parts to form a 24-character hex string (12 bytes)
+      logEntry.id = `${timestampHex}${contextHex}${randomCounter}`;
+      
+      // Log ID can be parsed back to creation time using: parseInt(id.substring(0, 8), 16) * 1000
+      
+      // Also add an ISO timestamp for when the log was saved (may be different from the log event time)
+      logEntry.savedAt = new Date().toISOString();
+      
+      // No need to print the log ID for every log
       
       // Save to IndexedDB using put - this will automatically replace identical logs
       // rather than creating duplicates, because we're using a content-based ID
       await this._saveToIndexedDB(LOGS_STORE, logEntry);
       
-      // Update localStorage cache
-      this._updateLocalStorageLogCache(logEntry);
+      // No longer updating localStorage cache
     } catch (error) {
       console.error('Failed to save debug log to IndexedDB', error);
     }
@@ -270,35 +282,8 @@ class Storage {
    * @private
    */
   private _updateLocalStorageLogCache(logEntry: any): void {
-    try {
-      // Get current logs from localStorage
-      const CROSS_PAGE_LOG_KEY = 'notion_slides_debug_logs';
-      let logs: any[] = [];
-      
-      // Try to get existing logs
-      const logsJson = localStorage.getItem(CROSS_PAGE_LOG_KEY);
-      if (logsJson) {
-        try {
-          logs = JSON.parse(logsJson);
-          if (!Array.isArray(logs)) logs = [];
-        } catch (e) {
-          logs = [];
-        }
-      }
-      
-      // Add new log to beginning (newest first)
-      logs.unshift(logEntry);
-      
-      // Keep only last 100 logs in localStorage to avoid storage issues
-      if (logs.length > 100) {
-        logs.length = 100;
-      }
-      
-      // Save updated logs back to localStorage
-      localStorage.setItem(CROSS_PAGE_LOG_KEY, JSON.stringify(logs));
-    } catch (error) {
-      console.error('Failed to update localStorage log cache', error);
-    }
+    // No-op - we're not using localStorage cache anymore, only IndexedDB
+    // This method is kept for compatibility but doesn't do anything
   }
 
   /**
@@ -383,33 +368,54 @@ class Storage {
         return [];
       }
       
-      // Get logs from IndexedDB as the single source of truth
+      // Retrieving logs, no need to log this every time
+      
       try {
         const db = await this._openDatabase();
         
         // Check if logs store exists
         if (!db.objectStoreNames.contains(LOGS_STORE)) {
+          console.warn('Logs store does not exist in IndexedDB');
           return [];
         }
         
-        // Get logs from IndexedDB in descending order (newest first)
-        const logs = await new Promise<any[]>((resolve, reject) => {
+        // First get the total count of records in the store
+        const totalCount = await new Promise<number>((resolve, reject) => {
           const tx = db.transaction([LOGS_STORE], 'readonly');
           const store = tx.objectStore(LOGS_STORE);
           
-          // Use timestamp index for sorting if available, otherwise use main cursor
-          const request = store.index('timestamp').openCursor(null, 'prev');
-          const result: any[] = [];
+          const countRequest = store.count();
+          
+          countRequest.onsuccess = (event) => {
+            const count = (event.target as IDBRequest).result || 0;
+            // Only log count when in debug mode or if it seems unusual
+            if (count === 0 || count > 1000) {
+              console.log(`TOTAL RECORDS IN INDEXEDDB: ${count}`);
+            }
+            resolve(count);
+          };
+          
+          countRequest.onerror = (event) => {
+            console.error('Error counting logs', (event.target as IDBRequest).error);
+            reject((event.target as IDBRequest).error);
+          };
+        });
+        
+        // Now fetch the actual logs
+        const allLogs = await new Promise<any[]>((resolve, reject) => {
+          const tx = db.transaction([LOGS_STORE], 'readonly');
+          const store = tx.objectStore(LOGS_STORE);
+          
+          const request = store.getAll();
           
           request.onsuccess = (event) => {
-            const cursor = (event.target as IDBRequest).result;
-            
-            if (cursor && result.length < limit) {
-              result.push(cursor.value);
-              cursor.continue();
-            } else {
-              resolve(result);
+            const result = (event.target as IDBRequest).result || [];
+            // Only log detailed info if count seems unusual
+            if (result.length === 0 || result.length !== totalCount) {
+              console.log(`Retrieved ${result.length} logs from IndexedDB out of total ${totalCount}`);
             }
+            
+            resolve(result);
           };
           
           request.onerror = (event) => {
@@ -422,27 +428,18 @@ class Storage {
           };
         });
         
-        // No localStorage cache - just return the logs directly
-        return logs;
+        // Sort by timestamp (newest first)
+        allLogs.sort((a, b) => {
+          const aTime = a.timestamp || '';
+          const bTime = b.timestamp || '';
+          return bTime.localeCompare(aTime);
+        });
+        
+        // No need to log this for every retrieval
+        return allLogs.slice(0, limit);
         
       } catch (error) {
         console.error('Failed to get logs from IndexedDB:', error);
-        
-        // Fallback to localStorage only if IndexedDB completely fails
-        try {
-          const CROSS_PAGE_LOG_KEY = 'notion_slides_debug_logs';
-          const logsJson = localStorage.getItem(CROSS_PAGE_LOG_KEY);
-          
-          if (logsJson) {
-            const localLogs = JSON.parse(logsJson);
-            if (Array.isArray(localLogs)) {
-              return localLogs.slice(0, limit);
-            }
-          }
-        } catch (e) {
-          console.error('Failed to get logs from localStorage fallback:', e);
-        }
-        
         return [];
       }
     } catch (error) {
@@ -480,9 +477,7 @@ class Storage {
     try {
       if (this.isServiceWorker) return;
       
-      // Clear logs from localStorage
-      localStorage.removeItem('slideDebugInfo');
-      localStorage.removeItem('notion_slides_debug_logs');
+      console.log('Clearing all logs from IndexedDB...');
       
       // Clear logs from IndexedDB
       const db = await this._openDatabase();
@@ -497,7 +492,7 @@ class Storage {
         return new Promise((resolve) => {
           tx.oncomplete = () => {
             db.close();
-            console.log('All logs cleared successfully');
+            console.log('All logs cleared successfully from IndexedDB');
             resolve();
           };
         });

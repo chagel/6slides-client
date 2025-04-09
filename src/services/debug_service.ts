@@ -34,7 +34,8 @@ class DebugService {
     
     // Apply to logging service
     loggingService.setDebugLogging(enabled);
-    loggingService.setConsoleLogging(enabled);
+    // Keep console logging disabled to reduce noise
+    loggingService.setConsoleLogging(false);
     loggingService.setStoreDebugLogs(enabled);
     
     // Log status change
@@ -144,11 +145,8 @@ class DebugService {
    * @private
    */
   private _logDebugEnabled(): void {
-    console.log(
-      '%c[DEBUG MODE ACTIVE]', 
-      'background: #e91e63; color: white; padding: 4px 8px; font-weight: bold; border-radius: 4px;',
-      '\nExtension is running in debug mode.\nCheck console for detailed logs.'
-    );
+    // Use the logging service instead of direct console logging
+    loggingService.debug('Debug mode active');
   }
   
   /**
@@ -159,17 +157,14 @@ class DebugService {
   logAppInfo(context: string, data?: any): void {
     if (!this._debugEnabled) return;
     
-    console.group('%c[Notion Slides Debug]', 'background: #3F51B5; color: white; padding: 2px 6px; border-radius: 4px;');
-    console.log(`Context: ${context}`);
-    console.log(`Version: ${chrome.runtime.getManifest().version}`);
-    console.log(`URL: ${window.location.href}`);
-    console.log(`Timestamp: ${new Date().toISOString()}`);
-    
-    if (data) {
-      console.log('Data:', data);
-    }
-    
-    console.groupEnd();
+    // Use logging service instead of direct console logging
+    loggingService.debug('Application info', {
+      context,
+      version: chrome.runtime.getManifest().version,
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
+      ...data
+    });
   }
 }
 

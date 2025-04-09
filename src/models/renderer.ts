@@ -69,10 +69,7 @@ export class PresentationRenderer {
       const level = configManager.getSubscriptionLevel();
       
       // Log subscription status for debugging
-      if (configManager.getConfig().debugLogging) {
-        console.log('%c[Subscription Status]', 'background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px;',
-          `Rendering with ${level.toUpperCase()} subscription (Pro features: ${hasPro ? 'Enabled' : 'Disabled'})`);
-      }
+      loggingService.debug(`Rendering with ${level.toUpperCase()} subscription (Pro features: ${hasPro ? 'Enabled' : 'Disabled'})`, null, 'viewer');
       
       // Get slides from storage
       const rawSlides = await storage.getSlides();
@@ -82,17 +79,15 @@ export class PresentationRenderer {
       
       // Log the raw slides data from storage (debug only)
       loggingService.debug('Raw slides loaded from storage', { rawSlides }, 'viewer');
-      console.log('%c[Renderer]', 'background: #9c27b0; color: white; padding: 4px 8px; border-radius: 4px;',
-        `Loaded ${rawSlides?.length || 0} slides from storage`);
+      loggingService.debug(`Loaded ${rawSlides?.length || 0} slides from storage`, null, 'viewer');
       
       // Get settings from config manager
       const settings = configManager.getPresentationSettings();
-      console.log('%c[Renderer]', 'background: #9c27b0; color: white; padding: 4px 8px; border-radius: 4px;',
-        'Presentation settings:', settings);
+      loggingService.debug('Presentation settings', settings, 'viewer');
       
       // Check if we have slides
       if (!Array.isArray(rawSlides) || rawSlides.length === 0) {
-        console.error('[Renderer] No slides data found in storage');
+        loggingService.error('No slides data found in storage', null, 'viewer');
         errorService.trackError('No slides data found in storage', {
           type: ErrorTypes.RENDERING,
           context: 'presentation_loading'
@@ -109,12 +104,10 @@ export class PresentationRenderer {
       loggingService.debug(`Rendering with ${hasProAccess ? 'PRO' : 'FREE'} plan. Total slides: ${presentation.slideCount}`, null, 'viewer');
       
       loggingService.debug(`Creating presentation with ${presentation.slideCount} slides`, null, 'viewer');
-      console.log('%c[Renderer]', 'background: #9c27b0; color: white; padding: 4px 8px; border-radius: 4px;',
-        `Creating ${presentation.slideCount} slides for presentation`);
       
       // Create slides from the presentation model
       presentation.slides.forEach((slide, index) => {
-        console.log(`[Renderer] Creating slide ${index + 1}/${presentation.slideCount}: "${slide.title}"`);
+        loggingService.debug(`Creating slide ${index + 1}/${presentation.slideCount}: "${slide.title}"`, null, 'viewer');
         this.createMarkdownSlide(slide.toObject());
       });
       
@@ -228,7 +221,7 @@ export class PresentationRenderer {
       // Plugins
       plugins: plugins,
     }).catch((err: Error) => {
-      console.error('[Renderer] Error initializing Reveal.js:', err);
+      loggingService.error('Error initializing Reveal.js', err, 'viewer');
     });
   }
   

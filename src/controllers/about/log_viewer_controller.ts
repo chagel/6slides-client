@@ -147,7 +147,7 @@ export class LogViewerController {
    */
   async refreshLogViewer(): Promise<void> {
     if (!this.logViewer) {
-      console.error('Log viewer element not found');
+      loggingService.error('Log viewer element not found', null, 'developer');
       return;
     }
     
@@ -155,10 +155,15 @@ export class LogViewerController {
     this.logViewer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Loading logs...</div>';
     
     try {
-      // Get logs from IndexedDB
-      const logs = await storage.getDebugLogs(200);
+      // Force a new log entry to ensure we have at least one log to display
+      loggingService.debug(`Refreshing log viewer at ${new Date().toISOString()}`, null, 'developer');
       
-      console.log(`Retrieved ${logs.length} logs from storage`);
+      // Get logs from IndexedDB - increase limit to show more logs
+      const logs = await storage.getDebugLogs(500);
+      
+      loggingService.debug(`Retrieved ${logs.length} logs from storage`, null, 'developer');
+      
+      // No need to print each log to console
       
       if (logs.length === 0) {
         this.logViewer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No logs available</div>';
@@ -178,7 +183,7 @@ export class LogViewerController {
       // Update context filter dropdown with available contexts
       this.updateContextFilter(logs);
     } catch (error) {
-      console.error('Error loading logs:', error);
+      loggingService.error('Error loading logs in viewer', error, 'developer');
       this.logViewer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Error loading logs</div>';
     }
   }
@@ -440,8 +445,9 @@ Total Logs: ${this.currentFilteredLogs.length}
    */
   private filterLogViewer(): void {
     // Re-filter current logs
-    storage.getDebugLogs(200)
+    storage.getDebugLogs(500) // Increase limit to get more logs
       .then(logs => {
+        
         this.filterAndRenderLogs(logs);
       })
       .catch(error => {
@@ -461,16 +467,29 @@ Total Logs: ${this.currentFilteredLogs.length}
       return;
     }
     
+    // Add log count information at the top
+    const logCountInfo = document.createElement('div');
+    logCountInfo.className = 'log-count-info';
+    logCountInfo.innerHTML = `
+      <div style="background: #f0f0f0; padding: 8px; margin-bottom: 10px; border-radius: 4px; font-size: 13px;">
+        <strong>Displaying ${logs.length} logs</strong>
+        <span style="color: #666; margin-left: 8px;">(ID format: ${logs[0].id ? 'present' : 'missing'})</span>
+        <div style="margin-top: 5px; font-style: italic; color: #555;">Check browser console for total log count information</div>
+      </div>
+    `;
+    
     // Clear log viewer
     this.logViewer.innerHTML = '';
+    this.logViewer.appendChild(logCountInfo);
     
     // Render each log entry
     logs.forEach(log => {
       const logEntry = document.createElement('div');
       logEntry.className = 'log-entry';
       
-      // Format timestamp
-      const timestamp = new Date(log.timestamp).toLocaleTimeString();
+      // Format timestamp - use savedAt if available, otherwise use timestamp
+      const timeToUse = log.savedAt || log.timestamp;
+      const timestamp = new Date(timeToUse).toLocaleTimeString();
       
       // Create log header
       const logHeader = document.createElement('div');
@@ -494,6 +513,10 @@ Total Logs: ${this.currentFilteredLogs.length}
       const timeSpan = document.createElement('span');
       timeSpan.className = 'log-timestamp';
       timeSpan.textContent = timestamp;
+      // Add tooltip with both timestamps if available
+      timeSpan.title = log.savedAt ? 
+        `Event time: ${log.timestamp}\nSaved time: ${log.savedAt}` : 
+        `Time: ${log.timestamp}`;
       logHeader.appendChild(timeSpan);
       
       // Add message
@@ -501,6 +524,11 @@ Total Logs: ${this.currentFilteredLogs.length}
       messageSpan.className = 'log-message';
       messageSpan.textContent = log.message;
       logHeader.appendChild(messageSpan);
+      
+      // Add log ID as a tooltip to the entire header
+      if (log.id) {
+        logHeader.title = `Log ID: ${log.id}`;
+      }
       
       logEntry.appendChild(logHeader);
       

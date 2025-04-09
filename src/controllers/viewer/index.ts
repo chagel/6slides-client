@@ -32,8 +32,7 @@ function setupDebugIndicator(): void {
     // Log application info for debugging
     debugService.logAppInfo('viewer', { config });
     
-    // Force enable console logging to see logs in the console
-    loggingService.setConsoleLogging(true);
+    // Don't enable console logging to keep console clean
   }
 }
 

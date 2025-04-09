@@ -191,8 +191,7 @@ class PopupController {
     // Log subscription status when beginning extraction
     const hasPro = configManager.hasPro();
     const level = configManager.getSubscriptionLevel();
-    console.log('%c[Presentation Extraction]', 'background: #673ab7; color: white; padding: 4px 8px; font-weight: bold; border-radius: 4px;',
-      `Starting extraction with subscription level: ${level.toUpperCase()} (Has Pro: ${hasPro ? 'Yes' : 'No'})`);
+    loggingService.info(`Starting extraction with subscription level: ${level.toUpperCase()} (Has Pro: ${hasPro ? 'Yes' : 'No'})`, null, 'popup');
     
     try {
       const pageInfo = await this.checkIsCompatiblePage();
@@ -217,8 +216,7 @@ class PopupController {
       
       // Send message to content script
       // Log that we're starting extraction
-      console.log('%c[Notion Slides Extraction]', 'background: #4caf50; color: white; padding: 2px 6px; border-radius: 4px;', 
-        'Starting content extraction process');
+      loggingService.info('Starting content extraction process', null, 'popup');
       
       const response = await messagingService.sendToContent((pageInfo.tab as chrome.tabs.Tab).id as number, { 
         action: 'extract_content',
@@ -226,8 +224,7 @@ class PopupController {
       }) as ContentResponse;
       
       // Log extraction response for debugging
-      console.log('%c[Notion Slides Extraction Response]', 'background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px;', 
-        response);
+      loggingService.debug('Content extraction response', response, 'popup');
       
       if (response && response.slides && response.slides.length > 0) {
         this.updateStatus(`Found ${response.slides.length} slides! Creating presentation...`, 'ready');
@@ -346,10 +343,13 @@ class PopupController {
       }
       
       // Log subscription status
-      console.log('%c[Subscription Status]', 'background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px;', 
-        { level, hasPro, expiry: configManager.getValue('subscriptionExpiry', null) });
+      loggingService.debug('Subscription status', { 
+        level, 
+        hasPro, 
+        expiry: configManager.getValue('subscriptionExpiry', null) 
+      }, 'popup');
     } catch (error) {
-      console.error('Error updating subscription badge', error);
+      loggingService.error('Error updating subscription badge', error, 'popup');
     }
   }
   

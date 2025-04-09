@@ -74,12 +74,12 @@ class LoggingService {
   constructor() {
     // Default configuration - all logging is silenced by default
     this._enabled = true;       // Master switch for all logging
-    this._debugEnabled = false; // Debug-level logging
-    this._logLevel = LogLevel.INFO;
+    this._debugEnabled = true;  // Debug-level logging enabled for development
+    this._logLevel = LogLevel.DEBUG;
     this._prefix = '[Notion Slides]';
-    this._storeDebugLogs = false; // Whether to store debug logs in localStorage/IndexedDB
+    this._storeDebugLogs = true;  // Store all logs in localStorage/IndexedDB
     this._maxStoredLogs = 100;    // Maximum number of logs to keep in storage
-    this._logConsole = false;     // Console logging disabled by default for production
+    this._logConsole = false;     // Console logging disabled by default to reduce console noise
   }
 
   /**
@@ -149,8 +149,10 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   debug(message: string, data?: unknown, context?: string): void {
-    // Always log to console regardless of debug setting
-    console.debug(`[${context || this._getContextType()}] ${message}`, data || '');
+    // Only log to console if console logging is enabled
+    if (this._logConsole) {
+      console.debug(`[${context || this._getContextType()}] ${message}`, data || '');
+    }
     
     // We want to save ALL debug logs to storage, regardless of debug mode
     // This ensures critical logs are captured and can be viewed in the log viewer
@@ -186,8 +188,10 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   info(message: string, data?: unknown, context?: string): void {
-    // Always log to console regardless of level setting
-    console.info(`[${context || this._getContextType()}] ${message}`, data || '');
+    // Only log to console if console logging is enabled
+    if (this._logConsole) {
+      console.info(`[${context || this._getContextType()}] ${message}`, data || '');
+    }
     
     // Create metadata with context if provided
     const metadata = context ? { context } : undefined;
@@ -220,8 +224,10 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   warn(message: string, data?: unknown, context?: string): void {
-    // Always log to console regardless of level setting
-    console.warn(`[${context || this._getContextType()}] ${message}`, data || '');
+    // Only log to console if console logging is enabled
+    if (this._logConsole) {
+      console.warn(`[${context || this._getContextType()}] ${message}`, data || '');
+    }
     
     // Create metadata with context if provided
     const metadata = context ? { context } : undefined;
@@ -258,7 +264,8 @@ class LoggingService {
     const error: any = data;
     const contextValue = context || this._getContextType();
     
-    // Always log errors to console regardless of mode
+    // Always log errors to console, even if console logging is disabled
+    // This ensures critical errors are not missed
     console.error(`[${contextValue}] ${this._prefix} ${message}`, data || '');
     
     // Log stack trace for errors
@@ -330,17 +337,18 @@ class LoggingService {
     const fullMessage = `${this._prefix} ${message}`;
     const timestamp = new Date().toISOString();
     
-    // Log to console if enabled
-    if (this._logConsole) {
+    // Log to console selectively based on settings
+    // Always log errors regardless of console logging setting
+    if (this._logConsole || level === LogLevel.ERROR) {
       switch (level) {
         case LogLevel.DEBUG:
-          console.debug(fullMessage, data || '');
+          if (this._logConsole) console.debug(fullMessage, data || '');
           break;
         case LogLevel.INFO:
-          console.info(fullMessage, data || '');
+          if (this._logConsole) console.info(fullMessage, data || '');
           break;
         case LogLevel.WARN:
-          console.warn(fullMessage, data || '');
+          if (this._logConsole) console.warn(fullMessage, data || '');
           break;
         case LogLevel.ERROR:
           console.error(fullMessage, data || '');
@@ -351,7 +359,7 @@ class LoggingService {
           }
           break;
         default:
-          console.log(fullMessage, data || '');
+          if (this._logConsole) console.log(fullMessage, data || '');
       }
     }
     
@@ -409,8 +417,8 @@ class LoggingService {
       return true;
     }
     
-    // Even if not storing debug logs generally, always store errors
-    if (level === LogLevel.ERROR) {
+    // Even if not storing debug logs generally, always store errors and warnings
+    if (level === LogLevel.ERROR || level === LogLevel.WARN || level === LogLevel.INFO) {
       return true;
     }
     
@@ -531,17 +539,8 @@ class LoggingService {
         );
       }
       
-      // Save directly to localStorage without going through storage service
-      // This ensures consistent access across different page contexts
-      this._saveLogDirectly(logEntry);
-      
-      // Also save via regular storage for backward compatibility
-      const currentLogs = this._getStoredLogs();
-      currentLogs.unshift(logEntry);
-      if (currentLogs.length > this._maxStoredLogs) {
-        currentLogs.length = this._maxStoredLogs;
-      }
-      storage.saveDebugInfo({ logs: currentLogs });
+      // Save directly to IndexedDB using storage service
+      this._saveLogToIDB(logEntry);
     } catch (error) {
       // Don't use this.error to avoid potential infinite recursion
       // Only log critical errors when console is enabled
@@ -552,37 +551,12 @@ class LoggingService {
   }
   
   /**
-   * Save log directly to IndexedDB for cross-page access
-   * @param logEntry - Log entry to save
-   * @private
-   */
-  private _saveLogDirectly(logEntry: LogEntry): void {
-    // Use the existing IDB infrastructure already in the storage module
-    // This is more reliable than implementing a separate IDB system here
-    
-    try {
-      // Use our helper method that batches log saves efficiently
-      this._saveLogToIDB(logEntry);
-    } catch (error) {
-      console.error('Failed to save log directly to IDB', error);
-      
-      // Fallback to localStorage if IDB fails
-      this._saveLogToLocalStorage(logEntry);
-    }
-  }
-  
-  /**
    * Save log entry to IndexedDB using the storage module
    * @param logEntry - Log entry to save
    * @private
    */
   private _saveLogToIDB(logEntry: LogEntry): void {
-    // Force console logging in dev mode to track log saving operations
-    console.debug('[LoggingService] Saving log to IndexedDB:', {
-      context: logEntry.metadata?.context || 'unknown',
-      level: logEntry.level,
-      message: logEntry.message
-    });
+    // Only debug log in development - removed for production
     
     // Ensure log has a context if it doesn't already
     if (!logEntry.metadata || !logEntry.metadata.context) {
@@ -595,7 +569,6 @@ class LoggingService {
     // Ensure log has a timestamp
     logEntry.timestamp = logEntry.timestamp || new Date().toISOString();
     
-    // Use our helper method that batches log saves efficiently
     try {
       // Create a direct log entry copy to ensure it's completely standalone
       const directLog = {
@@ -615,48 +588,6 @@ class LoggingService {
       });
     } catch (error) {
       console.error('Failed to save log to IDB', error);
-      
-      // Fallback to localStorage if IDB fails
-      this._saveLogToLocalStorage(logEntry);
-    }
-  }
-  
-  /**
-   * Fallback method to save logs to localStorage
-   * @param logEntry - Log entry to save
-   * @private
-   */
-  private _saveLogToLocalStorage(logEntry: LogEntry): void {
-    try {
-      // Use a special key that's consistent across all contexts
-      const CROSS_PAGE_LOG_KEY = 'notion_slides_debug_logs';
-      
-      // Get existing logs
-      let logs: LogEntry[] = [];
-      const existingLogsJson = localStorage.getItem(CROSS_PAGE_LOG_KEY);
-      
-      if (existingLogsJson) {
-        try {
-          logs = JSON.parse(existingLogsJson);
-          if (!Array.isArray(logs)) logs = [];
-        } catch (e) {
-          // If parsing fails, start with empty array
-          logs = [];
-        }
-      }
-      
-      // Add new log at the beginning (most recent first)
-      logs.unshift(logEntry);
-      
-      // Limit array size
-      if (logs.length > this._maxStoredLogs) {
-        logs.length = this._maxStoredLogs;
-      }
-      
-      // Save back to localStorage
-      localStorage.setItem(CROSS_PAGE_LOG_KEY, JSON.stringify(logs));
-    } catch (error) {
-      console.error('Failed to save log to localStorage', error);
     }
   }
   
@@ -703,38 +634,10 @@ class LoggingService {
   }
   
   private _getStoredLogs(): LogEntry[] {
-    try {
-      // Since IndexedDB is asynchronous but we need a synchronous return,
-      // we use localStorage as a cache to provide fast access to recent logs
-      
-      // First get logs from localStorage
-      const CROSS_PAGE_LOG_KEY = 'notion_slides_debug_logs';
-      const directLogsJson = localStorage.getItem(CROSS_PAGE_LOG_KEY);
-      let directLogs: LogEntry[] = [];
-      
-      if (directLogsJson) {
-        try {
-          directLogs = JSON.parse(directLogsJson);
-          if (!Array.isArray(directLogs)) directLogs = [];
-        } catch (e) {
-          console.error('Error parsing direct logs', e);
-          directLogs = [];
-        }
-      }
-      
-      // Asynchronously refresh from IndexedDB for next time
-      this._fetchLogsFromIDB().then(idbLogs => {
-        if (idbLogs.length > 0) {
-          localStorage.setItem(CROSS_PAGE_LOG_KEY, JSON.stringify(idbLogs));
-          console.log(`Updated localStorage with ${idbLogs.length} logs from IndexedDB`);
-        }
-      }).catch(e => console.error('Failed to refresh logs from IDB', e));
-      
-      return directLogs;
-    } catch (error) {
-      console.error('Error getting stored logs', error);
-      return [];
-    }
+    // Since we need a synchronous response but IndexedDB is async,
+    // just return an empty array - we'll rely on the async methods
+    // to get the actual logs when needed
+    return [];
   }
 
   /**
@@ -780,14 +683,10 @@ class LoggingService {
    */
   clearStoredLogs(): void {
     try {
-      // Clear logs in regular storage
-      storage.saveDebugInfo({ logs: [] });
+      // Clear logs through the storage service
+      storage.clearLogs();
       
-      // Clear logs in direct storage
-      const CROSS_PAGE_LOG_KEY = 'notion_slides_debug_logs';
-      localStorage.removeItem(CROSS_PAGE_LOG_KEY);
-      
-      this.debug('Debug logs cleared from all storage locations');
+      this.debug('Debug logs cleared from IndexedDB');
     } catch (error) {
       // Only log when console logging is enabled
       if (this._logConsole) {

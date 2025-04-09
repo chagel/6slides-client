@@ -5,6 +5,7 @@
  */
 
 import { loggingService } from '../services/logging_service';
+import { debugService } from '../services/debug_service';
 import { storage } from '../models/storage';
 import { Settings } from '../types/storage';
 
@@ -56,8 +57,8 @@ function initNavigation(): void {
       const debugLogging = settings.debugLogging?.toString() || defaults.debugLogging;
       debugLoggingSelector.value = debugLogging;
       
-      // Apply debug logging setting
-      loggingService.setDebugLogging(debugLogging === 'true');
+      // Apply debug logging setting through debugService
+      debugService.setDebugEnabled(debugLogging === 'true');
     }
     
     loggingService.debug('Navigation: Settings loaded', settings);
@@ -80,12 +81,9 @@ function initNavigation(): void {
     if (debugLoggingSelector) {
       settings.debugLogging = debugLoggingSelector.value === 'true';
       
-      // Apply debug logging setting immediately
+      // Apply debug logging setting through debugService
       const debugEnabled = debugLoggingSelector.value === 'true';
-      loggingService.setDebugLogging(debugEnabled);
-      
-      // Also enable console logging if debug is enabled
-      loggingService.setConsoleLogging(debugEnabled);
+      debugService.setDebugEnabled(debugEnabled);
     }
     
     await storage.saveSettings(settings);
