@@ -179,7 +179,7 @@ select, input {
 }
 
 /* About specific styles */
-.about-section, .setting-section, .help-section {
+.about-section, .setting-section, .help-section, .developer-section {
   background-color: white;
   border-radius: 4px;
   padding: 20px;
@@ -188,6 +188,7 @@ select, input {
   width: 100%;
   box-sizing: border-box;
   max-width: none;
+  min-width: 800px; /* Set minimum width for content sections */
 }
 
 .hero-section {
@@ -623,6 +624,7 @@ select, input {
   display: flex;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 20px;
+  padding: 0;
 }
 
 .tab-button {

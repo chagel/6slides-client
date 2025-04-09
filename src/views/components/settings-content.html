@@ -10,111 +10,109 @@
     </div>
   </div>
   
-  <div class="about-section">
-    <!-- Appearance -->
-    <div class="setting-section">
-      <h2>Appearance</h2>
-      
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Theme</div>
-          <div class="setting-description">Choose the presentation theme</div>
-        </div>
-        <div class="setting-control">
-          <select id="themeSelector">
-            <option value="default">Default (Dark)</option>
-            <option value="catppuccin-latte">Catppuccin Latte (Light)</option>
-            <option value="catppuccin-mocha">Catppuccin Mocha (Dark)</option>
-          </select>
-        </div>
+  <!-- Appearance -->
+  <div class="setting-section">
+    <h2>Appearance</h2>
+    
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Theme</div>
+        <div class="setting-description">Choose the presentation theme</div>
       </div>
-      
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Transition</div>
-          <div class="setting-description">Animation between slides</div>
-        </div>
-        <div class="setting-control">
-          <select id="transitionSelector">
-            <option value="slide">Slide</option>
-            <option value="fade">Fade</option>
-            <option value="convex">Convex</option>
-            <option value="concave">Concave</option>
-            <option value="zoom">Zoom</option>
-            <option value="none">None</option>
-          </select>
-        </div>
+      <div class="setting-control">
+        <select id="themeSelector">
+          <option value="default">Default (Dark)</option>
+          <option value="catppuccin-latte">Catppuccin Latte (Light)</option>
+          <option value="catppuccin-mocha">Catppuccin Mocha (Dark)</option>
+        </select>
       </div>
     </div>
     
-    <!-- Presentation -->
-    <div class="setting-section">
-      <h2>Presentation</h2>
-      
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Show slide numbers</div>
-          <div class="setting-description">Display slide numbers in the corner</div>
-        </div>
-        <div class="setting-control">
-          <select id="slideNumberSelector">
-            <option value="true">Show</option>
-            <option value="false">Hide</option>
-          </select>
-        </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Transition</div>
+        <div class="setting-description">Animation between slides</div>
       </div>
-      
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Center content</div>
-          <div class="setting-description">Center slide content vertically</div>
-        </div>
-        <div class="setting-control">
-          <select id="centerSelector">
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
-        </div>
+      <div class="setting-control">
+        <select id="transitionSelector">
+          <option value="slide">Slide</option>
+          <option value="fade">Fade</option>
+          <option value="convex">Convex</option>
+          <option value="concave">Concave</option>
+          <option value="zoom">Zoom</option>
+          <option value="none">None</option>
+        </select>
       </div>
     </div>
-    
-    <!-- Subscription -->
-    <div class="setting-section subscription-section">
-      <h2>Subscription</h2>
-      
-      <div id="freeSubscriptionInfo" class="subscription-info">
-        <div class="subscription-status">
-          <div class="subscription-badge free">FREE</div>
-          <div class="subscription-limits">
-            <p>You're using the free version with basic features</p>
-            <ul class="limits-list">
-              <li>Limited to 10 slides per presentation</li>
-              <li>Basic theme options only</li>
-              <li>No Markdown support</li>
-            </ul>
-          </div>
-        </div>
-        <button id="upgradeToPro" class="upgrade-button">Upgrade to Pro</button>
-      </div>
-      
-      <div id="proSubscriptionInfo" class="subscription-info" style="display:none;">
-        <div class="subscription-status">
-          <div class="subscription-badge pro">PRO</div>
-          <div class="subscription-limits">
-            <p>You have access to all premium features</p>
-            <ul class="benefits-list">
-              <li>Unlimited slides per presentation</li>
-              <li>Advanced theme customization</li>
-              <li>Markdown support</li>
-            </ul>
-          </div>
-        </div>
-        <div class="expiry-info">Subscription expires: <span id="subscriptionExpiry">Never</span></div>
-        <button id="manageSubscription" class="manage-button">Manage Subscription</button>
-      </div>
-    </div>
-    
-    <button id="saveSettingsBtn">Save Settings</button>
-    <span id="saveStatus" style="margin-left: 10px; color: green; display: none;">Settings saved!</span>
   </div>
+  
+  <!-- Presentation -->
+  <div class="setting-section">
+    <h2>Presentation</h2>
+    
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Show slide numbers</div>
+        <div class="setting-description">Display slide numbers in the corner</div>
+      </div>
+      <div class="setting-control">
+        <select id="slideNumberSelector">
+          <option value="true">Show</option>
+          <option value="false">Hide</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Center content</div>
+        <div class="setting-description">Center slide content vertically</div>
+      </div>
+      <div class="setting-control">
+        <select id="centerSelector">
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Subscription -->
+  <div class="setting-section subscription-section">
+    <h2>Subscription</h2>
+    
+    <div id="freeSubscriptionInfo" class="subscription-info">
+      <div class="subscription-status">
+        <div class="subscription-badge free">FREE</div>
+        <div class="subscription-limits">
+          <p>You're using the free version with basic features</p>
+          <ul class="limits-list">
+            <li>Limited to 10 slides per presentation</li>
+            <li>Basic theme options only</li>
+            <li>No Markdown support</li>
+          </ul>
+        </div>
+      </div>
+      <button id="upgradeToPro" class="upgrade-button">Upgrade to Pro</button>
+    </div>
+    
+    <div id="proSubscriptionInfo" class="subscription-info" style="display:none;">
+      <div class="subscription-status">
+        <div class="subscription-badge pro">PRO</div>
+        <div class="subscription-limits">
+          <p>You have access to all premium features</p>
+          <ul class="benefits-list">
+            <li>Unlimited slides per presentation</li>
+            <li>Advanced theme customization</li>
+            <li>Markdown support</li>
+          </ul>
+        </div>
+      </div>
+      <div class="expiry-info">Subscription expires: <span id="subscriptionExpiry">Never</span></div>
+      <button id="manageSubscription" class="manage-button">Manage Subscription</button>
+    </div>
+  </div>
+  
+  <button id="saveSettingsBtn">Save Settings</button>
+  <span id="saveStatus" style="margin-left: 10px; color: green; display: none;">Settings saved!</span>
 </section>

@@ -129,30 +129,43 @@ function initNavigation(): void {
     clearCacheBtn.addEventListener('click', clearAllCaches);
   }
   
-  // Handle help tabs
-  const tabButtons = document.querySelectorAll<HTMLElement>('.tab-button');
-  const tabContents = document.querySelectorAll<HTMLElement>('.tab-content');
-  
-  if (tabButtons.length > 0) {
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const tabId = button.getAttribute('data-tab');
-        if (!tabId) return;
-        
-        // Update active tab button
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        
-        // Update visible tab content
-        tabContents.forEach(content => {
-          content.classList.remove('active');
-          if (content.id === tabId) {
-            content.classList.add('active');
-          }
-        });
+  // Go back to the simpler approach with data-tab attributes
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    
+    // Check if it's a tab button
+    if (target.classList.contains('tab-button') || target.parentElement?.classList.contains('tab-button')) {
+      e.preventDefault();
+      
+      // Get the actual button (could be child element)
+      const button = target.classList.contains('tab-button') ? target : target.parentElement;
+      if (!button) return;
+      
+      // Get the data-tab attribute
+      const tabId = button.getAttribute('data-tab');
+      if (!tabId) return;
+      
+      // Find the content section
+      const tabContent = document.getElementById(tabId);
+      if (!tabContent) return;
+      
+      // Update active button
+      const tabButtons = document.querySelectorAll('.tab-button');
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      
+      // Update the content visibility
+      const tabContents = document.querySelectorAll<HTMLElement>('.tab-content');
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
       });
-    });
-  }
+      
+      // Show the selected content
+      tabContent.classList.add('active');
+      tabContent.style.display = 'block';
+    }
+  });
   
   // Load settings if we're on the settings page
   loadSettings();
