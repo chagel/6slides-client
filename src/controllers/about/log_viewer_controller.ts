@@ -117,7 +117,6 @@ export class LogViewerController {
       { value: 'all', text: 'All Contexts' },
       { value: 'viewer', text: 'Viewer' },
       { value: 'popup', text: 'Popup' },
-      { value: 'content_script', text: 'Content Script' },
       { value: 'settings', text: 'Settings' },
       { value: 'about', text: 'About' },
       { value: 'sidebar', text: 'Sidebar' }
@@ -202,9 +201,6 @@ export class LogViewerController {
     contexts.add('about');
     contexts.add('popup');
     contexts.add('viewer');
-    contexts.add('content_script');
-    contexts.add('extraction');
-    contexts.add('extractor');
     
     // Add contexts from logs
     logs.forEach(log => {

@@ -98,12 +98,16 @@ body {
   padding: 30px;
   width: calc(100% - var(--sidebar-width));
   box-sizing: border-box;
+  max-width: 1200px; /* Set a maximum width for the content */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .page-section {
   display: none;
   width: 100%;
   box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .page-section.active {
@@ -187,8 +191,9 @@ select, input {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   width: 100%;
   box-sizing: border-box;
-  max-width: none;
-  min-width: 800px; /* Set minimum width for content sections */
+  max-width: 100%;
+  min-width: auto; /* Remove fixed minimum width */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .hero-section {
@@ -404,6 +409,20 @@ select, input {
   height: 14px;
 }
 
+/* Log viewer container with max width and overflow handling */
+#logViewer {
+  height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-family: monospace;
+  font-size: 12px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .log-entry {
   padding: 10px;
   border-bottom: 1px solid #eee;
@@ -412,6 +431,8 @@ select, input {
   background-color: #fafafa;
   margin-bottom: 5px;
   border-radius: 4px;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .log-header {
@@ -486,6 +507,7 @@ select, input {
 .log-message {
   font-weight: 500;
   margin-left: auto;
+  word-break: break-word;
 }
 
 .log-data {
@@ -501,6 +523,9 @@ select, input {
   border-radius: 3px;
   overflow-x: auto;
   font-size: 11px;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* Changelog styles - Minimalistic Design */

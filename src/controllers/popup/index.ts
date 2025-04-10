@@ -227,9 +227,6 @@ class PopupController {
         pageType: pageInfo.type
       }) as ContentResponse;
       
-      // Log extraction response for debugging
-      loggingService.debug('Content extraction response', response, 'popup');
-      
       if (response && response.slides && response.slides.length > 0) {
         this.updateStatus(`Found ${response.slides.length} slides! Creating presentation...`, 'ready');
         

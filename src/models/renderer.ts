@@ -79,7 +79,6 @@ export class PresentationRenderer {
       
       // Log the raw slides data from storage (debug only)
       loggingService.debug('Raw slides loaded from storage', { rawSlides }, 'viewer');
-      loggingService.debug(`Loaded ${rawSlides?.length || 0} slides from storage`, null, 'viewer');
       
       // Get settings from config manager asynchronously
       const settings = await configManager.getPresentationSettings();

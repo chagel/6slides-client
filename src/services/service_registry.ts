@@ -15,6 +15,7 @@ import { messagingService } from './messaging_service';
 import { debugService } from './debug_service';
 import { templateService } from './template_service';
 import { pageLoader } from './page_loader';
+import { content_controller } from '../controllers/content_controller';
 
 interface LoggingOptions {
   debugEnabled: boolean;
@@ -54,55 +55,8 @@ export function registerServices(): void {
   // Initialize errorService
   errorService.setTelemetryEnabled(false); // Disable until we have proper telemetry infrastructure
   
-  // Register factory functions for services that need dependencies or delayed initialization
-  container.registerFactory('content_controller', (container) => {
-    // Import directly rather than dynamically to avoid build issues
-    // In the future, we can use dynamic imports with proper bundling configuration
-    return {
-      // Just expose the functionality we need
-      extractContent: async (document: Document, url: string) => {
-        const source_manager = container.get('source_manager');
-        const content_processor = container.get('content_processor');
-        const storage = container.get('storage');
-        const errorService = container.get('errorService');
-        const loggingService = container.get('loggingService');
-        
-        try {
-          loggingService.debug('Extracting content', { url });
-          
-          // Use source_manager to get the appropriate extractor
-          const sourceType = source_manager.detectSource(document, url);
-          if (!sourceType) {
-            loggingService.warn('Unsupported content source', { url });
-            return { error: 'Unsupported content source' };
-          }
-          
-          const extractor = source_manager.getExtractor(sourceType, document);
-          const rawSlides = extractor.extract();
-          
-          if (!rawSlides || rawSlides.length === 0) {
-            loggingService.warn('No slides found', { url, sourceType });
-            return { error: 'No slides found' };
-          }
-          
-          const processedSlides = content_processor.process(rawSlides);
-          await storage.saveSlides(processedSlides);
-          
-          loggingService.info('Content extraction successful', { 
-            slideCount: processedSlides.length,
-            sourceType 
-          });
-          
-          return { slides: processedSlides, sourceType };
-        } catch (error) {
-          return errorService.handleError(error, {
-            type: ErrorTypes.EXTRACTION,
-            context: 'content_extraction'
-          });
-        }
-      }
-    };
-  });
+  // Register content_controller directly instead of the factory function
+  container.register('content_controller', content_controller);
 }
 
 // Initialize services

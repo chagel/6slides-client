@@ -154,17 +154,17 @@ class Storage {
    * @returns Promise resolving to Settings object
    */
   async getSettings(): Promise<Settings> {
+    // Default settings if nothing is found
+    const defaultSettings = {
+      theme: "default",
+      transition: "slide",
+      slideNumber: false,
+      center: true,
+      debugLogging: false,
+      extractionTimeout: 30
+    };
+    
     try {
-      // Default settings if nothing is found
-      const defaultSettings = {
-        theme: "default",
-        transition: "slide",
-        slideNumber: false,
-        center: true,
-        debugLogging: false,
-        extractionTimeout: 30
-      };
-      
       // Try to get from IndexedDB
       try {
         const settings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
