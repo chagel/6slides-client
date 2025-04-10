@@ -108,10 +108,14 @@ class LoggingService {
    * Enable or disable debug logging
    * @param enabled - Whether debug logging should be enabled
    */
-  setDebugLogging(enabled: boolean): void {
-    this._debugEnabled = enabled;
+  setDebugLogging(enabled: boolean | string): void {
+    // Handle both boolean and string values
+    const isEnabled = enabled === true || enabled === 'true';
+    console.log('Logging service - setting debug logging:', isEnabled, 'Type:', typeof enabled, 'Value:', enabled);
+    
+    this._debugEnabled = isEnabled;
     // The debug method itself checks if debugEnabled is true before logging
-    this.debug(`Debug logging ${enabled ? 'enabled' : 'disabled'}`);
+    this.debug(`Debug logging ${isEnabled ? 'enabled' : 'disabled'}`);
   }
 
   /**

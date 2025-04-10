@@ -64,9 +64,9 @@ export class PresentationRenderer {
    */
   async loadAndRender(): Promise<void> {
     try {
-      // Get subscription status
-      const hasPro = configManager.hasPro();
-      const level = configManager.getSubscriptionLevel();
+      // Get subscription status using the async configManager methods
+      const hasPro = await configManager.hasPro();
+      const level = await configManager.getSubscriptionLevel();
       
       // Log subscription status for debugging
       loggingService.debug(`Rendering with ${level.toUpperCase()} subscription (Pro features: ${hasPro ? 'Enabled' : 'Disabled'})`, null, 'viewer');
@@ -81,8 +81,8 @@ export class PresentationRenderer {
       loggingService.debug('Raw slides loaded from storage', { rawSlides }, 'viewer');
       loggingService.debug(`Loaded ${rawSlides?.length || 0} slides from storage`, null, 'viewer');
       
-      // Get settings from config manager
-      const settings = configManager.getPresentationSettings();
+      // Get settings from config manager asynchronously
+      const settings = await configManager.getPresentationSettings();
       loggingService.debug('Presentation settings', settings, 'viewer');
       
       // Check if we have slides
@@ -99,9 +99,8 @@ export class PresentationRenderer {
       // Create a domain presentation model - slides should already be limited for free users by ContentController
       const presentation = Presentation.fromSlides(rawSlides);
       
-      // Log subscription status
-      const hasProAccess = configManager.hasPro();
-      loggingService.debug(`Rendering with ${hasProAccess ? 'PRO' : 'FREE'} plan. Total slides: ${presentation.slideCount}`, null, 'viewer');
+      // Log subscription status - we already have hasPro from above, no need to call again
+      loggingService.debug(`Rendering with ${hasPro ? 'PRO' : 'FREE'} plan. Total slides: ${presentation.slideCount}`, null, 'viewer');
       
       loggingService.debug(`Creating presentation with ${presentation.slideCount} slides`, null, 'viewer');
       

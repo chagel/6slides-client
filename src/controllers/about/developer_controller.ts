@@ -4,7 +4,7 @@
  * Handles the developer tools section of the about page
  */
 
-import { loggingService } from '../../services/logging_service';
+// No need for loggingService in this controller
 import { configManager, SubscriptionLevel } from '../../models/config_manager';
 import { LogViewerController } from './log_viewer_controller';
 
@@ -39,20 +39,33 @@ export class DeveloperController {
     this.setProExpiredBtn = document.getElementById('setProExpiredBtn');
     this.setTeamBtn = document.getElementById('setTeamBtn');
     
-    // Initialize log viewer with debug status
-    const debugEnabled = this.isDebugEnabled();
-    this.logViewerController = new LogViewerController(debugEnabled);
+    // Initialize log viewer - assuming debug is enabled for developers
+    this.logViewerController = new LogViewerController(true);
     
     this.bindEventHandlers();
     this.updateSubscriptionTestStatus();
+    
+    // Additionally check for debug status asynchronously
+    this.initializeDebugSettings();
   }
   
   /**
-   * Check if debug mode is enabled
+   * Initialize debug settings asynchronously
    */
-  private isDebugEnabled(): boolean {
-    const settings = configManager.getConfig();
-    return settings.debugLogging === true;
+  private async initializeDebugSettings(): Promise<void> {
+    try {
+      const settings = await configManager.getConfig();
+      const debugEnabled = settings.debugLogging === true || settings.debugLogging === 'true';
+      console.log('Developer controller - debug enabled:', debugEnabled);
+      
+      // Make log viewer visible if debug is enabled
+      // LogViewerController doesn't have setDebugEnabled, so we're using setVisible instead
+      if (this.logViewerController) {
+        this.logViewerController.setVisible(debugEnabled);
+      }
+    } catch (error) {
+      console.error('Error initializing debug settings:', error);
+    }
   }
   
   /**
@@ -91,21 +104,25 @@ export class DeveloperController {
   /**
    * Update the subscription test status display
    */
-  private updateSubscriptionTestStatus(): void {
-    // Get subscription status directly from configManager
-    const level = configManager.getSubscriptionLevel();
-    const hasPro = configManager.hasPro();
-    const expiry = configManager.getValue('subscriptionExpiry', null);
-    
-    // Format expiry date if exists
-    const expiryText = expiry 
-      ? new Date(expiry).toLocaleDateString() 
-      : 'Never';
-    
-    // Update UI
-    if (this.testSubLevel) this.testSubLevel.textContent = level.toUpperCase();
-    if (this.testHasPro) this.testHasPro.textContent = hasPro ? 'YES ✅' : 'NO ❌';
-    if (this.testSubExpiry) this.testSubExpiry.textContent = expiryText;
+  private async updateSubscriptionTestStatus(): Promise<void> {
+    try {
+      // Get subscription status directly from configManager (async)
+      const level = await configManager.getSubscriptionLevel();
+      const hasPro = await configManager.hasPro();
+      const expiry = await configManager.getValue('subscriptionExpiry', null);
+      
+      // Format expiry date if exists
+      const expiryText = expiry 
+        ? new Date(expiry).toLocaleDateString() 
+        : 'Never';
+      
+      // Update UI
+      if (this.testSubLevel) this.testSubLevel.textContent = level.toUpperCase();
+      if (this.testHasPro) this.testHasPro.textContent = hasPro ? 'YES ✅' : 'NO ❌';
+      if (this.testSubExpiry) this.testSubExpiry.textContent = expiryText;
+    } catch (error) {
+      console.error('Error updating subscription status:', error);
+    }
   }
   
   /**

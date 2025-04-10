@@ -41,7 +41,21 @@ export class SettingsController {
     this.clearCacheBtn = document.getElementById('clearCacheBtn');
     
     this.bindEventHandlers();
-    this.loadSettings();
+    
+    // Initialize settings asynchronously
+    this.initializeAsync();
+  }
+  
+  /**
+   * Initialize settings asynchronously
+   */
+  private async initializeAsync(): Promise<void> {
+    try {
+      await this.loadSettings();
+      console.log('Settings loaded successfully');
+    } catch (error) {
+      console.error('Error initializing settings:', error);
+    }
   }
   
   /**
@@ -77,33 +91,40 @@ export class SettingsController {
   /**
    * Load settings from storage
    */
-  loadSettings(): void {
+  async loadSettings(): Promise<void> {
     if (!this.themeSelector) return;
     
-    const settings = storage.getSettings();
-    
-    // Set default values if settings don't exist
-    const defaults = {
-      theme: 'default',
-      transition: 'slide',
-      slideNumber: 'false',
-      center: 'true',
-      debugLogging: 'false'
-    };
-    
-    // Apply settings to selectors
-    if (this.themeSelector) this.themeSelector.value = settings.theme?.toString() || defaults.theme;
-    if (this.transitionSelector) this.transitionSelector.value = settings.transition?.toString() || defaults.transition;
-    if (this.slideNumberSelector) this.slideNumberSelector.value = settings.slideNumber?.toString() || defaults.slideNumber;
-    if (this.centerSelector) this.centerSelector.value = settings.center?.toString() || defaults.center;
-    
-    // Set developer settings
-    if (this.debugLoggingSelector) {
-      const debugLogging = settings.debugLogging?.toString() || defaults.debugLogging;
-      this.debugLoggingSelector.value = debugLogging;
+    try {
+      // Get settings asynchronously
+      const settings = await storage.getSettings();
+      console.log('Settings loaded from IndexedDB:', settings);
       
-      // Apply debug logging setting
-      loggingService.setDebugLogging(debugLogging === 'true');
+      // Set default values if settings don't exist
+      const defaults = {
+        theme: 'default',
+        transition: 'slide',
+        slideNumber: 'false',
+        center: 'true',
+        debugLogging: 'false'
+      };
+      
+      // Apply settings to selectors
+      if (this.themeSelector) this.themeSelector.value = settings.theme?.toString() || defaults.theme;
+      if (this.transitionSelector) this.transitionSelector.value = settings.transition?.toString() || defaults.transition;
+      if (this.slideNumberSelector) this.slideNumberSelector.value = settings.slideNumber?.toString() || defaults.slideNumber;
+      if (this.centerSelector) this.centerSelector.value = settings.center?.toString() || defaults.center;
+      
+      // Set developer settings
+      if (this.debugLoggingSelector) {
+        const debugLogging = settings.debugLogging?.toString() || defaults.debugLogging;
+        console.log('Debug logging setting:', debugLogging);
+        this.debugLoggingSelector.value = debugLogging;
+        
+        // Apply debug logging setting
+        loggingService.setDebugLogging(debugLogging === 'true');
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
     }
   }
   
@@ -116,6 +137,8 @@ export class SettingsController {
       return;
     }
     
+    console.log('DEBUG - Saving settings, debug logging value:', this.debugLoggingSelector?.value);
+    
     const settings: Settings = {
       theme: this.themeSelector.value,
       transition: this.transitionSelector.value,
@@ -125,8 +148,17 @@ export class SettingsController {
     
     // Add developer settings if present
     if (this.debugLoggingSelector) {
-      const debugEnabled = this.debugLoggingSelector.value === 'true';
+      // Get the value directly from the selector
+      const debugEnabledStr = this.debugLoggingSelector.value;
+      
+      // Convert to proper boolean
+      const debugEnabled = debugEnabledStr === 'true';
+      
+      // Store the actual boolean in settings - not a string
       settings.debugLogging = debugEnabled;
+      
+      console.log('Saving debug logging setting:', debugEnabled);
+      console.log('Setting debugLogging with type:', typeof debugEnabled);
       
       // Configure debug service
       debugService.setDebugEnabled(debugEnabled);

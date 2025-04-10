@@ -8,8 +8,10 @@ import { getService } from './services/dependency_container';
 import { loggingService } from './services/logging_service';
 import { errorService, ErrorTypes, ErrorSeverity } from './services/error_service';
 import { configManager } from './models/config_manager';
+import { debugService } from './services/debug_service';
 import { ExtractionResult } from './controllers/content_controller';
 import { Slide } from './types/index';
+import { getExtensionVersion } from './utils/version';
 
 // Import to register all services
 import './services/service_registry';
@@ -50,8 +52,7 @@ async function extractContent(): Promise<Slide[]> {
     }
     
     // Add debug logging to see what was extracted before storage
-    loggingService.debug('EXTRACTED SLIDES BEFORE STORAGE:');
-    loggingService.debug('Slides', result.slides);
+    loggingService.debug('Extracted slides before storage', result.slides);
     
     return Promise.resolve(result.slides || []);
   } catch (error) {
@@ -61,16 +62,28 @@ async function extractContent(): Promise<Slide[]> {
 }
 
 /**
+ * Determine if we're in a service worker context
+ * This matches the isServiceWorker check in Storage class
+ */
+function isServiceWorkerContext(): boolean {
+  return typeof window === 'undefined' || 
+         !!(typeof globalThis !== 'undefined' && 
+            (globalThis as any).ServiceWorkerGlobalScope);
+}
+
+/**
  * Set up message handlers for content script functionality
  */
 function setupContentScriptHandlers(): void {
   // Only set up message handlers if we're in a content script context (has chrome.runtime)
-  if (typeof chrome !== 'undefined' && chrome.runtime) {
+  // Also verify we're not in a service worker context and have access to onMessage
+  if (typeof chrome !== 'undefined' && chrome.runtime && 
+      chrome.runtime.onMessage && !isServiceWorkerContext()) {
     // Get messaging service from DI container
     const messagingService = getService('messagingService');
     
     // Add listener for messages from popup/background
-    messagingService.addMessageListener((message: {action: string, [key: string]: any}, sender: chrome.runtime.MessageSender) => {
+    messagingService.addMessageListener((message: {action: string, [key: string]: any}) => {
       loggingService.debug('Content script received message', message);
       
       // Ping action to check if content script is loaded
@@ -124,52 +137,46 @@ function setupContentScriptHandlers(): void {
  */
 export async function initializeApp(): Promise<boolean> {
   try {
-    // Get configuration
-    const config = configManager.getConfig();
-    
-    // Set debug logging and other service configurations based on config
-    const debugEnabled = config.debugLogging || false;
-    loggingService.setDebugLogging(debugEnabled);
-    
-    // Always store logs to localStorage when debug is enabled
-    loggingService.setStoreDebugLogs(debugEnabled);
-    
-    // Keep console logging disabled to reduce console noise
-    // Only errors will always be logged to console
-    loggingService.setConsoleLogging(false);
-    
-    // Generate first logs when debug is enabled
-    if (debugEnabled) {
-      loggingService.debug('Debug logging enabled - logs are being stored');
+    // Add minimal diagnostic logging to help identify context
+    console.log('App initialization - Context diagnostics:');
+    console.log('- window exists:', typeof window !== 'undefined');
+    console.log('- document exists:', typeof document !== 'undefined');
+    console.log('- chrome exists:', typeof chrome !== 'undefined');
+    if (typeof chrome !== 'undefined') {
+      console.log('- chrome.runtime exists:', typeof chrome.runtime !== 'undefined');
     }
     
-    // Log initialization to confirm logging is working
-    if (debugEnabled) {
-      // Get subscription status
-      const hasPro = configManager.hasPro();
-      const level = configManager.getSubscriptionLevel();
-      const expiry = configManager.getValue('subscriptionExpiry', null);
-      
-      // Use logging service for debug mode logging
-      loggingService.debug('Debug mode active', { 
-        version: '1.4.0', 
-        context: typeof chrome !== 'undefined' && chrome.runtime ? 'content_script' : 'extension',
-        subscription: {
-          level: level,
-          hasPro: hasPro,
-          expiry: expiry ? new Date(expiry).toLocaleString() : 'Never'
-        }
-      });
-    }
+    // Determine context type for logging and debugging
+    const contextType = typeof chrome !== 'undefined' && chrome.runtime ?
+      (chrome.runtime.getManifest ? 'background' : 'content_script') : 
+      'extension';
+    console.log('- contextType:', contextType);
     
-    // Set up content script message handlers if we're in that context
+    // Get configuration asynchronously
+    console.log('Getting settings asynchronously via configManager');
+    const config = await configManager.getConfig();
+    console.log('Retrieved config from IndexedDB:', config);
+    
+    // Add detailed debugging about the config
+    console.log('FULL CONFIG IN APP.TS: ' + JSON.stringify(config, null, 2));
+    
+    // Set debug mode through the debug service
+    // Handle both boolean and string values for debugLogging
+    const debugEnabled = config.debugLogging === true || config.debugLogging === 'true';
+    console.log('Debug enabled:', debugEnabled, 'Type:', typeof config.debugLogging, 'Value:', config.debugLogging);
+    debugService.setDebugEnabled(debugEnabled);
+    
+    // Setup content script handlers if appropriate
     setupContentScriptHandlers();
     
+    // Get the extension version
+    const version = getExtensionVersion();
+    
     // Log initialization success
-    loggingService.info('Application initialized successfully', {
-      version: '1.4.0',
+    loggingService.info('Application initialized', {
+      version,
       debugMode: config.debugLogging,
-      context: typeof chrome !== 'undefined' && chrome.runtime ? 'content_script' : 'extension'
+      context: contextType
     });
     
     return true;
@@ -187,8 +194,10 @@ export async function initializeApp(): Promise<boolean> {
   }
 }
 
-// Auto-initialize when imported 
-initializeApp();
+// Initialize the app immediately, without waiting for DOM events
+initializeApp().catch(err => {
+  console.error('Error initializing app:', err);
+});
 
 // Export content script functionality for testing
 export { extractContent };

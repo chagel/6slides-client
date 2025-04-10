@@ -10,6 +10,7 @@ import { SettingsController } from './settings_controller';
 import { SubscriptionController } from './subscription_controller';
 import { DeveloperController } from './developer_controller';
 import { pageLoader } from '../../services/page_loader';
+import { getExtensionVersion } from '../../utils/version';
 
 /**
  * AboutPageController class to coordinate all UI controllers for the about page interface
@@ -96,7 +97,7 @@ class AboutPageController {
       pageContainer.innerHTML = combinedHTML;
       
       // Replace version placeholders
-      const versionNumber = chrome.runtime.getManifest().version || '1.0.0';
+      const versionNumber = getExtensionVersion();
       document.body.innerHTML = document.body.innerHTML.replace(/{{VERSION_NO_V}}/g, versionNumber);
       document.body.innerHTML = document.body.innerHTML.replace(/{{VERSION}}/g, `v${versionNumber}`);
       

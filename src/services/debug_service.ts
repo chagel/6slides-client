@@ -6,6 +6,7 @@
  */
 
 import { loggingService } from './logging_service';
+import { getExtensionVersion } from '../utils/version';
 
 /**
  * Debug indicator options
@@ -29,21 +30,25 @@ class DebugService {
    * Set debug enabled state
    * @param enabled - Whether debug mode is enabled
    */
-  setDebugEnabled(enabled: boolean): void {
-    this._debugEnabled = enabled;
+  setDebugEnabled(enabled: boolean | string): void {
+    // Handle both boolean and string values
+    const isEnabled = enabled === true || enabled === 'true';
+    console.log('Debug service - setting debug enabled:', isEnabled, 'Type:', typeof enabled, 'Value:', enabled);
+    
+    this._debugEnabled = isEnabled;
     
     // Apply to logging service
-    loggingService.setDebugLogging(enabled);
+    loggingService.setDebugLogging(isEnabled);
     // Keep console logging disabled to reduce noise
     loggingService.setConsoleLogging(false);
-    loggingService.setStoreDebugLogs(enabled);
+    loggingService.setStoreDebugLogs(isEnabled);
     
     // Log status change
-    if (enabled) {
+    if (isEnabled) {
       this._logDebugEnabled();
     } else {
       this._removeDebugIndicator();
-      console.log('Debug mode disabled');
+      // Don't log to console when debug is disabled
     }
   }
   
@@ -157,14 +162,35 @@ class DebugService {
   logAppInfo(context: string, data?: any): void {
     if (!this._debugEnabled) return;
     
-    // Use logging service instead of direct console logging
-    loggingService.debug('Application info', {
+    // Gather app info safely
+    const appInfo: any = {
       context,
-      version: chrome.runtime.getManifest().version,
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
-      ...data
-    });
+      timestamp: new Date().toISOString()
+    };
+    
+    // Add version using helper function
+    try {
+      appInfo.version = getExtensionVersion();
+    } catch (e) {
+      appInfo.version = 'unknown';
+    }
+    
+    // Add URL if window is available
+    try {
+      if (typeof window !== 'undefined') {
+        appInfo.url = window.location.href;
+      }
+    } catch (e) {
+      appInfo.url = 'unknown';
+    }
+    
+    // Add any additional data
+    if (data) {
+      Object.assign(appInfo, data);
+    }
+    
+    // Log using the logging service
+    loggingService.debug('Application info', appInfo);
   }
 }
 

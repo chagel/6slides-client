@@ -50,11 +50,11 @@ export class SubscriptionController {
   /**
    * Update the subscription UI based on current subscription status
    */
-  updateSubscriptionUI(): void {
+  async updateSubscriptionUI(): Promise<void> {
     try {
-      const hasPro = configManager.hasPro();
-      const level = configManager.getSubscriptionLevel();
-      const expiryTimestamp = configManager.getValue('subscriptionExpiry', null);
+      const hasPro = await configManager.hasPro();
+      const level = await configManager.getSubscriptionLevel();
+      const expiryTimestamp = await configManager.getValue('subscriptionExpiry', null);
       
       // Show/hide appropriate subscription info sections
       if (this.freeSubscriptionInfo) {
@@ -125,13 +125,13 @@ export class SubscriptionController {
    * Update theme options based on subscription level
    * @param themeSelector - The theme selector element
    */
-  updateThemeOptions(themeSelector: HTMLSelectElement | null): void {
+  async updateThemeOptions(themeSelector: HTMLSelectElement | null): Promise<void> {
     // Early return if theme selector is not available yet
     if (!themeSelector) {
       return;
     }
     
-    const hasPro = configManager.hasPro();
+    const hasPro = await configManager.hasPro();
     const premiumThemes = ['catppuccin-latte', 'catppuccin-mocha'];
     const settingRow = themeSelector.closest('.setting-row');
     
@@ -226,8 +226,8 @@ export class SubscriptionController {
    * Handle theme change - check for premium themes
    * @param themeSelector - The theme selector element
    */
-  handleThemeChange(themeSelector: HTMLSelectElement): void {
-    const hasPro = configManager.hasPro();
+  async handleThemeChange(themeSelector: HTMLSelectElement): Promise<void> {
+    const hasPro = await configManager.hasPro();
     const premiumThemes = ['catppuccin-latte', 'catppuccin-mocha'];
     const selectedTheme = themeSelector?.value || '';
     

@@ -71,12 +71,13 @@ const DEFAULT_CONFIG: Config = {
  */
 class ConfigManager {
   /**
-   * Load configuration from storage
-   * @returns Configuration object
+   * Load configuration from storage asynchronously
+   * @returns Promise resolving to Configuration object
    */
-  getConfig(): Config {
+  async getConfig(): Promise<Config> {
     try {
-      const savedConfig = storage.getSettings();
+      // Get settings from storage asynchronously
+      const savedConfig = await storage.getSettings();
       
       // Merge saved config with defaults
       return {
@@ -105,13 +106,13 @@ class ConfigManager {
   }
   
   /**
-   * Get a specific configuration value
+   * Get a specific configuration value asynchronously
    * @param key - Configuration key
    * @param defaultValue - Default value if not found
-   * @returns Configuration value
+   * @returns Promise resolving to configuration value
    */
-  getValue<T>(key: string, defaultValue: T | null = null): T {
-    const config = this.getConfig();
+  async getValue<T>(key: string, defaultValue: T | null = null): Promise<T> {
+    const config = await this.getConfig();
     return key in config ? config[key] : defaultValue as T;
   }
   
@@ -137,11 +138,11 @@ class ConfigManager {
   }
   
   /**
-   * Get presentation-specific settings
-   * @returns Presentation settings
+   * Get presentation-specific settings asynchronously
+   * @returns Promise resolving to Presentation settings
    */
-  getPresentationSettings(): PresentationSettings {
-    const config = this.getConfig();
+  async getPresentationSettings(): Promise<PresentationSettings> {
+    const config = await this.getConfig();
     return {
       theme: config.theme,
       transition: config.transition,
@@ -164,19 +165,19 @@ class ConfigManager {
 
   /**
    * Get current subscription level
-   * @returns Current subscription level
+   * @returns Promise resolving to current subscription level
    */
-  getSubscriptionLevel(): SubscriptionLevel {
-    return this.getValue('subscriptionLevel', SubscriptionLevel.FREE);
+  async getSubscriptionLevel(): Promise<SubscriptionLevel> {
+    return await this.getValue('subscriptionLevel', SubscriptionLevel.FREE);
   }
 
   /**
    * Check if user has pro subscription or higher
-   * @returns True if user has pro features
+   * @returns Promise resolving to true if user has pro features
    */
-  hasPro(): boolean {
-    const level = this.getSubscriptionLevel();
-    const expiry = this.getValue('subscriptionExpiry', null);
+  async hasPro(): Promise<boolean> {
+    const level = await this.getSubscriptionLevel();
+    const expiry = await this.getValue('subscriptionExpiry', null);
     
     // Check for valid subscription and not expired
     return (
@@ -203,13 +204,13 @@ class ConfigManager {
   /**
    * Check if remaining slides are available for free users
    * @param currentSlideCount - Current number of slides in presentation
-   * @returns True if more slides are allowed
+   * @returns Promise resolving to true if more slides are allowed
    */
-  hasRemainingSlides(currentSlideCount: number): boolean {
+  async hasRemainingSlides(currentSlideCount: number): Promise<boolean> {
     const FREE_SLIDE_LIMIT = 10;
     
     // Pro users have unlimited slides
-    if (this.hasPro()) {
+    if (await this.hasPro()) {
       return true;
     }
     

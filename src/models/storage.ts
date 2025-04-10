@@ -127,61 +127,87 @@ class Storage {
   }
   
   /**
-   * Save settings
+   * Save settings to IndexedDB
    * @param settings - Settings object
    * @returns Promise resolving when save completes
    */
-  saveSettings(settings: Settings): Promise<void> {
+  async saveSettings(settings: Settings): Promise<void> {
     try {
-      const settingsData = JSON.stringify(settings);
+      console.log('SAVING SETTINGS called with:', JSON.stringify(settings, null, 2));
+      console.log('debugLogging value before save:', settings.debugLogging);
+      console.log('debugLogging type before save:', typeof settings.debugLogging);
       
-      if (this.isServiceWorker) {
-        // Use chrome.storage.local in service worker
-        return new Promise((resolve, reject) => {
-          chrome.storage.local.set({ notionSlidesSettings: settingsData }, () => {
-            if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-            } else {
-              loggingService.debug('Settings saved to chrome.storage.local', settings);
-              resolve();
-            }
-          });
-        });
+      // Create a clean object for storage with correct ID
+      const settingsToSave = { id: 'current', ...settings };
+      
+      // Save to IndexedDB for all contexts
+      await this._saveToIndexedDB(SETTINGS_STORE, settingsToSave);
+      
+      console.log('Settings saved to IndexedDB:', settings);
+      // Use JSON.stringify to see the actual values
+      console.log('FULL SAVED SETTINGS: ' + JSON.stringify(settingsToSave, null, 2));
+      
+      // Verify with a direct read
+      try {
+        const savedSettings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
+        console.log('Verification - just saved settings:', JSON.stringify(savedSettings, null, 2));
+        console.log('Verification - debugLogging after save:', savedSettings.debugLogging);
+      } catch (err) {
+        console.error('Error verifying saved settings:', err);
       }
       
-      localStorage.setItem('notionSlidesSettings', settingsData);
-      loggingService.debug('Settings saved to localStorage', settings);
       return Promise.resolve();
     } catch (error) {
+      console.error('Failed to save settings:', error);
       loggingService.error('Failed to save settings', error);
       return Promise.reject(error);
     }
   }
   
   /**
-   * Get settings
-   * @returns Settings object
+   * Get settings asynchronously
+   * @returns Promise resolving to Settings object
    */
-  getSettings(): Settings {
+  async getSettings(): Promise<Settings> {
     try {
-      if (this.isServiceWorker) {
-        // In service worker context, just return default settings
-        // Chrome extension service workers can't use synchronous XHR
-        return {
-          theme: "default",
-          transition: "slide",
-          slideNumber: false,
-          center: true,
-          debugLogging: false,
-          extractionTimeout: 30
-        };
+      // Default settings if nothing is found
+      const defaultSettings = {
+        theme: "default",
+        transition: "slide",
+        slideNumber: false,
+        center: true,
+        debugLogging: false,
+        extractionTimeout: 30
+      };
+      
+      // Try to get from IndexedDB
+      try {
+        const settings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
+        if (settings) {
+          console.log('Settings retrieved from IndexedDB:', settings);
+          // Use JSON.stringify to see the actual values
+          console.log('FULL SETTINGS DEBUG: ' + JSON.stringify(settings, null, 2));
+          console.log('Debug logging value type: ' + typeof settings.debugLogging);
+          return settings;
+        }
+      } catch (e) {
+        console.log('Error getting settings from IndexedDB:', e);
       }
       
-      const settings = JSON.parse(localStorage.getItem('notionSlidesSettings') || '{}') as Settings;
-      return settings;
+      // No settings found, save default settings to IndexedDB for next time
+      console.log('No settings found in IndexedDB, using defaults');
+      
+      // Save default settings to IndexedDB in the background
+      // This ensures future calls will return the persisted settings
+      this._saveToIndexedDB(SETTINGS_STORE, { id: 'current', ...defaultSettings })
+        .then(() => console.log('Default settings saved to IndexedDB'))
+        .catch(err => console.error('Failed to save default settings to IndexedDB:', err));
+      
+      return defaultSettings;
     } catch (error) {
+      console.error('Failed to get settings:', error);
       loggingService.error('Failed to get settings', error);
-      return {};
+      return defaultSettings;
     }
   }
   
