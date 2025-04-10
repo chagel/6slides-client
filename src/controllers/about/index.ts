@@ -258,8 +258,7 @@ function initialize(): void {
       // Create main controller
       const aboutController = new AboutPageController();
       
-      // Add a single log to indicate about page is ready
-      loggingService.info('About page initialized', null, 'about');
+      // About page initialization complete
     } catch (error) {
       loggingService.error('Error initializing about page', error);
     }

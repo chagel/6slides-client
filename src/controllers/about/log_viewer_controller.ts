@@ -154,13 +154,12 @@ export class LogViewerController {
     this.logViewer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Loading logs...</div>';
     
     try {
-      // Force a new log entry to ensure we have at least one log to display
-      loggingService.debug(`Refreshing log viewer at ${new Date().toISOString()}`, null, 'developer');
+      // Prepare to fetch logs from storage
       
       // Get logs from IndexedDB - increase limit to show more logs
       const logs = await storage.getDebugLogs(500);
       
-      loggingService.debug(`Retrieved ${logs.length} logs from storage`, null, 'developer');
+      // Process logs for display
       
       // No need to print each log to console
       
