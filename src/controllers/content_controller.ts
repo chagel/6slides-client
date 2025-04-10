@@ -45,15 +45,20 @@ class ContentController {
    * @param limit - Maximum number of slides for free users
    * @returns Promise resolving to limited array of slides (or original if user has pro)
    */
-  async applyFreeUserSlideLimit(slides: Slide[], limit: number): Promise<Slide[]> {
+  async applyFreeUserSlideLimit(slides: Slide[]): Promise<Slide[]> {
+    // Apply free user slide limit
+    const FREE_SLIDE_LIMIT = 10;
+      
     // Get subscription status using async methods
     const hasPro = await configManager.hasPro();
-    const level = await configManager.getSubscriptionLevel();
+    // const level = await configManager.getSubscriptionLevel();
     
     // If user has pro subscription, no need to limit slides
     if (hasPro) {
       return slides;
     }
+
+    const limit = FREE_SLIDE_LIMIT;
     
     // For free users, only apply limit if they exceed the maximum
     if (slides.length > limit) {
@@ -131,11 +136,8 @@ class ContentController {
         metadata: slide.metadata
       }));
       
-      // Apply free user slide limit
-      const FREE_SLIDE_LIMIT = 10;
-      
       // Apply the single, authoritative slide limit
-      const limitedSlides = await this.applyFreeUserSlideLimit(validSlides, FREE_SLIDE_LIMIT);
+      const limitedSlides = await this.applyFreeUserSlideLimit(validSlides);
       
       // Create a domain presentation model
       const presentation = Presentation.fromSlides(limitedSlides, sourceType.toString());
@@ -144,7 +146,7 @@ class ContentController {
       await storage.saveSlides(presentation.toObject().slides);
       
       // Store debug info
-      storage.saveDebugInfo({
+      await storage.saveDebugInfo({
         timestamp: new Date().toISOString(),
         sourceType: sourceType.toString(),
         url,

@@ -241,7 +241,7 @@ class PopupController {
         
         // Store slides and debug info
         await storage.saveSlides(response.slides);
-        storage.saveDebugInfo(debugInfo);
+        await storage.saveDebugInfo(debugInfo);
         
         // Open viewer in the current tab
         if ((pageInfo.tab as chrome.tabs.Tab).id) {
@@ -257,7 +257,7 @@ class PopupController {
         this.updateStatus(`Error: ${response.error}`, 'not-ready');
         
         // Store error info for debugging
-        storage.saveErrorInfo({
+        await storage.saveErrorInfo({
           message: response.error,
           stack: response.stack
         });

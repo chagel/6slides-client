@@ -193,7 +193,12 @@ class ConfigManager {
    * @returns Promise that resolves when subscription is updated
    */
   async setSubscription(level: SubscriptionLevel, expiryDate: number | null = null): Promise<void> {
+    // Get the current config first to preserve other settings
+    const currentConfig = await this.getConfig();
+    
+    // Update only the subscription fields
     await this.saveConfig({
+      ...currentConfig,
       subscriptionLevel: level,
       subscriptionExpiry: expiryDate
     });

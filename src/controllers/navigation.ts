@@ -32,27 +32,31 @@ function initNavigation(): void {
   const clearCacheBtn = document.getElementById('clearCacheBtn');
   
   // Load existing settings
-  function loadSettings(): void {
+  async function loadSettings(): Promise<void> {
     if (!themeSelector) return;
     
-    const settings = storage.getSettings();
-    
-    // Set default values if settings don't exist
-    const defaults = {
-      theme: 'default',
-      transition: 'slide',
-      slideNumber: 'false',
-      center: 'true',
-      debugLogging: 'false'
-    };
-    
-    // Apply settings to selectors
-    if (themeSelector) themeSelector.value = settings.theme?.toString() || defaults.theme;
-    if (transitionSelector) transitionSelector.value = settings.transition?.toString() || defaults.transition;
-    if (slideNumberSelector) slideNumberSelector.value = settings.slideNumber?.toString() || defaults.slideNumber;
-    if (centerSelector) centerSelector.value = settings.center?.toString() || defaults.center;
-    
-    loggingService.debug('Navigation: Settings loaded', settings);
+    try {
+      const settings = await storage.getSettings();
+      
+      // Set default values if settings don't exist
+      const defaults = {
+        theme: 'default',
+        transition: 'slide',
+        slideNumber: 'false',
+        center: 'true',
+        debugLogging: 'false'
+      };
+      
+      // Apply settings to selectors
+      if (themeSelector) themeSelector.value = settings.theme?.toString() || defaults.theme;
+      if (transitionSelector) transitionSelector.value = settings.transition?.toString() || defaults.transition;
+      if (slideNumberSelector) slideNumberSelector.value = settings.slideNumber?.toString() || defaults.slideNumber;
+      if (centerSelector) centerSelector.value = settings.center?.toString() || defaults.center;
+      
+      loggingService.debug('Navigation: Settings loaded', settings);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
   }
   
   // Save settings
@@ -148,7 +152,7 @@ function initNavigation(): void {
   });
   
   // Load settings if we're on the settings page
-  loadSettings();
+  loadSettings().catch(err => console.error('Error initializing settings:', err));
   
   // Navigation functionality
   function setActivePage(pageId: string): void {
@@ -172,8 +176,8 @@ function initNavigation(): void {
     // Update URL hash
     history.pushState(null, document.title, `#${pageId}`);
     
-    // Save last active page
-    localStorage.setItem('notionSlidesActivePage', pageId);
+    // Save last active page to session storage (just for the current session)
+    sessionStorage.setItem('notionSlidesActivePage', pageId);
   }
   
   // Handle navigation clicks
@@ -188,9 +192,9 @@ function initNavigation(): void {
     });
   });
   
-  // Handle initial page load (from hash or localStorage)
+  // Handle initial page load (from hash or sessionStorage)
   const hash = window.location.hash.substring(1);
-  const savedPage = localStorage.getItem('notionSlidesActivePage');
+  const savedPage = sessionStorage.getItem('notionSlidesActivePage');
   const defaultPage = 'about'; // Default page
   
   if (hash && document.getElementById(hash)) {

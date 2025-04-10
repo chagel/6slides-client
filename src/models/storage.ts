@@ -1,7 +1,7 @@
 /**
  * Notion to Slides - Storage Module
  * 
- * Handles data persistence using localStorage with fallback to IndexedDB for large data
+ * Handles data persistence using IndexedDB
  */
 
 import { loggingService } from '../services/logging_service';
@@ -15,9 +15,6 @@ const SLIDES_STORE = 'slides';
 const SETTINGS_STORE = 'settings';
 const LOGS_STORE = 'logs';
 
-// Size threshold in bytes before using IndexedDB instead of localStorage (1MB)
-const SIZE_THRESHOLD = 1 * 1024 * 1024; 
-
 /**
  * IndexedDB Slide data interface
  */
@@ -27,52 +24,22 @@ interface SlideData {
 }
 
 /**
- * Storage class that provides a unified API for localStorage, chrome.storage, and IndexedDB
+ * Storage class that provides an API for IndexedDB storage
  */
 class Storage {
-  private isServiceWorker: boolean;
-
   constructor() {
-    // Detect if we're running in a service worker context (no window object)
-    this.isServiceWorker = typeof window === 'undefined' || 
-                          !!(typeof globalThis !== 'undefined' && 
-                             (globalThis as any).ServiceWorkerGlobalScope);
+    // No initialization needed
   }
   
   /**
-   * Save slides data (uses IndexedDB for large datasets)
+   * Save slides data to IndexedDB
    * @param slides - Array of slide objects
    * @returns Promise resolving when save completes
    */
   async saveSlides(slides: Slide[]): Promise<void> {
     try {
-      const data = JSON.stringify(slides);
-      
-      // Check data size
-      const dataSize = new Blob([data]).size;
-      
-      if (this.isServiceWorker) {
-        // Use chrome.storage.local in service worker
-        return new Promise((resolve, reject) => {
-          chrome.storage.local.set({ slides: data }, () => {
-            if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
-      
-      // Use localStorage for small data, IndexedDB for large data
-      if (dataSize < SIZE_THRESHOLD) {
-        loggingService.debug(`Saving ${slides.length} slides to localStorage (${dataSize} bytes)`);
-        localStorage.setItem('slides', data);
-        return Promise.resolve();
-      } else {
-        loggingService.debug(`Saving ${slides.length} slides to IndexedDB (${dataSize} bytes)`);
-        return this._saveToIndexedDB(SLIDES_STORE, { id: 'current', slides });
-      }
+      loggingService.debug(`Saving ${slides.length} slides to IndexedDB`);
+      return this._saveToIndexedDB(SLIDES_STORE, { id: 'current', slides });
     } catch (error) {
       loggingService.error('Failed to save slides', error);
       return Promise.reject(error);
@@ -80,36 +47,12 @@ class Storage {
   }
   
   /**
-   * Get slides data
+   * Get slides data from IndexedDB
    * @returns Promise resolving to array of slide objects
    */
   async getSlides(): Promise<Slide[]> {
     try {
-      if (this.isServiceWorker) {
-        // Use chrome.storage.local in service worker
-        return new Promise((resolve, reject) => {
-          chrome.storage.local.get(['slides'], (result) => {
-            if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-            } else if (result.slides) {
-              resolve(JSON.parse(result.slides));
-            } else {
-              resolve([]);
-            }
-          });
-        });
-      }
-      
-      // First try localStorage
-      const localData = localStorage.getItem('slides');
-      
-      if (localData) {
-        const slides = JSON.parse(localData) as Slide[];
-        loggingService.debug(`Retrieved ${slides.length} slides from localStorage`);
-        return slides;
-      }
-      
-      // If not in localStorage, try IndexedDB
+      // Get from IndexedDB
       const dbData = await this._getFromIndexedDB(SLIDES_STORE, 'current') as SlideData | null;
       
       if (dbData && dbData.slides) {
@@ -136,14 +79,13 @@ class Storage {
       // Create a clean object for storage with correct ID
       const settingsToSave = { id: 'current', ...settings };
       
-      // Save to IndexedDB for all contexts
+      // Save to IndexedDB
       await this._saveToIndexedDB(SETTINGS_STORE, settingsToSave);
       
       loggingService.debug('Settings saved', settings);
       
       return Promise.resolve();
     } catch (error) {
-      console.error('Failed to save settings:', error);
       loggingService.error('Failed to save settings', error);
       return Promise.reject(error);
     }
@@ -166,13 +108,9 @@ class Storage {
     
     try {
       // Try to get from IndexedDB
-      try {
-        const settings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
-        if (settings) {
-          return settings;
-        }
-      } catch (e) {
-        loggingService.debug('Error getting settings from IndexedDB', e);
+      const settings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
+      if (settings) {
+        return settings;
       }
       
       // No settings found, save default settings to IndexedDB for next time
@@ -198,11 +136,15 @@ class Storage {
    */
   async saveDebugLog(logEntry: any): Promise<void> {
     try {
-      if (this.isServiceWorker) {
-        console.debug('Debug log in service worker:', logEntry);
+      // Skip storage if IndexedDB is not available (e.g., in test environment)
+      if (!this._isIndexedDBAvailable()) {
+        // Just log to console in test environments
+        if (process.env.NODE_ENV === 'test') {
+          return;
+        }
         return;
       }
-      
+
       // Ensure log entry has a timestamp if not already present
       if (!logEntry.timestamp) {
         logEntry.timestamp = new Date().toISOString();
@@ -235,7 +177,7 @@ class Storage {
           }
           
           logEntry.metadata.context = context;
-        } catch (e) {
+        } catch (_) {
           logEntry.metadata.context = 'unknown';
         }
       }
@@ -263,81 +205,44 @@ class Storage {
       // Combine all parts to form a 24-character hex string (12 bytes)
       logEntry.id = `${timestampHex}${contextHex}${randomCounter}`;
       
-      // Log ID can be parsed back to creation time using: parseInt(id.substring(0, 8), 16) * 1000
-      
       // Also add an ISO timestamp for when the log was saved (may be different from the log event time)
       logEntry.savedAt = new Date().toISOString();
       
-      // No need to print the log ID for every log
-      
-      // Save to IndexedDB using put - this will automatically replace identical logs
+      // Save to IndexedDB - this will automatically replace identical logs
       // rather than creating duplicates, because we're using a content-based ID
       await this._saveToIndexedDB(LOGS_STORE, logEntry);
-      
-      // No longer updating localStorage cache
     } catch (error) {
       console.error('Failed to save debug log to IndexedDB', error);
     }
-  }
-  
-  
-  
-  /**
-   * Update localStorage cache with new log entry
-   * @param logEntry - Log entry to add to cache
-   * @private
-   */
-  private _updateLocalStorageLogCache(logEntry: any): void {
-    // No-op - we're not using localStorage cache anymore, only IndexedDB
-    // This method is kept for compatibility but doesn't do anything
   }
 
   /**
    * Save debug info
    * @param info - Debug info object
    */
-  saveDebugInfo(info: Partial<DebugInfo>): void {
+  async saveDebugInfo(info: Partial<DebugInfo>): Promise<void> {
     try {
-      if (this.isServiceWorker) {
-        // In service worker, just log but don't try to save
-        console.debug('Debug info in service worker:', info);
-        return;
-      }
-      
-      // Get existing debug info
-      const existingDebugInfo = this.getDebugInfo();
-      
       // If info contains logs, save them to IndexedDB individually
       if (info.logs && info.logs.length > 0) {
         // Save each log to IndexedDB 
-        // We're not adding them to updatedLogs to avoid duplication
-        // since saveDebugLog handles deduplication internally now
-        info.logs.forEach(log => {
-          this.saveDebugLog(log).catch(err => 
+        for (const log of info.logs) {
+          await this.saveDebugLog(log).catch(err => 
             console.error('Failed to save individual log to IDB', err)
           );
-        });
+        }
         
-        // Log info about storage
-        console.log(`Saving ${info.logs.length} logs directly to IndexedDB`);
-        
-        // Remove logs from the info object to avoid duplicate storage
-        // The logs are already saved to IndexedDB, no need to store in localStorage too
-        const { logs, ...infoWithoutLogs } = info;
+        // Remove logs from the info object after saving them
+        const { logs: _, ...infoWithoutLogs } = info;
         info = infoWithoutLogs;
       }
       
-      // Create full debug info (without including logs to avoid duplication)
-      const debugInfo: DebugInfo = { 
-        ...existingDebugInfo,  // Start with existing debug info
-        ...info,               // Override with new info
-        // Keep existing logs if any
-        logs: existingDebugInfo.logs || []
-      };
-      
-      localStorage.setItem('slideDebugInfo', JSON.stringify(debugInfo));
+      // Save debug info to IndexedDB
+      await this._saveToIndexedDB('debugInfo', { 
+        id: 'current',
+        ...info,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      // Don't use loggingService here to avoid circular dependency
       console.error('Failed to save debug info', error);
     }
   }
@@ -346,18 +251,11 @@ class Storage {
    * Get debug info
    * @returns Debug info object
    */
-  getDebugInfo(): DebugInfo {
+  async getDebugInfo(): Promise<DebugInfo> {
     try {
-      if (this.isServiceWorker) {
-        // In service worker, return empty debug info
-        return { logs: [] };
-      }
-      
-      const data = localStorage.getItem('slideDebugInfo');
-      return data ? JSON.parse(data) as DebugInfo : { logs: [] };
+      const debugInfo = await this._getFromIndexedDB('debugInfo', 'current') as DebugInfo;
+      return debugInfo || { logs: [] };
     } catch (error) {
-      // Don't use loggingService here to avoid circular dependency
-      // Only log in console to avoid spam
       console.error('Failed to get debug info', error);
       return { logs: [] };
     }
@@ -370,84 +268,71 @@ class Storage {
    */
   async getDebugLogs(limit: number = 100): Promise<any[]> {
     try {
-      if (this.isServiceWorker) {
+      const db = await this._openDatabase();
+      
+      // Check if logs store exists
+      if (!db.objectStoreNames.contains(LOGS_STORE)) {
+        console.warn('Logs store does not exist in IndexedDB');
         return [];
       }
       
-      // Retrieving logs, no need to log this every time
+      // Get the total count of records in the store
+      const totalCount = await new Promise<number>((resolve, reject) => {
+        const tx = db.transaction([LOGS_STORE], 'readonly');
+        const store = tx.objectStore(LOGS_STORE);
+        
+        const countRequest = store.count();
+        
+        countRequest.onsuccess = (event) => {
+          const count = (event.target as IDBRequest).result || 0;
+          // Only log count when it seems unusual
+          if (count === 0 || count > 1000) {
+            loggingService.debug(`Total records in IndexedDB: ${count}`);
+          }
+          resolve(count);
+        };
+        
+        countRequest.onerror = (event) => {
+          console.error('Error counting logs', (event.target as IDBRequest).error);
+          reject((event.target as IDBRequest).error);
+        };
+      });
       
-      try {
-        const db = await this._openDatabase();
+      // Fetch the actual logs
+      const allLogs = await new Promise<any[]>((resolve, reject) => {
+        const tx = db.transaction([LOGS_STORE], 'readonly');
+        const store = tx.objectStore(LOGS_STORE);
         
-        // Check if logs store exists
-        if (!db.objectStoreNames.contains(LOGS_STORE)) {
-          console.warn('Logs store does not exist in IndexedDB');
-          return [];
-        }
+        const request = store.getAll();
         
-        // First get the total count of records in the store
-        const totalCount = await new Promise<number>((resolve, reject) => {
-          const tx = db.transaction([LOGS_STORE], 'readonly');
-          const store = tx.objectStore(LOGS_STORE);
+        request.onsuccess = (event) => {
+          const result = (event.target as IDBRequest).result || [];
+          // Only log detailed info if count seems unusual
+          if (result.length === 0 || result.length !== totalCount) {
+            loggingService.debug(`Retrieved ${result.length} logs from IndexedDB out of total ${totalCount}`);
+          }
           
-          const countRequest = store.count();
-          
-          countRequest.onsuccess = (event) => {
-            const count = (event.target as IDBRequest).result || 0;
-            // Only log count when in debug mode or if it seems unusual
-            if (count === 0 || count > 1000) {
-              loggingService.debug(`Total records in IndexedDB: ${count}`);
-            }
-            resolve(count);
-          };
-          
-          countRequest.onerror = (event) => {
-            console.error('Error counting logs', (event.target as IDBRequest).error);
-            reject((event.target as IDBRequest).error);
-          };
-        });
+          resolve(result);
+        };
         
-        // Now fetch the actual logs
-        const allLogs = await new Promise<any[]>((resolve, reject) => {
-          const tx = db.transaction([LOGS_STORE], 'readonly');
-          const store = tx.objectStore(LOGS_STORE);
-          
-          const request = store.getAll();
-          
-          request.onsuccess = (event) => {
-            const result = (event.target as IDBRequest).result || [];
-            // Only log detailed info if count seems unusual
-            if (result.length === 0 || result.length !== totalCount) {
-              loggingService.debug(`Retrieved ${result.length} logs from IndexedDB out of total ${totalCount}`);
-            }
-            
-            resolve(result);
-          };
-          
-          request.onerror = (event) => {
-            console.error('Error getting logs', (event.target as IDBRequest).error);
-            reject((event.target as IDBRequest).error);
-          };
-          
-          tx.oncomplete = () => {
-            db.close();
-          };
-        });
+        request.onerror = (event) => {
+          console.error('Error getting logs', (event.target as IDBRequest).error);
+          reject((event.target as IDBRequest).error);
+        };
         
-        // Sort by timestamp (newest first)
-        allLogs.sort((a, b) => {
-          const aTime = a.timestamp || '';
-          const bTime = b.timestamp || '';
-          return bTime.localeCompare(aTime);
-        });
-        
-        // No need to log this for every retrieval
-        return allLogs.slice(0, limit);
-        
-      } catch (error) {
-        console.error('Failed to get logs from IndexedDB:', error);
-        return [];
-      }
+        tx.oncomplete = () => {
+          db.close();
+        };
+      });
+      
+      // Sort by timestamp (newest first)
+      allLogs.sort((a, b) => {
+        const aTime = a.timestamp || '';
+        const bTime = b.timestamp || '';
+        return bTime.localeCompare(aTime);
+      });
+      
+      return allLogs.slice(0, limit);
     } catch (error) {
       console.error('Failed to get debug logs', error);
       return [];
@@ -458,18 +343,14 @@ class Storage {
    * Save error info
    * @param error - Error info object
    */
-  saveErrorInfo(error: ErrorInfo): void {
+  async saveErrorInfo(error: ErrorInfo): Promise<void> {
     try {
-      if (this.isServiceWorker) {
-        // Just log in service worker
-        console.error('Error in service worker:', error);
-        return;
-      }
-      
-      localStorage.setItem('slideError', JSON.stringify({
+      // Save error to IndexedDB
+      await this._saveToIndexedDB('errors', {
+        id: `error_${Date.now()}`,
         ...error,
         timestamp: new Date().toISOString()
-      }));
+      });
     } catch (err) {
       loggingService.error('Failed to save error info', err);
     }
@@ -481,8 +362,6 @@ class Storage {
    */
   async clearLogs(): Promise<void> {
     try {
-      if (this.isServiceWorker) return;
-      
       loggingService.debug('Clearing all logs from IndexedDB...');
       
       // Clear logs from IndexedDB
@@ -517,25 +396,6 @@ class Storage {
    */
   async clearAll(): Promise<void> {
     try {
-      if (this.isServiceWorker) {
-        return new Promise((resolve, reject) => {
-          chrome.storage.local.clear(() => {
-            if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
-      
-      // Clear localStorage
-      localStorage.removeItem('slides');
-      localStorage.removeItem('slideDebugInfo');
-      localStorage.removeItem('slideError');
-      localStorage.removeItem('notionSlidesSettings');
-      localStorage.removeItem('notion_slides_debug_logs');
-      
       // Clear IndexedDB
       const db = await this._openDatabase();
       
@@ -567,11 +427,25 @@ class Storage {
   }
   
   /**
+   * Check if IndexedDB is available in the current environment
+   * @returns True if IndexedDB is available
+   * @private
+   */
+  private _isIndexedDBAvailable(): boolean {
+    return typeof indexedDB !== 'undefined';
+  }
+
+  /**
    * Open IndexedDB database
    * @returns Promise resolving to IDBDatabase
    * @private
    */
   private _openDatabase(): Promise<IDBDatabase> {
+    // Check if IndexedDB is available
+    if (!this._isIndexedDBAvailable()) {
+      return Promise.reject(new Error('IndexedDB is not available in this environment'));
+    }
+
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
       

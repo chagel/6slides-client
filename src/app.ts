@@ -4,18 +4,8 @@ import { ExtractionResult } from './controllers/content_controller';
 import { Slide } from './types/index';
 import './services/service_registry';
 
-interface ExtractionResponse {
-  slides?: Slide[];
-  error?: string;
-  stack?: string;
-}
-
 async function extractContent(): Promise<Slide[]> {
   try {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('slides');
-    }
-
     const controller = getService('content_controller');
     const result = await controller.extractContent(document, window.location.href) as ExtractionResult;
     
