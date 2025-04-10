@@ -133,28 +133,13 @@ class Storage {
    */
   async saveSettings(settings: Settings): Promise<void> {
     try {
-      console.log('SAVING SETTINGS called with:', JSON.stringify(settings, null, 2));
-      console.log('debugLogging value before save:', settings.debugLogging);
-      console.log('debugLogging type before save:', typeof settings.debugLogging);
-      
       // Create a clean object for storage with correct ID
       const settingsToSave = { id: 'current', ...settings };
       
       // Save to IndexedDB for all contexts
       await this._saveToIndexedDB(SETTINGS_STORE, settingsToSave);
       
-      console.log('Settings saved to IndexedDB:', settings);
-      // Use JSON.stringify to see the actual values
-      console.log('FULL SAVED SETTINGS: ' + JSON.stringify(settingsToSave, null, 2));
-      
-      // Verify with a direct read
-      try {
-        const savedSettings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
-        console.log('Verification - just saved settings:', JSON.stringify(savedSettings, null, 2));
-        console.log('Verification - debugLogging after save:', savedSettings.debugLogging);
-      } catch (err) {
-        console.error('Error verifying saved settings:', err);
-      }
+      loggingService.debug('Settings saved', settings);
       
       return Promise.resolve();
     } catch (error) {
@@ -184,28 +169,23 @@ class Storage {
       try {
         const settings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
         if (settings) {
-          console.log('Settings retrieved from IndexedDB:', settings);
-          // Use JSON.stringify to see the actual values
-          console.log('FULL SETTINGS DEBUG: ' + JSON.stringify(settings, null, 2));
-          console.log('Debug logging value type: ' + typeof settings.debugLogging);
           return settings;
         }
       } catch (e) {
-        console.log('Error getting settings from IndexedDB:', e);
+        loggingService.debug('Error getting settings from IndexedDB', e);
       }
       
       // No settings found, save default settings to IndexedDB for next time
-      console.log('No settings found in IndexedDB, using defaults');
+      loggingService.debug('No settings found in IndexedDB, using defaults');
       
       // Save default settings to IndexedDB in the background
       // This ensures future calls will return the persisted settings
       this._saveToIndexedDB(SETTINGS_STORE, { id: 'current', ...defaultSettings })
-        .then(() => console.log('Default settings saved to IndexedDB'))
-        .catch(err => console.error('Failed to save default settings to IndexedDB:', err));
+        .then(() => loggingService.debug('Default settings saved to IndexedDB'))
+        .catch(err => loggingService.error('Failed to save default settings to IndexedDB', err));
       
       return defaultSettings;
     } catch (error) {
-      console.error('Failed to get settings:', error);
       loggingService.error('Failed to get settings', error);
       return defaultSettings;
     }
@@ -416,7 +396,7 @@ class Storage {
             const count = (event.target as IDBRequest).result || 0;
             // Only log count when in debug mode or if it seems unusual
             if (count === 0 || count > 1000) {
-              console.log(`TOTAL RECORDS IN INDEXEDDB: ${count}`);
+              loggingService.debug(`Total records in IndexedDB: ${count}`);
             }
             resolve(count);
           };
@@ -438,7 +418,7 @@ class Storage {
             const result = (event.target as IDBRequest).result || [];
             // Only log detailed info if count seems unusual
             if (result.length === 0 || result.length !== totalCount) {
-              console.log(`Retrieved ${result.length} logs from IndexedDB out of total ${totalCount}`);
+              loggingService.debug(`Retrieved ${result.length} logs from IndexedDB out of total ${totalCount}`);
             }
             
             resolve(result);
@@ -503,7 +483,7 @@ class Storage {
     try {
       if (this.isServiceWorker) return;
       
-      console.log('Clearing all logs from IndexedDB...');
+      loggingService.debug('Clearing all logs from IndexedDB...');
       
       // Clear logs from IndexedDB
       const db = await this._openDatabase();

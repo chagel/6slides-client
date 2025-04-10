@@ -7,6 +7,7 @@
 
 import { loggingService } from './logging_service';
 import { getExtensionVersion } from '../utils/version';
+import { storage } from '../models/storage';
 
 /**
  * Debug indicator options
@@ -22,52 +23,36 @@ interface DebugIndicatorOptions {
  * Singleton service for managing debug functionality
  */
 class DebugService {
-  private _debugEnabled: boolean = false;
   private _debugIndicator: HTMLElement | null = null;
   private readonly indicatorId = 'debug-mode-indicator';
-  
-  /**
-   * Set debug enabled state
-   * @param enabled - Whether debug mode is enabled
-   */
-  setDebugEnabled(enabled: boolean | string): void {
-    // Handle both boolean and string values
-    const isEnabled = enabled === true || enabled === 'true';
-    console.log('Debug service - setting debug enabled:', isEnabled, 'Type:', typeof enabled, 'Value:', enabled);
-    
-    this._debugEnabled = isEnabled;
-    
-    // Apply to logging service
-    loggingService.setDebugLogging(isEnabled);
-    // Keep console logging disabled to reduce noise
-    loggingService.setConsoleLogging(false);
-    loggingService.setStoreDebugLogs(isEnabled);
-    
-    // Log status change
-    if (isEnabled) {
-      this._logDebugEnabled();
-    } else {
-      this._removeDebugIndicator();
-      // Don't log to console when debug is disabled
-    }
-  }
   
   /**
    * Check if debug mode is enabled
    * @returns Whether debug mode is enabled
    */
-  isDebugEnabled(): boolean {
-    return this._debugEnabled;
+  async isDebugEnabled(): Promise<boolean> {
+    const settings = await storage.getSettings();
+    return settings.debugLogging === true;
   }
   
   /**
    * Setup debug visual indicator
    * @param options - Optional configuration for the indicator
+   * @param context - Optional context identifier for logging
+   * @param data - Additional data to log
    * @returns The debug indicator element
    */
-  setupDebugIndicator(options: DebugIndicatorOptions = {}): HTMLElement | null {
+  async setupDebugIndicator(
+    options: DebugIndicatorOptions = {}, 
+    context: string = '', 
+    data?: any
+  ): Promise<HTMLElement | null> {
+    // Get debug state from settings
+    const settings = await storage.getSettings();
+    const isDebugEnabled = settings.debugLogging === true;
+    
     // Don't create indicator if debug mode is not enabled
-    if (!this._debugEnabled) {
+    if (!isDebugEnabled) {
       return null;
     }
     
@@ -130,7 +115,68 @@ class DebugService {
     // Store reference
     this._debugIndicator = indicator;
     
+    // Configure logging services
+    loggingService.setDebugLogging(isDebugEnabled);
+    // Keep console logging disabled to reduce noise
+    loggingService.setConsoleLogging(false);
+    loggingService.setStoreDebugLogs(isDebugEnabled);
+    
+    // Log status change
+    if (isDebugEnabled) {
+      this._logDebugEnabled();
+      
+      // Log app info if context is provided
+      if (context) {
+        // Add settings to the data if not provided
+        const appData = data || {};
+        if (!appData.settings) {
+          appData.settings = settings;
+        }
+        
+        // Log app info with context and data
+        this._logApplicationInfo(context, appData);
+      }
+    }
+    
     return indicator;
+  }
+  
+  /**
+   * Log application information internally
+   * @private
+   * @param context - Context identifier
+   * @param data - Additional data to log
+   */
+  private _logApplicationInfo(context: string, data?: any): void {
+    // Gather app info safely
+    const appInfo: any = {
+      context,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Add version using helper function
+    try {
+      appInfo.version = getExtensionVersion();
+    } catch (_) {
+      appInfo.version = 'unknown';
+    }
+    
+    // Add URL if window is available
+    try {
+      if (typeof window !== 'undefined') {
+        appInfo.url = window.location.href;
+      }
+    } catch (_) {
+      appInfo.url = 'unknown';
+    }
+    
+    // Add any additional data
+    if (data) {
+      Object.assign(appInfo, data);
+    }
+    
+    // Log using the logging service
+    loggingService.debug('Application info', appInfo);
   }
   
   /**
@@ -154,44 +200,6 @@ class DebugService {
     loggingService.debug('Debug mode active');
   }
   
-  /**
-   * Log application information for debugging
-   * @param context - Context identifier
-   * @param data - Additional data to log
-   */
-  logAppInfo(context: string, data?: any): void {
-    if (!this._debugEnabled) return;
-    
-    // Gather app info safely
-    const appInfo: any = {
-      context,
-      timestamp: new Date().toISOString()
-    };
-    
-    // Add version using helper function
-    try {
-      appInfo.version = getExtensionVersion();
-    } catch (e) {
-      appInfo.version = 'unknown';
-    }
-    
-    // Add URL if window is available
-    try {
-      if (typeof window !== 'undefined') {
-        appInfo.url = window.location.href;
-      }
-    } catch (e) {
-      appInfo.url = 'unknown';
-    }
-    
-    // Add any additional data
-    if (data) {
-      Object.assign(appInfo, data);
-    }
-    
-    // Log using the logging service
-    loggingService.debug('Application info', appInfo);
-  }
 }
 
 // Export a singleton instance

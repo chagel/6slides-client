@@ -17,25 +17,23 @@ import { debugService } from '../../services/debug_service';
 async function setupDebugIndicator(): Promise<void> {
   try {
     // Get configuration asynchronously
-    const config = await configManager.getConfigAsync();
-    const debugEnabled = config.debugLogging === true;
+    const config = await configManager.getConfig();
     
-    // Configure the debug service
-    debugService.setDebugEnabled(debugEnabled);
-    
-    if (debugEnabled) {
-      // Setup the debug indicator with viewer-specific options
-      debugService.setupDebugIndicator({
+    // Setup the debug indicator with viewer-specific options
+    // The service now handles everything internally:
+    // - Checking if debug is enabled via the config
+    // - Configuring logging services
+    // - Showing debug indicator if needed
+    // - Logging app info
+    await debugService.setupDebugIndicator(
+      {
         position: 'bottom-right',
         text: 'DEBUG MODE',
         zIndex: 9999
-      });
-      
-      // Log application info for debugging
-      debugService.logAppInfo('viewer', { config });
-      
-      // Don't enable console logging to keep console clean
-    }
+      },
+      'viewer',  // Context identifier for logging
+      { config } // Additional data for logging
+    );
   } catch (error) {
     console.error('Error setting up debug indicator:', error);
   }
@@ -65,8 +63,6 @@ async function initialize(): Promise<void> {
     await setupDebugIndicator();
     
     // Get any renderer settings from the config manager asynchronously
-    console.log('Fetching presentation settings...');
-    // Use getConfig to get settings, then process them
     const config = await configManager.getConfig();
     const settings = {
       theme: config.theme,
@@ -74,7 +70,7 @@ async function initialize(): Promise<void> {
       slideNumber: config.slideNumber,
       center: config.center
     };
-    console.log('Using presentation settings:', settings);
+    loggingService.debug('Using presentation settings', settings, 'viewer');
     
     // Create and initialize the renderer
     const renderer = new PresentationRenderer({

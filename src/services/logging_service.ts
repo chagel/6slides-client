@@ -111,7 +111,6 @@ class LoggingService {
   setDebugLogging(enabled: boolean | string): void {
     // Handle both boolean and string values
     const isEnabled = enabled === true || enabled === 'true';
-    console.log('Logging service - setting debug logging:', isEnabled, 'Type:', typeof enabled, 'Value:', enabled);
     
     this._debugEnabled = isEnabled;
     // The debug method itself checks if debugEnabled is true before logging
@@ -690,7 +689,7 @@ class LoggingService {
       // Clear logs through the storage service
       storage.clearLogs();
       
-      this.debug('Debug logs cleared from IndexedDB');
+      // Debug logs cleared
     } catch (error) {
       // Only log when console logging is enabled
       if (this._logConsole) {

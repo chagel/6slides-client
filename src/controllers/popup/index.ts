@@ -51,34 +51,38 @@ class PopupController {
     this.aboutLink = document.getElementById('aboutLink') as HTMLAnchorElement;
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
     
-    // Add debug indicator if debug mode is enabled
-    this.setupDebugIndicator();
-    
     this.bindEventHandlers();
-    this.checkCurrentPage();
+    
+    // Initialize async operations
+    this.initializeAsync();
   }
   
   /**
-   * Setup debug indicator if debug is enabled
+   * Initialize async operations
    */
-  private setupDebugIndicator(): void {
-    // Check if debug mode is enabled from storage
-    const settings = storage.getSettings();
-    const debugEnabled = settings.debugLogging === true;
+  private async initializeAsync(): Promise<void> {
+    // Add debug indicator if debug mode is enabled
+    await this.setupDebugIndicator();
     
-    // Configure the debug service
-    debugService.setDebugEnabled(debugEnabled);
-    
-    if (debugEnabled) {
-      // Setup the debug indicator with popup-specific options
-      debugService.setupDebugIndicator({
-        position: 'top-right',
-        text: 'DEBUG',
-        zIndex: 1000
-      });
-      
-      // Log the current settings
-      debugService.logAppInfo('popup', { settings });
+    // Check current page
+    await this.checkCurrentPage();
+  }
+  
+  /**
+   * Setup debug indicator
+   */
+  private async setupDebugIndicator(): Promise<void> {
+    try {
+      await debugService.setupDebugIndicator(
+        {
+          position: 'top-right',
+          text: 'DEBUG',
+          zIndex: 1000
+        },
+        'popup'  // Context identifier for logging
+      );
+    } catch (error) {
+      console.error('Error setting up debug indicator:', error);
     }
   }
   
@@ -189,8 +193,8 @@ class PopupController {
     this.convertBtn.disabled = true;
     
     // Log subscription status when beginning extraction
-    const hasPro = configManager.hasPro();
-    const level = configManager.getSubscriptionLevel();
+    const hasPro = await configManager.hasPro();
+    const level = await configManager.getSubscriptionLevel();
     loggingService.info(`Starting extraction with subscription level: ${level.toUpperCase()} (Has Pro: ${hasPro ? 'Yes' : 'No'})`, null, 'popup');
     
     try {
@@ -316,14 +320,14 @@ class PopupController {
   /**
    * Update subscription badge based on current subscription status
    */
-  private updateSubscriptionBadge(): void {
+  private async updateSubscriptionBadge(): Promise<void> {
     try {
       const subscriptionBadge = document.getElementById('subscription-badge');
       if (!subscriptionBadge) return;
       
       // Get subscription status from config manager
-      const hasPro = configManager.hasPro();
-      const level = configManager.getSubscriptionLevel();
+      const hasPro = await configManager.hasPro();
+      const level = await configManager.getSubscriptionLevel();
       
       // Reset all classes
       subscriptionBadge.className = 'subscription-badge';
@@ -346,7 +350,7 @@ class PopupController {
       loggingService.debug('Subscription status', { 
         level, 
         hasPro, 
-        expiry: configManager.getValue('subscriptionExpiry', null) 
+        expiry: await configManager.getValue('subscriptionExpiry', null) 
       }, 'popup');
     } catch (error) {
       loggingService.error('Error updating subscription badge', error, 'popup');
@@ -358,8 +362,8 @@ class PopupController {
    */
   private async checkCurrentPage(): Promise<void> {
     try {
-      // Update subscription badge
-      this.updateSubscriptionBadge();
+      // Update subscription badge (async now)
+      await this.updateSubscriptionBadge();
       
       const [pageInfo, isViewer] = await Promise.all([
         this.checkIsCompatiblePage(),

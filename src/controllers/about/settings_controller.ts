@@ -52,7 +52,7 @@ export class SettingsController {
   private async initializeAsync(): Promise<void> {
     try {
       await this.loadSettings();
-      console.log('Settings loaded successfully');
+      loggingService.debug('Settings loaded successfully');
     } catch (error) {
       console.error('Error initializing settings:', error);
     }
@@ -97,7 +97,7 @@ export class SettingsController {
     try {
       // Get settings asynchronously
       const settings = await storage.getSettings();
-      console.log('Settings loaded from IndexedDB:', settings);
+      loggingService.debug('Settings loaded from IndexedDB', settings);
       
       // Set default values if settings don't exist
       const defaults = {
@@ -117,7 +117,7 @@ export class SettingsController {
       // Set developer settings
       if (this.debugLoggingSelector) {
         const debugLogging = settings.debugLogging?.toString() || defaults.debugLogging;
-        console.log('Debug logging setting:', debugLogging);
+        loggingService.debug('Debug logging setting', debugLogging);
         this.debugLoggingSelector.value = debugLogging;
         
         // Apply debug logging setting
@@ -137,7 +137,7 @@ export class SettingsController {
       return;
     }
     
-    console.log('DEBUG - Saving settings, debug logging value:', this.debugLoggingSelector?.value);
+    loggingService.debug('Saving settings, debug logging value', this.debugLoggingSelector?.value);
     
     const settings: Settings = {
       theme: this.themeSelector.value,
@@ -160,21 +160,20 @@ export class SettingsController {
       console.log('Saving debug logging setting:', debugEnabled);
       console.log('Setting debugLogging with type:', typeof debugEnabled);
       
-      // Configure debug service
-      debugService.setDebugEnabled(debugEnabled);
-      
-      // Setup visual debug indicator when enabled
-      if (debugEnabled) {
-        // Create a floating debug indicator with about-specific options
-        debugService.setupDebugIndicator({
+      // Setup debug indicator - it will handle everything internally:
+      // - Checking if debug is enabled
+      // - Configuring logging services
+      // - Showing debug indicator if needed
+      // - Logging app info
+      await debugService.setupDebugIndicator(
+        {
           position: 'bottom-right', 
           text: 'DEBUG MODE',
           zIndex: 9999
-        });
-        
-        // Log application info for debugging
-        debugService.logAppInfo('about', { settingsPage: true });
-      }
+        },
+        'about',  // Context identifier for logging
+        { settingsPage: true }  // Additional data for logging
+      );
     }
     
     await storage.saveSettings(settings);

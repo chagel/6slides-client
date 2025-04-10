@@ -52,15 +52,6 @@ function initNavigation(): void {
     if (slideNumberSelector) slideNumberSelector.value = settings.slideNumber?.toString() || defaults.slideNumber;
     if (centerSelector) centerSelector.value = settings.center?.toString() || defaults.center;
     
-    // Set developer settings
-    if (debugLoggingSelector) {
-      const debugLogging = settings.debugLogging?.toString() || defaults.debugLogging;
-      debugLoggingSelector.value = debugLogging;
-      
-      // Apply debug logging setting through debugService
-      debugService.setDebugEnabled(debugLogging === 'true');
-    }
-    
     loggingService.debug('Navigation: Settings loaded', settings);
   }
   
@@ -76,15 +67,6 @@ function initNavigation(): void {
       slideNumber: slideNumberSelector.value,
       center: centerSelector.value
     };
-    
-    // Add developer settings if present
-    if (debugLoggingSelector) {
-      settings.debugLogging = debugLoggingSelector.value === 'true';
-      
-      // Apply debug logging setting through debugService
-      const debugEnabled = debugLoggingSelector.value === 'true';
-      debugService.setDebugEnabled(debugEnabled);
-    }
     
     await storage.saveSettings(settings);
     loggingService.debug('Navigation: Settings saved', settings);

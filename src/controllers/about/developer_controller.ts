@@ -4,7 +4,7 @@
  * Handles the developer tools section of the about page
  */
 
-// No need for loggingService in this controller
+import { loggingService } from '../../services/logging_service';
 import { configManager, SubscriptionLevel } from '../../models/config_manager';
 import { LogViewerController } from './log_viewer_controller';
 
@@ -56,7 +56,7 @@ export class DeveloperController {
     try {
       const settings = await configManager.getConfig();
       const debugEnabled = settings.debugLogging === true || settings.debugLogging === 'true';
-      console.log('Developer controller - debug enabled:', debugEnabled);
+      // No longer logging debug status
       
       // Make log viewer visible if debug is enabled
       // LogViewerController doesn't have setDebugEnabled, so we're using setVisible instead

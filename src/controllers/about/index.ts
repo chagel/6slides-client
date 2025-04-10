@@ -46,8 +46,11 @@ class AboutPageController {
       this.bindNavigationEvents();
       this.handleHashChange();
       
+      // Setup debug indicator
+      this.setupDebugIndicator();
+      
       // Log initialization
-      loggingService.debug('About page controller initialized', { controllers: ['settings', 'subscription', 'developer'] });
+      // Controller initialization is complete
     }).catch(error => {
       loggingService.error('Failed to initialize About page controller', error);
     });
@@ -101,7 +104,7 @@ class AboutPageController {
       document.body.innerHTML = document.body.innerHTML.replace(/{{VERSION_NO_V}}/g, versionNumber);
       document.body.innerHTML = document.body.innerHTML.replace(/{{VERSION}}/g, `v${versionNumber}`);
       
-      loggingService.debug('Page components loaded successfully');
+      // Page components loaded successfully
     } catch (error) {
       loggingService.error('Failed to load page components', error);
       const pageContainer = document.getElementById('page-container');
@@ -210,8 +213,27 @@ class AboutPageController {
     // Store current section
     this.activeSection = sectionId;
     
-    // Log section change
-    loggingService.debug(`Navigated to section: ${sectionId}`);
+    // Section navigation complete
+  }
+  
+  /**
+   * Setup debug indicator
+   */
+  private async setupDebugIndicator(): Promise<void> {
+    try {
+      // Setup the debug indicator with about-specific options
+      // The service now handles checking if debug is enabled
+      await debugService.setupDebugIndicator(
+        {
+          position: 'bottom-right',
+          text: 'DEBUG MODE',
+          zIndex: 9999
+        },
+        'about'
+      );
+    } catch (error) {
+      console.error('Error setting up debug indicator:', error);
+    }
   }
 }
 
