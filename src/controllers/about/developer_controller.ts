@@ -55,7 +55,9 @@ export class DeveloperController {
   private async initializeDebugSettings(): Promise<void> {
     try {
       const settings = await configManager.getConfig();
-      const debugEnabled = settings.debugLogging === true || settings.debugLogging === 'true';
+      // Handle both boolean and string representation
+      const debugEnabled = settings.debugLogging === true || 
+                          (typeof settings.debugLogging === 'string' && settings.debugLogging === 'true');
       // No longer logging debug status
       
       // Make log viewer visible if debug is enabled
@@ -117,7 +119,7 @@ export class DeveloperController {
         : 'Never';
       
       // Update UI
-      if (this.testSubLevel) this.testSubLevel.textContent = level.toUpperCase();
+      if (this.testSubLevel) this.testSubLevel.textContent = level?.toUpperCase() || 'FREE';
       if (this.testHasPro) this.testHasPro.textContent = hasPro ? 'YES ✅' : 'NO ❌';
       if (this.testSubExpiry) this.testSubExpiry.textContent = expiryText;
     } catch (error) {

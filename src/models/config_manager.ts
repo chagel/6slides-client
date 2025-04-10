@@ -49,7 +49,7 @@ export interface PresentationSettings {
 }
 
 // Default configuration values
-const DEFAULT_CONFIG: Config = {
+export const DEFAULT_CONFIG: Config = {
   // Presentation settings
   theme: 'default',
   transition: 'slide',
@@ -123,7 +123,7 @@ class ConfigManager {
    * @returns Promise that resolves when value is saved
    */
   async setValue<T>(key: string, value: T): Promise<void> {
-    const config = this.getConfig();
+    const config = await this.getConfig();
     config[key] = value;
     await this.saveConfig(config);
   }

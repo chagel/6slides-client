@@ -69,13 +69,13 @@ export class PresentationRenderer {
       const level = await configManager.getSubscriptionLevel();
       
       // Log subscription status for debugging
-      loggingService.debug(`Rendering with ${level.toUpperCase()} subscription (Pro features: ${hasPro ? 'Enabled' : 'Disabled'})`, null, 'viewer');
+      loggingService.debug(`Rendering with ${level?.toUpperCase() || 'FREE'} subscription (Pro features: ${hasPro ? 'Enabled' : 'Disabled'})`, null, 'viewer');
       
       // Get slides from storage
       const rawSlides = await storage.getSlides();
       
       // Log presentation rendering start
-      loggingService.debug(`Rendering with ${level.toUpperCase()} plan. Total slides: ${rawSlides.length}`, null, 'viewer');
+      loggingService.debug(`Rendering with ${level?.toUpperCase() || 'FREE'} plan. Total slides: ${rawSlides.length}`, null, 'viewer');
       
       // Log the raw slides data from storage (debug only)
       loggingService.debug('Raw slides loaded from storage', { rawSlides }, 'viewer');

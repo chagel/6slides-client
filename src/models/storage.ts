@@ -96,36 +96,21 @@ class Storage {
    * @returns Promise resolving to Settings object
    */
   async getSettings(): Promise<Settings> {
-    // Default settings if nothing is found
-    const defaultSettings = {
-      theme: "default",
-      transition: "slide",
-      slideNumber: false,
-      center: true,
-      debugLogging: false,
-      extractionTimeout: 30
-    };
-    
+    const { DEFAULT_CONFIG } = await import('./config_manager');
     try {
-      // Try to get from IndexedDB
       const settings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
       if (settings) {
         return settings;
       }
       
-      // No settings found, save default settings to IndexedDB for next time
-      loggingService.debug('No settings found in IndexedDB, using defaults');
-      
-      // Save default settings to IndexedDB in the background
-      // This ensures future calls will return the persisted settings
-      this._saveToIndexedDB(SETTINGS_STORE, { id: 'current', ...defaultSettings })
+      this._saveToIndexedDB(SETTINGS_STORE, { id: 'current', ...DEFAULT_CONFIG })
         .then(() => loggingService.debug('Default settings saved to IndexedDB'))
         .catch(err => loggingService.error('Failed to save default settings to IndexedDB', err));
       
-      return defaultSettings;
+      return { ...DEFAULT_CONFIG };
     } catch (error) {
       loggingService.error('Failed to get settings', error);
-      return defaultSettings;
+      return { ...DEFAULT_CONFIG };
     }
   }
   
@@ -386,6 +371,40 @@ class Storage {
       return Promise.resolve();
     } catch (error) {
       console.error('Failed to clear logs', error);
+      return Promise.reject(error);
+    }
+  }
+  
+  /**
+   * Clear only slides data from IndexedDB
+   * @returns Promise resolving when clearing completes
+   */
+  async clearSlides(): Promise<void> {
+    try {
+      loggingService.debug('Clearing slides from IndexedDB...');
+      
+      // Clear only slides from IndexedDB
+      const db = await this._openDatabase();
+      
+      // Check if slides store exists
+      if (db.objectStoreNames.contains(SLIDES_STORE)) {
+        const tx = db.transaction([SLIDES_STORE], 'readwrite');
+        const slidesStore = tx.objectStore(SLIDES_STORE);
+        
+        slidesStore.clear();
+        
+        return new Promise((resolve) => {
+          tx.oncomplete = () => {
+            db.close();
+            loggingService.debug('All slides cleared successfully from IndexedDB');
+            resolve();
+          };
+        });
+      }
+      
+      return Promise.resolve();
+    } catch (error) {
+      loggingService.error('Failed to clear slides', error);
       return Promise.reject(error);
     }
   }

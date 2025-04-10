@@ -95,28 +95,19 @@ export class SettingsController {
     if (!this.themeSelector) return;
     
     try {
-      // Get settings asynchronously
+      // Get settings asynchronously - storage.getSettings already ensures default values
       const settings = await storage.getSettings();
       loggingService.debug('Settings loaded from IndexedDB', settings);
       
-      // Set default values if settings don't exist
-      const defaults = {
-        theme: 'default',
-        transition: 'slide',
-        slideNumber: 'false',
-        center: 'true',
-        debugLogging: 'false'
-      };
-      
-      // Apply settings to selectors
-      if (this.themeSelector) this.themeSelector.value = settings.theme?.toString() || defaults.theme;
-      if (this.transitionSelector) this.transitionSelector.value = settings.transition?.toString() || defaults.transition;
-      if (this.slideNumberSelector) this.slideNumberSelector.value = settings.slideNumber?.toString() || defaults.slideNumber;
-      if (this.centerSelector) this.centerSelector.value = settings.center?.toString() || defaults.center;
+      // Apply settings to selectors - no need for fallback defaults as storage.getSettings handles that
+      if (this.themeSelector) this.themeSelector.value = settings.theme?.toString() || '';
+      if (this.transitionSelector) this.transitionSelector.value = settings.transition?.toString() || '';
+      if (this.slideNumberSelector) this.slideNumberSelector.value = settings.slideNumber?.toString() || '';
+      if (this.centerSelector) this.centerSelector.value = settings.center?.toString() || '';
       
       // Set developer settings
       if (this.debugLoggingSelector) {
-        const debugLogging = settings.debugLogging?.toString() || defaults.debugLogging;
+        const debugLogging = settings.debugLogging?.toString() || 'false';
         loggingService.debug('Debug logging setting', debugLogging);
         this.debugLoggingSelector.value = debugLogging;
         
@@ -133,49 +124,28 @@ export class SettingsController {
    */
   async saveSettings(): Promise<void> {
     if (!this.themeSelector || !this.transitionSelector || 
-        !this.slideNumberSelector || !this.centerSelector) {
+        !this.slideNumberSelector || !this.centerSelector || !this.debugLoggingSelector) {
       return;
     }
     
     loggingService.debug('Saving settings, debug logging value', this.debugLoggingSelector?.value);
     
-    const settings: Settings = {
-      theme: this.themeSelector.value,
-      transition: this.transitionSelector.value,
-      slideNumber: this.slideNumberSelector.value,
-      center: this.centerSelector.value
-    };
+    // Get existing settings object - this will preserve all existing fields
+    const settings = await storage.getSettings();
     
-    // Add developer settings if present
+    // Only update the settings fields that are controlled by UI elements
+    // This approach preserves all other fields in the settings object
+    settings.theme = this.themeSelector.value;
+    settings.transition = this.transitionSelector.value;
+    settings.slideNumber = this.slideNumberSelector.value;
+    settings.center = this.centerSelector.value;
+    
     if (this.debugLoggingSelector) {
-      // Get the value directly from the selector
       const debugEnabledStr = this.debugLoggingSelector.value;
-      
-      // Convert to proper boolean
-      const debugEnabled = debugEnabledStr === 'true';
-      
-      // Store the actual boolean in settings - not a string
-      settings.debugLogging = debugEnabled;
-      
-      console.log('Saving debug logging setting:', debugEnabled);
-      console.log('Setting debugLogging with type:', typeof debugEnabled);
-      
-      // Setup debug indicator - it will handle everything internally:
-      // - Checking if debug is enabled
-      // - Configuring logging services
-      // - Showing debug indicator if needed
-      // - Logging app info
-      await debugService.setupDebugIndicator(
-        {
-          position: 'bottom-right', 
-          text: 'DEBUG MODE',
-          zIndex: 9999
-        },
-        'about',  // Context identifier for logging
-        { settingsPage: true }  // Additional data for logging
-      );
+      settings.debugLogging = (debugEnabledStr === 'true');
     }
     
+    // Save all settings, which now includes the UI updates plus all pre-existing values
     await storage.saveSettings(settings);
     loggingService.debug('Settings saved', settings);
     

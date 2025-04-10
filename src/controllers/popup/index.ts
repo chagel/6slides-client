@@ -195,7 +195,7 @@ class PopupController {
     // Log subscription status when beginning extraction
     const hasPro = await configManager.hasPro();
     const level = await configManager.getSubscriptionLevel();
-    loggingService.info(`Starting extraction with subscription level: ${level.toUpperCase()} (Has Pro: ${hasPro ? 'Yes' : 'No'})`, null, 'popup');
+    loggingService.info(`Starting extraction with subscription level: ${level?.toUpperCase() || 'FREE'} (Has Pro: ${hasPro ? 'Yes' : 'No'})`, null, 'popup');
     
     try {
       const pageInfo = await this.checkIsCompatiblePage();

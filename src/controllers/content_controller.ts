@@ -142,7 +142,9 @@ class ContentController {
       // Create a domain presentation model
       const presentation = Presentation.fromSlides(limitedSlides, sourceType.toString());
       
-      // Store the presentation
+      // Clear existing slides and save the new ones
+      // This ensures no "upgrade" slides remain in storage from previous extractions
+      await storage.clearSlides();
       await storage.saveSlides(presentation.toObject().slides);
       
       // Store debug info

@@ -214,13 +214,13 @@ export class ContentExtractor {
    * @param slides - Array of slide markdown content
    * @returns Raw slides without limiting (limiting happens in ContentController)
    */
-  private applySlideLimit(slides: string[]): string[] {
+  private async applySlideLimit(slides: string[]): Promise<string[]> {
     // The slide limit is now handled in ContentController.applyFreeUserSlideLimit
     // This function remains for backward compatibility but no longer limits slides
     
     const slidesCount = slides.length;
     
-    if (configManager.hasPro()) {
+    if (await configManager.hasPro()) {
       loggingService.debug(`Pro user - no slide limit needed in extractor. Slides: ${slidesCount}`, null, 'extractor');
     } else {
       loggingService.debug(`Free user slide extraction complete. Slides will be limited in controller. Extracted: ${slidesCount}`, null, 'extractor');

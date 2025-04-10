@@ -42,11 +42,17 @@ class AboutPageController {
       // Setup theme change handling
       this.setupThemeChangeHandler();
       
+      // Set settings changed callback to update debug indicator 
+      this.settingsController.setSettingChangedCallback(() => {
+        // When settings change, update the debug indicator
+        this.setupDebugIndicator();
+      });
+      
       // Initialize navigation
       this.bindNavigationEvents();
       this.handleHashChange();
       
-      // Setup debug indicator
+      // Initial setup of debug indicator
       this.setupDebugIndicator();
       
       // Log initialization
