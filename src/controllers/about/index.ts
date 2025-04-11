@@ -39,24 +39,17 @@ class AboutPageController {
       // Get navigation elements
       this.navLinks = document.querySelectorAll('.nav-item');
       
-      // Setup theme change handling
-      this.setupThemeChangeHandler();
+      // Bind event handlers
+      this.bindEventHandlers();
       
-      // Set settings changed callback to update debug indicator 
-      this.settingsController.setSettingChangedCallback(() => {
-        // When settings change, update the debug indicator
-        this.setupDebugIndicator();
-      });
+      // Set up the tab controls in the help section
+      this.setupTabNavigation();
       
-      // Initialize navigation
-      this.bindNavigationEvents();
+      // Handle hash for initial load
       this.handleHashChange();
       
-      // Initial setup of debug indicator
+      // Debug indicator
       this.setupDebugIndicator();
-      
-      // Log initialization
-      // Controller initialization is complete
     }).catch(error => {
       loggingService.error('Failed to initialize About page controller', error);
     });
@@ -119,43 +112,41 @@ class AboutPageController {
       if (pageContainer) {
         pageContainer.innerHTML = `
           <div style="padding: 20px; color: #e53935;">
-            <h1>Error Loading Page</h1>
-            <p>There was a problem loading the page components.</p>
-            <p>Error: ${(error as Error).message}</p>
+            <h2>Error Loading Page</h2>
+            <p>Could not load the page components. Please try again later.</p>
+            <p>Error details: ${error instanceof Error ? error.message : String(error)}</p>
           </div>
         `;
       }
-      throw error;
     }
   }
   
   /**
-   * Setup the theme change handler to connect the settings controller with subscription controller
+   * Set up the debug indicator and debug functionality
    */
-  private setupThemeChangeHandler(): void {
-    // Get the theme selector element
-    const themeSelector = document.getElementById('themeSelector') as HTMLSelectElement;
-    
-    // Early exit if theme selector doesn't exist
-    if (!themeSelector) return;
-    
-    // Listen for changes to handle pro theme restrictions
-    themeSelector.addEventListener('change', () => {
-      this.subscriptionController.handleThemeChange(themeSelector);
-    });
-    
-    // Update theme options based on subscription status
-    this.subscriptionController.updateThemeOptions(themeSelector);
+  private async setupDebugIndicator(): Promise<void> {
+    try {
+      await debugService.setupDebugIndicator(
+        {
+          position: 'bottom-right',
+          text: 'DEBUG MODE',
+          zIndex: 9999
+        },
+        'about'  // Context identifier for logging
+      );
+    } catch (error) {
+      console.error('Error setting up debug indicator:', error);
+    }
   }
   
   /**
-   * Bind navigation events to handle tab switching
+   * Bind event handlers
    */
-  private bindNavigationEvents(): void {
+  private bindEventHandlers(): void {
     // Listen for hash changes
     window.addEventListener('hashchange', this.handleHashChange.bind(this));
     
-    // Add click listeners to nav links
+    // Bind click events to navigation links
     this.navLinks.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -218,60 +209,48 @@ class AboutPageController {
       }
     });
     
-    // Store current section
+    // Store the active section
     this.activeSection = sectionId;
-    
-    // Section navigation complete
   }
   
   /**
-   * Setup debug indicator
+   * Set up tab navigation for the help section tabs
    */
-  private async setupDebugIndicator(): Promise<void> {
-    try {
-      // Setup the debug indicator with about-specific options
-      // The service now handles checking if debug is enabled
-      await debugService.setupDebugIndicator(
-        {
-          position: 'bottom-right',
-          text: 'DEBUG MODE',
-          zIndex: 9999
-        },
-        'about'
-      );
-    } catch (error) {
-      console.error('Error setting up debug indicator:', error);
-    }
+  private setupTabNavigation(): void {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Get the tab ID from the data-tab attribute
+        const tabId = button.getAttribute('data-tab');
+        if (!tabId) return;
+        
+        // Update active tab button
+        tabButtons.forEach(btn => {
+          btn.classList.remove('active');
+        });
+        button.classList.add('active');
+        
+        // Show the selected tab content
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        const selectedTab = document.getElementById(tabId);
+        if (selectedTab) {
+          selectedTab.classList.add('active');
+        }
+      });
+    });
   }
 }
 
-// Flag to track initialization in this about page instance
-let aboutInitialized = false;
-
-/**
- * Initialize the about page
- */
-function initialize(): void {
-  // Initialize when DOM is ready - use once option to prevent multiple triggers
-  document.addEventListener('DOMContentLoaded', async () => {
-    if (aboutInitialized) {
-      console.warn('About page already initialized, preventing duplicate initialization');
-      return;
-    }
-    
-    try {
-      // Set flag to prevent double initialization
-      aboutInitialized = true;
-      
-      // Create main controller
-      const aboutController = new AboutPageController();
-      
-      // About page initialization complete
-    } catch (error) {
-      loggingService.error('Error initializing about page', error);
-    }
-  }, { once: true });
+// Initialize the controller when the DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    new AboutPageController();
+  });
+} else {
+  new AboutPageController();
 }
-
-// Start initialization
-initialize();
