@@ -22,7 +22,7 @@ export class SubscriptionController {
    * Initialize the subscription controller
    */
   constructor() {
-    // Subscription elements
+    // Subscription elements - now in the about page
     this.freeSubscriptionInfo = document.getElementById('freeSubscriptionInfo');
     this.proSubscriptionInfo = document.getElementById('proSubscriptionInfo');
     this.subscriptionExpiry = document.getElementById('subscriptionExpiry');

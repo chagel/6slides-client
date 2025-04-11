@@ -80,10 +80,11 @@ class AboutPageController {
       `;
       
       // Fetch the HTML components
-      const [sidebar, aboutContent, settingsContent, helpContent, developerContent] = await Promise.all([
+      const [sidebar, aboutContent, settingsContent, subscriptionContent, helpContent, developerContent] = await Promise.all([
         fetch('components/sidebar.html').then(response => response.text()),
         fetch('components/about-content.html').then(response => response.text()),
         fetch('components/settings-content.html').then(response => response.text()),
+        fetch('components/subscription-content.html').then(response => response.text()),
         fetch('components/help-content.html').then(response => response.text()),
         fetch('components/developer-content.html').then(response => response.text())
       ]);
@@ -97,6 +98,7 @@ class AboutPageController {
         <div class="content">
           ${aboutContent}
           ${settingsContent}
+          ${subscriptionContent}
           ${helpContent}
           ${developerContent}
         </div>

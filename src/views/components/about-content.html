@@ -1,4 +1,24 @@
 <!-- About Section -->
+<style>
+  /* Enhanced subscription section styles */
+  .upgrade-button:hover {
+    background-color: #6450d3 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(124, 99, 246, 0.4) !important;
+  }
+  
+  .manage-button:hover {
+    background-color: #dfe1e6 !important;
+    color: #42526E !important;
+  }
+  
+  .benefit-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+    transition: all 0.2s ease;
+  }
+</style>
+
 <section id="about" class="page-section">
   <h1>About</h1>
   
@@ -103,9 +123,11 @@
       </div>
     </div>
     
-    <div class="pro-cta-container">
-      <a href="#pricing" id="upgradeProButton" class="pro-cta-button">Upgrade to Pro</a>
-      <p class="pro-cta-text">Unlock premium features like unlimited slides, multiple themes, and Markdown support</p>
+    <!-- Pro CTA -->
+    <div class="pro-cta-container" style="margin-top: 30px; padding: 20px; text-align: center; background: #f8f9fa; border-radius: 8px;">
+      <h3 style="margin-top: 0; margin-bottom: 12px; color: #333;">Need more features?</h3>
+      <p style="margin-bottom: 16px; color: #505F79;">Check out our Pro plan with unlimited slides and premium features.</p>
+      <a href="about.html#subscription" class="pro-cta-button" style="display: inline-block; background: #7C63F6; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s ease;">View Subscription Options</a>
     </div>
     
     <h2>Contact</h2>

@@ -20,7 +20,6 @@ export class SettingsController {
   private slideNumberSelector: HTMLSelectElement | null;
   private centerSelector: HTMLSelectElement | null;
   private debugLoggingSelector: HTMLSelectElement | null;
-  private saveSettingsBtn: HTMLElement | null;
   private saveStatus: HTMLElement | null;
   private clearCacheBtn: HTMLElement | null;
   
@@ -35,7 +34,6 @@ export class SettingsController {
     this.transitionSelector = document.getElementById('transitionSelector') as HTMLSelectElement;
     this.slideNumberSelector = document.getElementById('slideNumberSelector') as HTMLSelectElement;
     this.centerSelector = document.getElementById('centerSelector') as HTMLSelectElement;
-    this.saveSettingsBtn = document.getElementById('saveSettingsBtn');
     this.saveStatus = document.getElementById('saveStatus');
     this.debugLoggingSelector = document.getElementById('debugLoggingSelector') as HTMLSelectElement;
     this.clearCacheBtn = document.getElementById('clearCacheBtn');
@@ -70,8 +68,24 @@ export class SettingsController {
    * Bind event handlers to UI elements
    */
   private bindEventHandlers(): void {
-    if (this.saveSettingsBtn) {
-      this.saveSettingsBtn.addEventListener('click', this.saveSettings.bind(this));
+    // Bind all setting selectors to save automatically on change
+    if (this.themeSelector) {
+      this.themeSelector.addEventListener('change', () => {
+        this.handleThemeChange();
+        this.saveSettings();
+      });
+    }
+    
+    if (this.transitionSelector) {
+      this.transitionSelector.addEventListener('change', this.saveSettings.bind(this));
+    }
+    
+    if (this.slideNumberSelector) {
+      this.slideNumberSelector.addEventListener('change', this.saveSettings.bind(this));
+    }
+    
+    if (this.centerSelector) {
+      this.centerSelector.addEventListener('change', this.saveSettings.bind(this));
     }
     
     if (this.debugLoggingSelector) {
@@ -80,11 +94,6 @@ export class SettingsController {
     
     if (this.clearCacheBtn) {
       this.clearCacheBtn.addEventListener('click', this.clearAllCaches.bind(this));
-    }
-    
-    // Bind theme selector for PRO restrictions
-    if (this.themeSelector) {
-      this.themeSelector.addEventListener('change', this.handleThemeChange.bind(this));
     }
   }
   
@@ -128,7 +137,7 @@ export class SettingsController {
       return;
     }
     
-    loggingService.debug('Saving settings, debug logging value', this.debugLoggingSelector?.value);
+    loggingService.debug('Auto-saving settings');
     
     // Get existing settings object - this will preserve all existing fields
     const settings = await storage.getSettings();
@@ -152,13 +161,14 @@ export class SettingsController {
     // Show feedback
     if (this.saveStatus) {
       this.saveStatus.style.display = 'inline';
+      this.saveStatus.textContent = 'Settings saved!';
       
-      // Hide feedback after 2 seconds
+      // Hide feedback after 1.5 seconds
       setTimeout(() => {
         if (this.saveStatus) {
           this.saveStatus.style.display = 'none';
         }
-      }, 2000);
+      }, 1500);
     }
     
     // Notify parent of settings change
