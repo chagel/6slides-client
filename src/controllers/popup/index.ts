@@ -194,7 +194,7 @@ class PopupController {
     
     // Log subscription status when beginning extraction
     const hasPro = await configManager.hasPro();
-    const level = await configManager.getSubscriptionLevel();
+    const { level } = await configManager.getSubscription();
     loggingService.info(`Starting extraction with subscription level: ${level?.toUpperCase() || 'FREE'} (Has Pro: ${hasPro ? 'Yes' : 'No'})`, null, 'popup');
     
     try {
@@ -324,7 +324,7 @@ class PopupController {
       
       // Get subscription status from config manager
       const hasPro = await configManager.hasPro();
-      const level = await configManager.getSubscriptionLevel();
+      const { level } = await configManager.getSubscription();
       
       // Reset all classes
       subscriptionBadge.className = 'subscription-badge';

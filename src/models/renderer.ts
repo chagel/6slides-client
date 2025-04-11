@@ -66,7 +66,7 @@ export class PresentationRenderer {
     try {
       // Get subscription status using the async configManager methods
       const hasPro = await configManager.hasPro();
-      const level = await configManager.getSubscriptionLevel();
+      const { level } = await configManager.getSubscription();
       
       // Log subscription status for debugging
       loggingService.debug(`Rendering with ${level?.toUpperCase() || 'FREE'} subscription (Pro features: ${hasPro ? 'Enabled' : 'Disabled'})`, null, 'viewer');

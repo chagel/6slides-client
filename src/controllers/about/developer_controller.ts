@@ -109,9 +109,8 @@ export class DeveloperController {
   private async updateSubscriptionTestStatus(): Promise<void> {
     try {
       // Get subscription status directly from configManager (async)
-      const level = await configManager.getSubscriptionLevel();
       const hasPro = await configManager.hasPro();
-      const expiry = await configManager.getValue('subscriptionExpiry', null);
+      const { level, expiry } = await configManager.getSubscription();
       
       // Format expiry date if exists
       const expiryText = expiry 

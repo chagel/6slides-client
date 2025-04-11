@@ -167,8 +167,37 @@ class ConfigManager {
    * Get current subscription level
    * @returns Promise resolving to current subscription level
    */
-  async getSubscriptionLevel(): Promise<SubscriptionLevel> {
-    return await this.getValue('subscriptionLevel', SubscriptionLevel.FREE);
+  /**
+   * Get subscription data, prioritizing chrome.storage then falling back to IndexedDB
+   * @returns Promise resolving to subscription data {level, expiry}
+   */
+  async getSubscription(): Promise<{level: SubscriptionLevel, expiry: number | null}> {
+    try {
+      // First try chrome.storage
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        const data = await chrome.storage.local.get(['subscriptionLevel', 'subscriptionExpiry']);
+        
+        // If we have subscription data in chrome.storage, use it
+        if (data.subscriptionLevel) {
+          return {
+            level: data.subscriptionLevel,
+            expiry: data.subscriptionExpiry || null
+          };
+        }
+      }
+      
+      // Fall back to IndexedDB if chrome.storage doesn't have data
+      const config = await this.getConfig();
+      
+      return {
+        level: config.subscriptionLevel || SubscriptionLevel.FREE,
+        expiry: config.subscriptionExpiry || null
+      };
+    } catch (error) {
+      console.error('Error getting subscription data:', error);
+      // Default to FREE if all else fails
+      return { level: SubscriptionLevel.FREE, expiry: null };
+    }
   }
 
   /**
@@ -176,14 +205,15 @@ class ConfigManager {
    * @returns Promise resolving to true if user has pro features
    */
   async hasPro(): Promise<boolean> {
-    const level = await this.getSubscriptionLevel();
-    const expiry = await this.getValue('subscriptionExpiry', null);
+    // Get subscription data from the unified getSubscription method
+    const { level, expiry } = await this.getSubscription();
     
     // Check for valid subscription and not expired
-    return (
+    const result = (
       (level === SubscriptionLevel.PRO || level === SubscriptionLevel.TEAM) && 
       (expiry === null || expiry > Date.now())
     );
+    return result;
   }
 
   /**
@@ -196,12 +226,24 @@ class ConfigManager {
     // Get the current config first to preserve other settings
     const currentConfig = await this.getConfig();
     
-    // Update only the subscription fields
+    // Update only the subscription fields in IndexedDB
     await this.saveConfig({
       ...currentConfig,
       subscriptionLevel: level,
       subscriptionExpiry: expiryDate
     });
+    
+    // Also update chrome.storage to ensure data is shared across contexts
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      try {
+        await chrome.storage.local.set({
+          subscriptionLevel: level,
+          subscriptionExpiry: expiryDate
+        });
+      } catch (error) {
+        console.error('Error updating chrome.storage with subscription:', error);
+      }
+    }
     
     loggingService.debug(`Subscription updated to ${level}`);
   }

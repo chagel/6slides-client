@@ -51,7 +51,6 @@ class ContentController {
       
     // Get subscription status using async methods
     const hasPro = await configManager.hasPro();
-    // const level = await configManager.getSubscriptionLevel();
     
     // If user has pro subscription, no need to limit slides
     if (hasPro) {

@@ -53,8 +53,7 @@ export class SubscriptionController {
   async updateSubscriptionUI(): Promise<void> {
     try {
       const hasPro = await configManager.hasPro();
-      const level = await configManager.getSubscriptionLevel();
-      const expiryTimestamp = await configManager.getValue('subscriptionExpiry', null);
+      const { level, expiry: expiryTimestamp } = await configManager.getSubscription();
       
       // Show/hide appropriate subscription info sections
       if (this.freeSubscriptionInfo) {
