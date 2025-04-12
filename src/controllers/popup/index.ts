@@ -7,6 +7,8 @@
 import { loggingService } from '../../services/logging_service';
 import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
+import { configManager } from '../../models/config_manager';
+import { debugService } from '../../services/debug_service';
 import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';
 
@@ -50,7 +52,38 @@ class PopupController {
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
     
     this.bindEventHandlers();
-    this.checkCurrentPage();
+    
+    // Initialize async operations
+    this.initializeAsync();
+  }
+  
+  /**
+   * Initialize async operations
+   */
+  private async initializeAsync(): Promise<void> {
+    // Add debug indicator if debug mode is enabled
+    await this.setupDebugIndicator();
+    
+    // Check current page
+    await this.checkCurrentPage();
+  }
+  
+  /**
+   * Setup debug indicator
+   */
+  private async setupDebugIndicator(): Promise<void> {
+    try {
+      await debugService.setupDebugIndicator(
+        {
+          position: 'top-right',
+          text: 'DEBUG',
+          zIndex: 1000
+        },
+        'popup'  // Context identifier for logging
+      );
+    } catch (error) {
+      console.error('Error setting up debug indicator:', error);
+    }
   }
   
   /**
@@ -86,7 +119,7 @@ class PopupController {
     const messageText = document.createTextNode(message);
     this.statusEl.appendChild(messageText);
     
-    loggingService.debug('Status updated', { message, statusType });
+    // No need to log every status update
   }
   
   /**
@@ -106,7 +139,7 @@ class PopupController {
       
       return { compatible: false, tab };
     } catch (error) {
-      loggingService.error('Error checking if page is compatible', error);
+      loggingService.error('Error checking if page is compatible', error, 'popup');
       return { compatible: false, error: error as Error };
     }
   }
@@ -127,21 +160,18 @@ class PopupController {
         chrome.tabs.sendMessage(tab.id as number, { action: 'ping' }, response => {
           // Check for runtime error (happens when content script is not loaded)
           if (chrome.runtime.lastError || !response) {
-            loggingService.debug('Content script not yet loaded, injecting...');
-            
             // Script not loaded, try to inject it
             chrome.scripting.executeScript({
               target: { tabId: tab.id as number },
-              files: ['content/entry.js']
+              files: ['app.js']
             }).then(() => {
-              loggingService.debug('Content script injected successfully');
               resolve(true);
             }).catch(err => {
-              loggingService.error('Failed to inject content script', err);
+              loggingService.error('Failed to inject content script', err, 'popup');
               resolve(false);
             });
           } else {
-            loggingService.debug('Content script already loaded');
+            // Content script is already loaded
             resolve(true);
           }
         });
@@ -161,6 +191,11 @@ class PopupController {
   private async handleConvertClick(): Promise<void> {
     // Disable button during processing
     this.convertBtn.disabled = true;
+    
+    // Log subscription status when beginning extraction
+    const hasPro = await configManager.hasPro();
+    const { level } = await configManager.getSubscription();
+    loggingService.info(`Starting extraction with subscription level: ${level?.toUpperCase() || 'FREE'} (Has Pro: ${hasPro ? 'Yes' : 'No'})`, null, 'popup');
     
     try {
       const pageInfo = await this.checkIsCompatiblePage();
@@ -184,6 +219,9 @@ class PopupController {
       this.updateStatus('Extracting content from page...');
       
       // Send message to content script
+      // Log that we're starting extraction
+      loggingService.info('Starting content extraction process', null, 'popup');
+      
       const response = await messagingService.sendToContent((pageInfo.tab as chrome.tabs.Tab).id as number, { 
         action: 'extract_content',
         pageType: pageInfo.type
@@ -203,7 +241,7 @@ class PopupController {
         
         // Store slides and debug info
         await storage.saveSlides(response.slides);
-        storage.saveDebugInfo(debugInfo);
+        await storage.saveDebugInfo(debugInfo);
         
         // Open viewer in the current tab
         if ((pageInfo.tab as chrome.tabs.Tab).id) {
@@ -219,7 +257,7 @@ class PopupController {
         this.updateStatus(`Error: ${response.error}`, 'not-ready');
         
         // Store error info for debugging
-        storage.saveErrorInfo({
+        await storage.saveErrorInfo({
           message: response.error,
           stack: response.stack
         });
@@ -277,10 +315,53 @@ class PopupController {
   }
   
   /**
+   * Update subscription badge based on current subscription status
+   */
+  private async updateSubscriptionBadge(): Promise<void> {
+    try {
+      const subscriptionBadge = document.getElementById('subscription-badge');
+      if (!subscriptionBadge) return;
+      
+      // Get subscription status from config manager
+      const hasPro = await configManager.hasPro();
+      const { level } = await configManager.getSubscription();
+      
+      // Reset all classes
+      subscriptionBadge.className = 'subscription-badge';
+      
+      // Set appropriate class and text based on subscription
+      if (hasPro) {
+        if (level === 'pro') {
+          subscriptionBadge.classList.add('pro');
+          subscriptionBadge.textContent = 'PRO';
+        } else if (level === 'team') {
+          subscriptionBadge.classList.add('team');
+          subscriptionBadge.textContent = 'TEAM';
+        }
+      } else {
+        subscriptionBadge.classList.add('free');
+        subscriptionBadge.textContent = 'FREE';
+      }
+      
+      // Log subscription status
+      loggingService.debug('Subscription status', { 
+        level, 
+        hasPro, 
+        expiry: await configManager.getValue('subscriptionExpiry', null) 
+      }, 'popup');
+    } catch (error) {
+      loggingService.error('Error updating subscription badge', error, 'popup');
+    }
+  }
+  
+  /**
    * Check the current page and update UI accordingly
    */
   private async checkCurrentPage(): Promise<void> {
     try {
+      // Update subscription badge (async now)
+      await this.updateSubscriptionBadge();
+      
       const [pageInfo, isViewer] = await Promise.all([
         this.checkIsCompatiblePage(),
         this.isCurrentTabViewer()
@@ -298,28 +379,38 @@ class PopupController {
         this.updateStatus('Ready! Ensure Notion page with required format.', 'ready');
       }
     } catch (error) {
-      loggingService.error('Error checking current page', error);
+      loggingService.error('Error checking current page', error, 'popup');
       this.updateStatus('Error checking page status.', 'not-ready');
     }
   }
 }
 
+// Flag to track initialization in this popup instance
+let popupInitialized = false;
+
 /**
  * Initialize the popup
  */
 function initialize(): void {
-  loggingService.debug('Popup initializing');
-  
-  // Initialize when DOM is ready
+  // Initialize when DOM is ready - use the once option to prevent multiple triggers
   document.addEventListener('DOMContentLoaded', () => {
+    if (popupInitialized) {
+      return;
+    }
+    
     try {
+      // Set flag to prevent double initialization within a single popup session
+      popupInitialized = true;
+      
       // Create popup controller
       const popupController = new PopupController();
-      loggingService.debug('Popup initialization complete');
+      
+      // Add a single log to indicate popup is ready
+      loggingService.info('Popup initialized', null, 'popup');
     } catch (error) {
-      loggingService.error('Error initializing popup', error);
+      loggingService.error('Error initializing popup', error, 'popup');
     }
-  });
+  }, { once: true }); // Use once: true for extra protection
 }
 
 // Start initialization

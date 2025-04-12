@@ -58,8 +58,14 @@ h2 {
   margin-top: 4px;
 }
 
+.action-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 button {
-  width: 100%;
+  flex-grow: 1;
   padding: 8px;
   background-color: #3F51B5; /* Indigo color */
   color: white;

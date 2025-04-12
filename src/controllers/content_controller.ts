@@ -4,13 +4,13 @@
  * Manages content extraction from various sources
  */
 
-import { loggingService } from '../services/logging_service';
 import { source_manager, SourceType } from '../models/source_manager';
 import { content_processor } from '../models/content_processor';
 import { storage } from '../models/storage';
 import { Presentation } from '../models/domain/presentation';
 import { errorService, ErrorTypes } from '../services/error_service';
 import { Slide } from '../types/index';
+import { configManager } from '../models/config_manager';
 
 /**
  * Result of content extraction
@@ -39,6 +39,55 @@ class ContentController {
   }
   
   /**
+   * Apply slide limit for free users - THE DEFINITIVE IMPLEMENTATION
+   * This is the single, authoritative place where slide limits are enforced
+   * @param slides - Array of slide objects
+   * @param limit - Maximum number of slides for free users
+   * @returns Promise resolving to limited array of slides (or original if user has pro)
+   */
+  async applyFreeUserSlideLimit(slides: Slide[]): Promise<Slide[]> {
+    // Apply free user slide limit
+    const FREE_SLIDE_LIMIT = 10;
+      
+    // Get subscription status using async methods
+    const hasPro = await configManager.hasPro();
+    
+    // If user has pro subscription, no need to limit slides
+    if (hasPro) {
+      return slides;
+    }
+
+    const limit = FREE_SLIDE_LIMIT;
+    
+    // For free users, only apply limit if they exceed the maximum
+    if (slides.length > limit) {
+      // Get the first slides up to the limit
+      const limitedSlides = slides.slice(0, limit);
+      
+      // No notice on first slide - removed for cleaner presentation
+      
+      // Add a "Upgrade to Pro" slide at the end
+      const upgradeSlide: Slide = {
+        title: 'Why stop now?',
+        content: `
+
+## ${slides.length - limit} more slides are waiting!
+
+<div style="text-align: center; margin-top: 30px;">
+<a href="https://notion-slides.com/pricing" style="background: #7C63F6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Upgrade to Pro</a>
+</div>`,
+        sourceType: 'upgrade'
+      };
+      
+      limitedSlides.push(upgradeSlide);
+      return limitedSlides;
+    }
+    
+    // If within the limit, return all slides
+    return slides;
+  }
+  
+  /**
    * Extract content from a document
    * @param document - The document to extract from
    * @param url - The page URL
@@ -46,8 +95,6 @@ class ContentController {
    */
   async extractContent(document: Document, url: string): Promise<ExtractionResult> {
     try {
-      loggingService.debug('Extracting content from URL:', url);
-      
       // Detect content source
       const sourceType = source_manager.detectSource(document, url);
       
@@ -57,8 +104,6 @@ class ContentController {
           sourceType: null
         };
       }
-      
-      loggingService.debug(`Using extractor for source type: ${sourceType}`);
       
       // Get appropriate extractor
       const extractor = source_manager.getExtractor(sourceType, document);
@@ -82,8 +127,6 @@ class ContentController {
       // Process content to normalize it
       const processedSlides = content_processor.process(slidesWithSourceType);
       
-      loggingService.debug(`Extracted and processed ${processedSlides.length} slides`);
-      
       // Ensure all slides have required properties
       const validSlides = processedSlides.map(slide => ({
         title: slide.title || 'Untitled Slide',
@@ -92,14 +135,19 @@ class ContentController {
         metadata: slide.metadata
       }));
       
-      // Create a domain presentation model
-      const presentation = Presentation.fromSlides(validSlides, sourceType.toString());
+      // Apply the single, authoritative slide limit
+      const limitedSlides = await this.applyFreeUserSlideLimit(validSlides);
       
-      // Store the presentation
+      // Create a domain presentation model
+      const presentation = Presentation.fromSlides(limitedSlides, sourceType.toString());
+      
+      // Clear existing slides and save the new ones
+      // This ensures no "upgrade" slides remain in storage from previous extractions
+      await storage.clearSlides();
       await storage.saveSlides(presentation.toObject().slides);
       
       // Store debug info
-      storage.saveDebugInfo({
+      await storage.saveDebugInfo({
         timestamp: new Date().toISOString(),
         sourceType: sourceType.toString(),
         url,
@@ -126,9 +174,6 @@ class ContentController {
         ...result,
         sourceType: null
       };
-      
-      // The error service already logs and stores the error,
-      // so no need to duplicate that logic here
     }
   }
 }

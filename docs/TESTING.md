@@ -1,6 +1,6 @@
 # Notion Slides Testing Guide
 
-This guide covers the testing setup, strategies, and best practices for the Notion Slides extension.
+This guide covers the testing setup, strategies, and best practices for the Notion Slides extension, including how to test subscription features.
 
 ## Testing Setup
 
@@ -293,3 +293,111 @@ describe('HeadingExtractor', () => {
 5. **Performance Tests**: Add performance benchmarks for critical paths
 6. **Markdown Extractor Tests**: Add tests for markdown extractors
 7. **Service Tests**: Add more thorough tests for application services
+8. **Subscription Feature Tests**: Implement automated tests for subscription features
+
+## Subscription Testing
+
+Notion to Slides implements a subscription-based model with FREE and PRO tiers. This section covers how to test these features effectively.
+
+### Subscription Test Tools
+
+We have developed tools for testing subscription-based features:
+
+#### 1. Subscription Test UI in Developer Tab
+
+The Developer tab in the extension's About page includes a Subscription Testing section where you can:
+
+- Set different subscription levels (FREE, PRO, PRO with expiry, etc.)
+- View the current subscription status
+- Check if the user has pro access
+- See any subscription expiry dates
+
+To access this:
+1. Open the extension
+2. Navigate to the Developer tab in the sidebar
+3. Scroll down to the "Subscription Testing" section
+
+#### 2. Dedicated Testing Suite
+
+For more comprehensive testing, a dedicated test suite is available:
+
+1. Open the extension
+2. Go to the Developer tab
+3. Click the "Open Test Suite" link in the Subscription Testing section
+
+This will open a dedicated test page with:
+- Subscription controls to change subscription states
+- Individual tests for theme restrictions, slide limits, and UI updates
+- A summary of features by subscription level
+
+### Key Features to Test
+
+| Feature | FREE | PRO | TEAM |
+|---------|------|-----|------|
+| Slide Limit | 10 slides max | Unlimited | Unlimited |
+| Premium Themes | ❌ Default only | ✅ All themes | ✅ All themes |
+| Markdown Support | ❌ No | ✅ Yes | ✅ Yes |
+
+### Testing Procedure
+
+#### 1. Theme Restrictions
+
+1. Set subscription to FREE
+2. Open Settings and check that premium themes (Catppuccin Latte, Catppuccin Mocha) show "(PRO)" and are disabled
+3. Try selecting a premium theme (should show a PRO overlay)
+4. Set subscription to PRO
+5. Verify premium themes are available and selectable
+
+#### 2. Slide Limit
+
+1. Set subscription to FREE
+2. Create a test Notion page with 15+ slides (H1 headings)
+3. Generate slides and verify only 10 content slides plus an upgrade slide are shown
+4. Set subscription to PRO
+5. Generate slides again and verify all slides are included
+
+#### 3. UI Subscription Status
+
+1. Set subscription to FREE
+2. Verify the FREE badge is shown in Settings
+3. Verify pro features are marked with PRO badges
+4. Set subscription to PRO
+5. Verify PRO badge is shown and subscription info is updated
+6. Set subscription to PRO with expiry
+7. Verify expiry date is correctly displayed
+
+#### 4. Expired Subscription
+
+1. Set subscription to PRO (Expired)
+2. Verify the user no longer has access to PRO features
+3. Check that theme restrictions and slide limits apply as for FREE users
+
+### Programmatic Subscription Testing
+
+For developers who need to test programmatically, the `subscriptionTester` utility is available:
+
+```typescript
+import { subscriptionTester } from '../controllers/developer/subscription_test';
+
+// Set subscription level programmatically
+await subscriptionTester.setFree();
+await subscriptionTester.setPro();
+await subscriptionTester.setProWithExpiry();
+await subscriptionTester.setProExpired();
+await subscriptionTester.setTeam();
+
+// Get current status
+const status = subscriptionTester.getCurrentStatus();
+console.log(status.level);      // 'free', 'pro', or 'team'
+console.log(status.hasPro);     // true or false
+console.log(status.expiry);     // expiry date or 'No expiry'
+```
+
+### Implementation Details
+
+The subscription system is implemented in `src/models/config_manager.ts` with the following key components:
+
+1. **SubscriptionLevel enum**: Defines FREE, PRO, and TEAM levels
+2. **hasPro() method**: Checks if user has pro features based on level and expiry
+3. **hasRemainingSlides() method**: Enforces slide limits for free users
+4. **setSubscription() method**: Sets subscription level and expiry date

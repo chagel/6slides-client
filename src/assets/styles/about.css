@@ -96,15 +96,23 @@ body {
   flex-grow: 1;
   margin-left: var(--sidebar-width);
   padding: 30px;
-  max-width: calc(100% - var(--sidebar-width));
+  width: calc(100% - var(--sidebar-width));
+  box-sizing: border-box;
+  max-width: 1200px; /* Set a maximum width for the content */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .page-section {
   display: none;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .page-section.active {
   display: block;
+  width: 100%;
 }
 
 h1 {
@@ -136,13 +144,7 @@ button:hover {
 }
 
 /* Settings specific styles */
-.setting-section {
-  background-color: white;
-  border-radius: 4px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
+/* Setting section styles now combined with about-section and help-section */
 
 .setting-row {
   display: flex;
@@ -150,6 +152,7 @@ button:hover {
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid var(--border-color);
+  width: 100%;
 }
 
 .setting-row:last-child {
@@ -180,12 +183,17 @@ select, input {
 }
 
 /* About specific styles */
-.about-section {
+.about-section, .setting-section, .help-section, .developer-section {
   background-color: white;
   border-radius: 4px;
   padding: 20px;
   margin-bottom: 25px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: auto; /* Remove fixed minimum width */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .hero-section {
@@ -197,6 +205,9 @@ select, input {
   text-align: center;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
 }
 
 .hero-content {
@@ -325,6 +336,198 @@ select, input {
   color: #555;
 }
 
+/* Log viewer styles */
+.log-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.log-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #666;
+}
+
+.log-filter {
+  padding: 5px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+
+.log-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.copy-logs-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #2196f3;
+  padding: 8px 12px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.copy-logs-btn:hover {
+  background-color: #1976d2;
+}
+
+.copy-logs-btn:active {
+  background-color: #0d47a1;
+}
+
+.copy-logs-btn:disabled {
+  background-color: #b0bec5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.copy-logs-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Log viewer container with max width and overflow handling */
+#logViewer {
+  height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-family: monospace;
+  font-size: 12px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.log-entry {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+  line-height: 1.4;
+  background-color: #fafafa;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.log-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.log-level {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.log-level.debug {
+  background-color: #8bc34a;
+}
+
+.log-level.info {
+  background-color: #2196f3;
+}
+
+.log-level.warn {
+  background-color: #ff9800;
+}
+
+.log-level.error {
+  background-color: #f44336;
+}
+
+.log-context {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  background-color: #f1f1f1;
+  color: #666;
+}
+
+.log-context.content_script {
+  background-color: #e1f5fe;
+  color: #0277bd;
+}
+
+.log-context.viewer {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.log-context.popup {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.log-context.settings {
+  background-color: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.log-timestamp {
+  color: #777;
+  font-size: 11px;
+}
+
+.log-message {
+  font-weight: 500;
+  margin-left: auto;
+  word-break: break-word;
+}
+
+.log-data {
+  padding: 8px 0 4px 25px;
+  color: #666;
+  font-size: 11px;
+}
+
+.log-data pre {
+  margin: 5px 0;
+  padding: 8px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow-x: auto;
+  font-size: 11px;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* Changelog styles - Minimalistic Design */
 .changelog-container {
   margin-top: 15px;
@@ -395,6 +598,17 @@ select, input {
   margin-top: 10px;
 }
 
+/* Subscription styles */
+.subscription-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.subscription-info {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Help specific styles */
 .help-section {
   background-color: white;
@@ -426,12 +640,16 @@ select, input {
 /* Tab styles */
 .help-tabs {
   margin-bottom: 30px;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 .tab-nav {
   display: flex;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 20px;
+  padding: 0;
 }
 
 .tab-button {
@@ -459,8 +677,10 @@ select, input {
 
 .tab-content {
   display: none;
+  width: 100%;
 }
 
 .tab-content.active {
   display: block;
+  width: 100%;
 }

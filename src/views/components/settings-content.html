@@ -1,16 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Notion to Slides - Settings</title>
-  <link rel="stylesheet" href="assets/styles/common.css">
-  <link rel="stylesheet" href="assets/styles/settings.css">
-</head>
-<body>
-  <h1>
-    <img src="assets/icons/icon128.png" width="32" height="32" alt="Notion to Slides icon">
-    Settings
-  </h1>
+<!-- Settings Section -->
+<section id="settings" class="page-section">
+  <h1>Settings</h1>
   
+  <!-- Using the same hero section structure as about page for consistent width -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h2>Customize Your Presentation Experience</h2>
+      <p>Tailor your slides to match your style and content needs.</p>
+    </div>
+  </div>
+  
+  <!-- Save status notification -->
+  <div class="save-status-container" style="text-align: center; margin: 10px 0 20px;">
+    <span id="saveStatus" style="color: green; display: none; padding: 8px; border-radius: 4px; background-color: rgba(0, 128, 0, 0.1);">Settings saved!</span>
+  </div>
+  
+  <!-- Appearance -->
   <div class="setting-section">
     <h2>Appearance</h2>
     
@@ -46,6 +51,7 @@
     </div>
   </div>
   
+  <!-- Presentation -->
   <div class="setting-section">
     <h2>Presentation</h2>
     
@@ -76,13 +82,4 @@
     </div>
   </div>
   
-  <button id="saveButton">Save Settings</button>
-  
-  <div class="footer">
-    <a href="about.html" id="aboutLink" style="color: #666; text-decoration: none;">About</a>
-    <span>{{VERSION}}</span>
-  </div>
-
-  <script src="controllers/settings/index.js"></script>
-</body>
-</html>
+</section>

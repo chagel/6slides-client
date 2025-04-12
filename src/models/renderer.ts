@@ -7,7 +7,7 @@
 import { loggingService } from '../services/logging_service';
 import { storage } from './storage';
 import { Presentation } from './domain/presentation';
-import { config_manager } from './config_manager';
+import { configManager } from './config_manager';
 import { errorService, ErrorTypes, ErrorSeverity } from '../services/error_service';
 import { PresentationSettings } from './domain/types';
 import { Slide } from '../types/index';
@@ -64,17 +64,29 @@ export class PresentationRenderer {
    */
   async loadAndRender(): Promise<void> {
     try {
+      // Get subscription status using the async configManager methods
+      const hasPro = await configManager.hasPro();
+      const { level } = await configManager.getSubscription();
+      
+      // Log subscription status for debugging
+      loggingService.debug(`Rendering with ${level?.toUpperCase() || 'FREE'} subscription (Pro features: ${hasPro ? 'Enabled' : 'Disabled'})`, null, 'viewer');
+      
       // Get slides from storage
       const rawSlides = await storage.getSlides();
       
-      // Log the raw slides data from storage (debug only)
-      loggingService.debug('Raw slides loaded from storage', { rawSlides });
+      // Log presentation rendering start
+      loggingService.debug(`Rendering with ${level?.toUpperCase() || 'FREE'} plan. Total slides: ${rawSlides.length}`, null, 'viewer');
       
-      // Get settings from config manager
-      const settings = config_manager.getPresentationSettings();
+      // Log the raw slides data from storage (debug only)
+      loggingService.debug('Raw slides loaded from storage', { rawSlides }, 'viewer');
+      
+      // Get settings from config manager asynchronously
+      const settings = await configManager.getPresentationSettings();
+      loggingService.debug('Presentation settings', settings, 'viewer');
       
       // Check if we have slides
       if (!Array.isArray(rawSlides) || rawSlides.length === 0) {
+        loggingService.error('No slides data found in storage', null, 'viewer');
         errorService.trackError('No slides data found in storage', {
           type: ErrorTypes.RENDERING,
           context: 'presentation_loading'
@@ -83,13 +95,17 @@ export class PresentationRenderer {
         return;
       }
       
-      // Create a domain presentation model
+      // Create a domain presentation model - slides should already be limited for free users by ContentController
       const presentation = Presentation.fromSlides(rawSlides);
       
-      loggingService.debug(`Creating presentation with ${presentation.slideCount} slides`);
+      // Log subscription status - we already have hasPro from above, no need to call again
+      loggingService.debug(`Rendering with ${hasPro ? 'PRO' : 'FREE'} plan. Total slides: ${presentation.slideCount}`, null, 'viewer');
+      
+      loggingService.debug(`Creating presentation with ${presentation.slideCount} slides`, null, 'viewer');
       
       // Create slides from the presentation model
-      presentation.slides.forEach(slide => {
+      presentation.slides.forEach((slide, index) => {
+        loggingService.debug(`Creating slide ${index + 1}/${presentation.slideCount}: "${slide.title}"`, null, 'viewer');
         this.createMarkdownSlide(slide.toObject());
       });
       
@@ -132,21 +148,10 @@ export class PresentationRenderer {
       content = content.replace(/\\n/g, '\n');
     }
     
-    // Log which source type we're rendering
     const sourceType = slide.sourceType || 'unknown';
-    loggingService.debug(`Rendering slide from source: ${sourceType}`, { 
-      title: title.substring(0, 30) + (title.length > 30 ? '...' : ''),
-      contentLength: content.length
-    });
     
     // Create markdown with title as h1 and content below
     const markdown = `# ${title}\n\n${content}`;
-    
-    // Log the exact markdown content being sent to reveal.js
-    loggingService.debug('Markdown content for slide', { 
-      title,
-      content: markdown
-    });
     
     const section = document.createElement('section');
     section.setAttribute('data-markdown', '');
@@ -167,7 +172,7 @@ export class PresentationRenderer {
   initReveal(settings: Partial<PresentationSettings> = {}): void {
     // Check if markdown plugin is available
     if (typeof RevealMarkdown === 'undefined') {
-      loggingService.error('Error: RevealMarkdown plugin is not available!');
+      loggingService.error('Error: RevealMarkdown plugin is not available!', null, 'viewer');
       alert('Error: Required plugin for markdown is missing. Slides may not render properly.');
       
       // Fall back to basic reveal initialization
@@ -181,15 +186,13 @@ export class PresentationRenderer {
     // Define plugins to use
     const plugins = [RevealMarkdown];
     
-    loggingService.debug('Initializing reveal.js with markdown plugin');
+    loggingService.debug('Initializing reveal.js with markdown plugin', null, 'viewer');
     
     // Get presentation settings with defaults
     const theme = settings.theme || 'default';
     const transition = settings.transition || 'slide';
     const slideNumber = settings.slideNumber === 'true';
     const center = settings.center !== 'false' ? 'true' : 'false';
-    
-    loggingService.debug('Using presentation settings', { theme, transition, slideNumber, center });
     
     // Set the theme
     const themeStylesheet = document.getElementById('theme-stylesheet') as HTMLLinkElement;
@@ -215,8 +218,8 @@ export class PresentationRenderer {
       
       // Plugins
       plugins: plugins,
-    }).then(() => {
-      loggingService.debug('Reveal.js initialization complete');
+    }).catch((err: Error) => {
+      loggingService.error('Error initializing Reveal.js', err, 'viewer');
     });
   }
   
@@ -233,7 +236,7 @@ export class PresentationRenderer {
     this.container.appendChild(errorSection);
     
     Reveal.initialize({ controls: true });
-    loggingService.error('No slides found in storage');
+    loggingService.error('No slides found in storage', null, 'viewer');
   }
   
   /**

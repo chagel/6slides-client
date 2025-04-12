@@ -104,21 +104,60 @@ function generateChangelogHTML(entries: ChangelogEntry[]): string {
  * This function will find the changelog container and populate it with the changelog HTML
  */
 function initChangelog(): void {
-  document.addEventListener('DOMContentLoaded', async function() {
+  // The changelog container might not be visible immediately as it's in a tab
+  // Use mutation observer to watch for the container to be added to the DOM
+  const checkForChangelogContainer = () => {
     const changelogContainer = document.getElementById('changelog-container');
-    
     if (changelogContainer) {
-      try {
-        changelogContainer.innerHTML = '<p>Loading changelog...</p>';
-        const entries = await fetchChangelog();
-        const html = generateChangelogHTML(entries);
-        changelogContainer.innerHTML = html;
-      } catch (error) {
-        console.error('Error generating changelog HTML:', error);
-        changelogContainer.innerHTML = '<p>Error loading changelog.</p>';
-      }
+      loadChangelog(changelogContainer);
+    } else {
+      // Set up a mutation observer to watch for the container
+      const observer = new MutationObserver((mutations) => {
+        const changelogContainer = document.getElementById('changelog-container');
+        if (changelogContainer) {
+          observer.disconnect();
+          loadChangelog(changelogContainer);
+        }
+      });
+      
+      // Watch for changes to the body and its children
+      observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+      });
+      
+      // Also set a timeout to check again for the container after a short delay
+      // This helps in case the DOM was just loaded but the components weren't rendered yet
+      setTimeout(() => {
+        const changelogContainer = document.getElementById('changelog-container');
+        if (changelogContainer) {
+          observer.disconnect();
+          loadChangelog(changelogContainer);
+        }
+      }, 500);
     }
-  });
+  };
+  
+  // Function to load the changelog data and update the container
+  const loadChangelog = async (container: HTMLElement) => {
+    try {
+      container.innerHTML = '<p>Loading changelog...</p>';
+      const entries = await fetchChangelog();
+      const html = generateChangelogHTML(entries);
+      container.innerHTML = html;
+    } catch (error) {
+      console.error('Error generating changelog HTML:', error);
+      container.innerHTML = '<p>Error loading changelog.</p>';
+    }
+  };
+  
+  // Start the process when the DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkForChangelogContainer);
+  } else {
+    // DOM already loaded, check for container now
+    checkForChangelogContainer();
+  }
 }
 
 // Initialize the changelog

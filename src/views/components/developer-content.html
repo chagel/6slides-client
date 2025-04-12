@@ -1,0 +1,177 @@
+<!-- Developer Section -->
+<section id="developer" class="page-section">
+  <h1>Developer Tools</h1>
+  
+  <!-- Using the same hero section structure as about page for consistent width -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h2>Tools & Resources for Development</h2>
+      <p>Advanced options to help debug, test, and explore the extension.</p>
+    </div>
+  </div>
+  
+  <!-- Debugging -->
+  <div class="setting-section">
+    <h2>Debugging</h2>
+    
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Debug Mode</div>
+        <div class="setting-description">Enable console debug messages</div>
+      </div>
+      <div class="setting-control">
+        <select id="debugLoggingSelector">
+          <option value="false">Disabled</option>
+          <option value="true">Enabled</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Clear All Caches</div>
+        <div class="setting-description">Remove all stored data and settings</div>
+      </div>
+      <div class="setting-control">
+        <button id="clearCacheBtn" style="width: auto; padding: 8px 12px; background-color: #e53935; font-size: 14px;">Clear Cache</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Log Viewer -->
+  <div class="setting-section" id="logViewerSection" style="display: block;">
+    <h2>Log Viewer</h2>
+    <div style="margin-bottom: 10px;">
+      <button id="refreshLogsBtn" style="background-color: #4caf50; margin-right: 8px;">Refresh Logs</button>
+      <button id="clearLogsBtn" style="background-color: #f44336;">Clear Logs</button>
+    </div>
+    
+    <div class="log-controls">
+      <div class="log-filters">
+        <div class="filter-group">
+          <label for="logLevelFilter">Level:</label>
+          <select id="logLevelFilter" class="log-filter">
+            <option value="all">All Levels</option>
+            <option value="debug">Debug</option>
+            <option value="info">Info</option>
+            <option value="warn">Warning</option>
+            <option value="error">Error</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="logSearchFilter">Search:</label>
+          <input type="text" id="logSearchFilter" class="log-filter" placeholder="Filter logs...">
+        </div>
+        
+        <!-- Context filter will be added via JavaScript -->
+      </div>
+      
+      <div class="log-actions">
+        <button id="copyLogsBtn" class="copy-logs-btn" title="Copy filtered logs to clipboard">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy Logs
+        </button>
+      </div>
+    </div>
+    
+    <div id="logViewer" style="height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #f8f8f8; font-family: monospace; font-size: 12px;">
+      <div style="text-align: center; padding: 20px; color: #999;">No logs available</div>
+    </div>
+  </div>
+  
+  <!-- Subscription Testing -->
+  <div class="setting-section">
+    <h2>Subscription Testing</h2>
+    <p style="font-style: italic; margin-bottom: 15px;">For development purposes only. Simulate different subscription levels.</p>
+    
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Current Subscription</div>
+        <div id="testSubscriptionStatus" style="margin-top: 5px; font-size: 14px;">
+          Level: <span id="testSubLevel">Loading...</span><br>
+          Has Pro: <span id="testHasPro">Loading...</span><br>
+          Expiry: <span id="testSubExpiry">Loading...</span>
+        </div>
+      </div>
+      <div class="setting-control" style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="setFreeBtn" style="width: auto; padding: 6px 10px; background-color: #9e9e9e; font-size: 13px;">Set FREE</button>
+        <button id="setProBtn" style="width: auto; padding: 6px 10px; background-color: #4caf50; font-size: 13px;">Set PRO (No Expiry)</button>
+        <button id="setProExpiryBtn" style="width: auto; padding: 6px 10px; background-color: #ff9800; font-size: 13px;">Set PRO (30 days)</button>
+        <button id="setProExpiredBtn" style="width: auto; padding: 6px 10px; background-color: #f44336; font-size: 13px;">Set PRO (Expired)</button>
+        <button id="setTeamBtn" style="width: auto; padding: 6px 10px; background-color: #2196f3; font-size: 13px;">Set TEAM</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Changelog -->
+  <div class="setting-section">
+    <h2>Changelog</h2>
+    <div id="changelog-container">
+      <!-- Changelog content will be dynamically generated from changelog.js -->
+    </div>
+  </div>
+  
+  <!-- License Section -->
+  <div class="license-section">
+    <h3>Open Source Components</h3>
+    
+    <div class="setting-section" style="margin-top: 15px; box-shadow: none; padding: 15px;">
+      <h4>reveal.js</h4>
+      <p>This extension includes <a href="https://revealjs.com" target="_blank">reveal.js</a>, a framework for creating presentations, which is licensed under the MIT License.</p>
+      <div class="license-text">
+        MIT License
+        Copyright (C) 2011-2024 Hakim El Hattab, http://hakim.se, and reveal.js contributors
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+        THE SOFTWARE.
+      </div>
+    </div>
+    
+    <div class="setting-section" style="margin-top: 15px; box-shadow: none; padding: 15px;">
+      <h4>Catppuccin Color Palette</h4>
+      <p>This extension includes themes based on the <a href="https://github.com/catppuccin/catppuccin" target="_blank">Catppuccin</a> color palette, which is licensed under the MIT License.</p>
+      <div class="license-text">
+        MIT License
+
+        Copyright (c) 2021 Catppuccin
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+      </div>
+    </div>
+  </div>
+</section>

@@ -67,6 +67,22 @@ function copyStaticFiles() {
     fs.copyFileSync(path.join(viewsDir, file), path.join(DIST_DIR, file));
   }
   
+  // Copy components directory
+  const componentsDir = path.join(SRC_DIR, 'views', 'components');
+  const componentsDestDir = path.join(DIST_DIR, 'components');
+  
+  if (fs.existsSync(componentsDir)) {
+    copyFiles(componentsDir, componentsDestDir);
+  }
+  
+  // Copy templates directory
+  const templatesDir = path.join(SRC_DIR, 'views', 'templates');
+  const templatesDestDir = path.join(DIST_DIR, 'templates');
+  
+  if (fs.existsSync(templatesDir)) {
+    copyFiles(templatesDir, templatesDestDir);
+  }
+  
   // Create directories for services
   const servicesDestDir = path.join(DIST_DIR, 'services');
   if (!fs.existsSync(servicesDestDir)) {
@@ -180,11 +196,14 @@ async function build() {
     console.log('Building Notion Slides extension...');
   }
   
-  // Clean dist directory
+  // Clean dist directory - add debug message
+  console.log('Cleaning dist directory for a fresh build...');
   if (fs.existsSync(DIST_DIR)) {
     fs.rmSync(DIST_DIR, { recursive: true, force: true });
+    console.log('Previous dist directory removed');
   }
   fs.mkdirSync(DIST_DIR);
+  console.log('Created fresh dist directory');
   
   // Copy static files
   copyStaticFiles();
