@@ -9,6 +9,7 @@ import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
 import { configManager } from '../../models/config_manager';
 import { debugService } from '../../services/debug_service';
+import { authService } from '../../services/auth_service';
 import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';
 
@@ -191,6 +192,9 @@ class PopupController {
   private async handleConvertClick(): Promise<void> {
     // Disable button during processing
     this.convertBtn.disabled = true;
+
+    //TODO: implement subscription check
+    // await authService.validateSubscriptionDataAtStartup();
     
     // Log subscription status when beginning extraction
     const hasPro = await configManager.hasPro();

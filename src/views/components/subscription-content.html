@@ -17,6 +17,63 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
     transition: all 0.2s ease;
   }
+  
+  .login-button, .logout-button {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-decoration: none;
+  }
+  
+  .login-button {
+    background-color: #3e8bf4;
+    color: white;
+    box-shadow: 0 2px 6px rgba(62, 139, 244, 0.3);
+  }
+  
+  .login-button:hover {
+    background-color: #2e7be4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(62, 139, 244, 0.4);
+  }
+  
+  .logout-button {
+    background-color: #f0f1f5;
+    color: #505F79;
+  }
+  
+  .logout-button:hover {
+    background-color: #e2e4ea;
+    color: #344563;
+  }
+  
+  .user-info {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 16px;
+  }
+  
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e2e4ea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-weight: 600;
+    color: #505F79;
+  }
 </style>
 
 <section id="subscription" class="page-section">
@@ -31,6 +88,37 @@
   </div>
 
   <div class="about-section">
+    <!-- Login Section -->
+    <div class="login-section" style="margin-bottom: 30px; display: flex; justify-content: flex-end;">
+      <!-- User Info (shown when logged in) -->
+      <div id="userInfoSection" style="display: none;">
+        <div class="user-info">
+          <div class="user-avatar">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#505F79" stroke-width="2" fill="none">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div style="flex-grow: 1;">
+            <div id="userEmail" style="font-weight: 500;">user@example.com</div>
+          </div>
+          <button id="logoutButton" class="logout-button">Log Out</button>
+        </div>
+      </div>
+      
+      <!-- Login Button (shown when not logged in) -->
+      <div id="loginSection">
+        <button id="loginButton" class="login-button">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="vertical-align: middle; margin-right: 6px;">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          Log In
+        </button>
+      </div>
+    </div>
+    
     <!-- Enhanced Subscription Section -->
     <div class="subscription-section" style="margin-top: 20px; padding: 30px; border-radius: 12px; background: linear-gradient(150deg, #f8f9fa, #f0f1f5); box-shadow: 0 8px 24px rgba(0,0,0,0.05);">
       <h2 style="text-align: center; color: #333; margin-bottom: 24px;">Your Subscription</h2>
@@ -55,6 +143,19 @@
           <h3 style="margin: 0 0 16px; font-size: 20px; color: #333;">Upgrade to Pro for Unlimited Slides</h3>
           
           <p style="color: #505F79; margin-bottom: 20px;">You're currently limited to 10 slides per presentation. Unlock <strong>all features</strong> with Pro.</p>
+          
+          <!-- Account Login Prompt -->
+          <div id="accountPrompt" style="background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 20px; border-left: 3px solid #3e8bf4;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg viewBox="0 0 24 24" width="20" height="20" style="min-width: 20px; color: #3e8bf4;">
+                <circle cx="12" cy="12" r="10" fill="rgba(62, 139, 244, 0.1)" stroke="none"></circle>
+                <path d="M12 8v4M12 16h.01" stroke="#3e8bf4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              <span style="color: #344563; font-size: 13px;">
+                <span style="font-weight: 500;">Create an account</span> to save your subscription and access from any device
+              </span>
+            </div>
+          </div>
           
           <div class="features-comparison" style="display: flex; justify-content: space-between; text-align: left; margin-bottom: 24px;">
             <div style="flex: 1;">

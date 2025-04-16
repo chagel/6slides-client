@@ -6,6 +6,7 @@
 
 import { loggingService } from '../../services/logging_service';
 import { configManager, SubscriptionLevel } from '../../models/config_manager';
+import { authService } from '../../services/auth_service';
 
 /**
  * Controller for the subscription section
@@ -18,6 +19,13 @@ export class SubscriptionController {
   private manageButton: HTMLElement | null;
   private upgradeButton: HTMLElement | null;
   
+  // Login elements
+  private loginSection: HTMLElement | null;
+  private loginButton: HTMLElement | null;
+  private logoutButton: HTMLElement | null;
+  private userInfoSection: HTMLElement | null;
+  private userEmail: HTMLElement | null;
+  
   /**
    * Initialize the subscription controller
    */
@@ -29,8 +37,16 @@ export class SubscriptionController {
     this.manageButton = document.getElementById('manageSubscription');
     this.upgradeButton = document.getElementById('upgradeProButton');
     
+    // Login elements
+    this.loginSection = document.getElementById('loginSection');
+    this.loginButton = document.getElementById('loginButton');
+    this.logoutButton = document.getElementById('logoutButton');
+    this.userInfoSection = document.getElementById('userInfoSection');
+    this.userEmail = document.getElementById('userEmail');
+    
     this.bindEventHandlers();
     this.updateSubscriptionUI();
+    this.updateLoginUI();
   }
   
   /**
@@ -44,6 +60,15 @@ export class SubscriptionController {
     
     if (this.upgradeButton) {
       this.upgradeButton.addEventListener('click', this.handleUpgradeClick.bind(this));
+    }
+    
+    // Login buttons
+    if (this.loginButton) {
+      this.loginButton.addEventListener('click', this.handleLoginClick.bind(this));
+    }
+    
+    if (this.logoutButton) {
+      this.logoutButton.addEventListener('click', this.handleLogoutClick.bind(this));
     }
   }
   
@@ -255,5 +280,139 @@ export class SubscriptionController {
   private handleManageClick(): void {
     // Open subscription management page
     chrome.tabs.create({ url: chrome.runtime.getURL('landing.html#pricing') });
+  }
+  
+  /**
+   * Handle login button click
+   */
+  private async handleLoginClick(): Promise<void> {
+    try {
+      // Start the login process
+      const userInfo = await authService.signIn();
+      
+      if (userInfo) {
+        loggingService.debug('Login successful', { 
+          email: userInfo.email,
+          subscription: userInfo.subscription?.level
+        });
+        
+        // Update both login and subscription UIs
+        this.updateLoginUI();
+        this.updateSubscriptionUI();
+        
+        // Show a notification if the user has a pro subscription
+        if (userInfo.subscription?.level?.toLowerCase() === 'pro') {
+          this.showSubscriptionActivatedNotification();
+        }
+      } else {
+        loggingService.error('Login failed');
+      }
+    } catch (error) {
+      loggingService.error('Error during login', error);
+    }
+  }
+  
+  /**
+   * Show notification when subscription is activated
+   */
+  private showSubscriptionActivatedNotification(): void {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.bottom = '20px';
+    notification.style.right = '20px';
+    notification.style.backgroundColor = '#10B981';
+    notification.style.color = 'white';
+    notification.style.padding = '12px 20px';
+    notification.style.borderRadius = '8px';
+    notification.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+    notification.style.zIndex = '9999';
+    notification.style.display = 'flex';
+    notification.style.alignItems = 'center';
+    notification.style.gap = '12px';
+    notification.style.fontWeight = '500';
+    notification.style.animation = 'fadeIn 0.3s, fadeOut 0.3s 5s forwards';
+    
+    // Add styles for animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Add content
+    notification.innerHTML = `
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span>Pro subscription successfully activated!</span>
+    `;
+    
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Remove after animation completes
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 5500);
+  }
+  
+  /**
+   * Handle logout button click
+   */
+  private async handleLogoutClick(): Promise<void> {
+    try {
+      // Sign out
+      await authService.signOut();
+      
+      // Update the UI
+      this.updateLoginUI();
+      
+      loggingService.debug('Logout successful');
+    } catch (error) {
+      loggingService.error('Error during logout', error);
+    }
+  }
+  
+  /**
+   * Update the login UI based on authentication state
+   */
+  async updateLoginUI(): Promise<void> {
+    try {
+      const isLoggedIn = await authService.isLoggedIn();
+      const user = await authService.getCurrentUser();
+      
+      // Show/hide login sections based on auth state
+      if (this.loginSection) {
+        this.loginSection.style.display = isLoggedIn ? 'none' : 'block';
+      }
+      
+      if (this.userInfoSection) {
+        this.userInfoSection.style.display = isLoggedIn ? 'block' : 'none';
+      }
+      
+      // Update user email if logged in
+      if (isLoggedIn && user && this.userEmail) {
+        this.userEmail.textContent = user.email;
+      }
+      
+      // Show/hide account prompt in free subscription section
+      const accountPrompt = document.getElementById('accountPrompt');
+      if (accountPrompt) {
+        accountPrompt.style.display = isLoggedIn ? 'none' : 'block';
+      }
+      
+      loggingService.debug('Login UI updated', { isLoggedIn });
+    } catch (error) {
+      loggingService.error('Error updating login UI', error);
+    }
   }
 }

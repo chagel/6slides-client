@@ -16,7 +16,6 @@ messagingService.addMessageListener((message) => {
   if (message.action === 'open_viewer') {
     return openViewer();
   }
-  
   // Default response for unhandled messages
   return { error: 'Unhandled message action: ' + message.action };
 });

@@ -34,6 +34,10 @@ export interface Config {
   subscriptionLevel: SubscriptionLevel;
   subscriptionExpiry: number | null; // timestamp
   
+  // User authentication
+  userEmail: string | null;
+  userToken: string | null;
+  
   // Allow additional properties
   [key: string]: any;
 }
@@ -62,7 +66,11 @@ export const DEFAULT_CONFIG: Config = {
   
   // Subscription settings
   subscriptionLevel: SubscriptionLevel.FREE,
-  subscriptionExpiry: null
+  subscriptionExpiry: null,
+  
+  // User authentication
+  userEmail: null,
+  userToken: null
 };
 
 /**

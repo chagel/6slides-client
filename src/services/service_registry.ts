@@ -16,6 +16,7 @@ import { debugService } from './debug_service';
 import { templateService } from './template_service';
 import { pageLoader } from './page_loader';
 import { content_controller } from '../controllers/content_controller';
+import { authService } from './auth_service';
 
 interface LoggingOptions {
   debugEnabled: boolean;
@@ -41,6 +42,7 @@ export function registerServices(): void {
   container.register('debugService', debugService);
   container.register('templateService', templateService);
   container.register('pageLoader', pageLoader);
+  container.register('authService', authService);
   
   // Initialize loggingService (still used as a singleton through direct imports)
   loggingService.initialize({
