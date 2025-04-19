@@ -4,6 +4,8 @@
  * Handles communication between extension components
  */
 
+import { loggingService } from './logging_service';
+
 /**
  * Message interface
  */
@@ -35,7 +37,7 @@ class MessagingService {
       try {
         chrome.tabs.sendMessage(tabId, message, (response) => {
           if (chrome.runtime.lastError) {
-            console.error('Error sending message to content script', chrome.runtime.lastError);
+            loggingService.error('Error sending message to content script', { error: chrome.runtime.lastError }, 'messaging_service');
             reject(chrome.runtime.lastError);
             return;
           }
@@ -48,7 +50,7 @@ class MessagingService {
           reject(new Error('Message timeout: No response from content script'));
         }, 10000); // 10 seconds timeout
       } catch (error) {
-        console.error('Failed to send message to content script', error);
+        loggingService.error('Failed to send message to content script', { error }, 'messaging_service');
         reject(error);
       }
     });
@@ -64,7 +66,7 @@ class MessagingService {
       try {
         chrome.runtime.sendMessage(message, (response) => {
           if (chrome.runtime.lastError) {
-            console.error('Error sending message to background script', chrome.runtime.lastError);
+            loggingService.error('Error sending message to background script', { error: chrome.runtime.lastError }, 'messaging_service');
             reject(chrome.runtime.lastError);
             return;
           }
@@ -77,7 +79,7 @@ class MessagingService {
           reject(new Error('Message timeout: No response from background script'));
         }, 5000); // 5 seconds timeout
       } catch (error) {
-        console.error('Failed to send message to background script', error);
+        loggingService.error('Failed to send message to background script', { error }, 'messaging_service');
         reject(error);
       }
     });
@@ -103,7 +105,7 @@ class MessagingService {
           result
             .then(sendResponse)
             .catch(error => {
-              console.error('Error in async message listener', error);
+              loggingService.error('Error in async message listener', { error }, 'messaging_service');
               sendResponse({ error: (error as Error).message });
             });
           
@@ -114,7 +116,7 @@ class MessagingService {
           return false;
         }
       } catch (error) {
-        console.error('Error in message listener', error);
+        loggingService.error('Error in message listener', { error }, 'messaging_service');
         sendResponse({ error: (error as Error).message });
         return false;
       }

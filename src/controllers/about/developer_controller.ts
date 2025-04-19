@@ -6,6 +6,7 @@
 
 import { configManager } from '../../models/config_manager';
 import { storage } from '../../models/storage';
+import { loggingService } from '../../services/logging_service';
 
 /**
  * Controller for the developer tools section
@@ -47,7 +48,7 @@ export class DeveloperController {
         debugLoggingSelector.value = debugEnabled ? 'true' : 'false';
       }
     } catch (error) {
-      console.error('Error initializing debug settings:', error);
+      loggingService.error('Error initializing debug settings', { error }, 'developer_controller');
     }
   }
   
@@ -60,9 +61,9 @@ export class DeveloperController {
     
     try {
       await configManager.setValue('debugLogging', value);
-      console.log(`Debug logging ${value ? 'enabled' : 'disabled'}`);
+      loggingService.debug(`Debug logging ${value ? 'enabled' : 'disabled'}`, {}, 'developer_controller');
     } catch (error) {
-      console.error('Error saving debug setting:', error);
+      loggingService.error('Error saving debug setting', { error }, 'developer_controller');
     }
   }
   
@@ -76,7 +77,7 @@ export class DeveloperController {
         await storage.clearAll();
         // Reset config to defaults
         await configManager.resetToDefaults();
-        console.log('Cache cleared successfully');
+        loggingService.debug('Cache cleared successfully', {}, 'developer_controller');
         
         // Show a success message to the user
         const clearCacheBtn = document.getElementById('clearCacheBtn');
@@ -91,7 +92,7 @@ export class DeveloperController {
           }, 2000);
         }
       } catch (error) {
-        console.error('Error clearing cache:', error);
+        loggingService.error('Error clearing cache', { error }, 'developer_controller');
         alert('Error clearing cache. Please try again.');
       }
     }

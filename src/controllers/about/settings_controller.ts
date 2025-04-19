@@ -52,7 +52,7 @@ export class SettingsController {
       await this.loadSettings();
       loggingService.debug('Settings loaded successfully');
     } catch (error) {
-      console.error('Error initializing settings:', error);
+      loggingService.error('Error initializing settings', { error }, 'settings_controller');
     }
   }
   
@@ -124,7 +124,7 @@ export class SettingsController {
         loggingService.setDebugLogging(debugLogging === 'true');
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      loggingService.error('Error loading settings', { error }, 'settings_controller');
     }
   }
   

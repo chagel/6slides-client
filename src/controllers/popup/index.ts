@@ -81,8 +81,8 @@ class PopupController {
         },
         'popup'  // Context identifier for logging
       );
-    } catch (error) {
-      console.error('Error setting up debug indicator:', error);
+    } catch (_) {
+      // Error handled silently - debug indicator is not critical
     }
   }
   
