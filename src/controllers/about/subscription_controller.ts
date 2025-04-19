@@ -260,7 +260,7 @@ export class SubscriptionController {
     const upgradeButton = overlay.querySelector('.pro-overlay-button');
     if (upgradeButton) {
       upgradeButton.addEventListener('click', () => {
-        this.handleUpgradeClick(new MouseEvent('click'));
+        chrome.tabs.create({ url: 'https://6slides.com/subscription' });
         document.body.removeChild(overlay);
       });
     }
@@ -291,7 +291,7 @@ export class SubscriptionController {
    */
   private handleUpgradeClick(e: MouseEvent): void {
     e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('landing.html#pricing') });
+    chrome.tabs.create({ url: 'https://6slides.com/subscription' });
   }
   
   /**
@@ -299,7 +299,7 @@ export class SubscriptionController {
    */
   private handleManageClick(): void {
     // Open subscription management page
-    chrome.tabs.create({ url: chrome.runtime.getURL('landing.html#pricing') });
+    chrome.tabs.create({ url: 'https://6slides.com/subscription' });
   }
   
   /**
