@@ -1,15 +1,9 @@
 /**
  * Notion to Slides - Logging Service
  * 
- * Centralized logging functionality with support for different levels and destinations.
+ * Centralized logging functionality with support for different levels.
  * Provides core logging capabilities for the entire application.
- * 
- * Note: LoggingService is used as a singleton through direct imports throughout the
- * codebase for simplicity. It provides fundamental logging capabilities that other
- * components rely on.
  */
-
-import { storage } from '../models/storage';
 
 /**
  * Log levels in order of increasing severity
@@ -29,8 +23,6 @@ export interface LoggingConfig {
   debugEnabled?: boolean;
   logLevel?: LogLevel;
   prefix?: string;
-  storeDebugLogs?: boolean;
-  logConsole?: boolean;
   maxStoredLogs?: number;
 }
 
@@ -46,8 +38,6 @@ export interface LogEntry {
   errorProps?: Record<string, unknown>;
   data?: unknown;
   metadata?: Record<string, unknown>;
-  error?: string | Error; // Additional error field for compatibility
-  context?: string; // Direct context property for compatibility
 }
 
 /**
@@ -67,19 +57,15 @@ class LoggingService {
   private _debugEnabled: boolean;
   private _logLevel: LogLevel;
   private _prefix: string;
-  private _storeDebugLogs: boolean;
   private _maxStoredLogs: number;
-  private _logConsole: boolean;
 
   constructor() {
-    // Default configuration - all logging is silenced by default
+    // Default configuration
     this._enabled = true;       // Master switch for all logging
     this._debugEnabled = true;  // Debug-level logging enabled for development
     this._logLevel = LogLevel.DEBUG;
     this._prefix = '[Notion Slides]';
-    this._storeDebugLogs = true;  // Store all logs in localStorage/IndexedDB
     this._maxStoredLogs = 100;    // Maximum number of logs to keep in storage
-    this._logConsole = false;     // Console logging disabled by default to reduce console noise
   }
 
   /**
@@ -91,16 +77,11 @@ class LoggingService {
     if (typeof config.debugEnabled === 'boolean') this._debugEnabled = config.debugEnabled;
     if (config.logLevel) this._logLevel = config.logLevel;
     if (config.prefix) this._prefix = config.prefix;
-    if (typeof config.storeDebugLogs === 'boolean') this._storeDebugLogs = config.storeDebugLogs;
-    if (typeof config.logConsole === 'boolean') this._logConsole = config.logConsole;
     if (typeof config.maxStoredLogs === 'number') this._maxStoredLogs = config.maxStoredLogs;
     
-    // The debug method has its own checks for debugEnabled and will not log if it's false
     this.debug('Logging service initialized', { 
       debugEnabled: this._debugEnabled,
-      logLevel: this._logLevel,
-      storeDebugLogs: this._storeDebugLogs,
-      logConsole: this._logConsole
+      logLevel: this._logLevel
     });
   }
 
@@ -109,11 +90,8 @@ class LoggingService {
    * @param enabled - Whether debug logging should be enabled
    */
   setDebugLogging(enabled: boolean | string): void {
-    // Handle both boolean and string values
     const isEnabled = enabled === true || enabled === 'true';
-    
     this._debugEnabled = isEnabled;
-    // The debug method itself checks if debugEnabled is true before logging
     this.debug(`Debug logging ${isEnabled ? 'enabled' : 'disabled'}`);
   }
 
@@ -125,14 +103,6 @@ class LoggingService {
     return this._debugEnabled;
   }
 
-  /**
-   * Set whether to store debug logs
-   * @param enabled - Whether to store debug logs
-   */
-  setStoreDebugLogs(enabled: boolean): void {
-    this._storeDebugLogs = enabled;
-    this.debug(`Debug log storage ${enabled ? 'enabled' : 'disabled'}`);
-  }
 
   /**
    * Set the minimum log level
@@ -152,36 +122,19 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   debug(message: string, data?: unknown, context?: string): void {
-    // Only log to console if console logging is enabled
-    if (this._logConsole) {
-      console.debug(`[${context || this._getContextType()}] ${message}`, data || '');
-    }
+    if (!this._enabled || !this._debugEnabled) return;
     
-    // We want to save ALL debug logs to storage, regardless of debug mode
-    // This ensures critical logs are captured and can be viewed in the log viewer
+    console.debug(`${this._prefix} [${context || this._getContextType()}] ${message}`, data || '');
     
-    // Create metadata with context if provided
-    const metadata = context ? { context } : undefined;
-    
-    // Create a log entry manually to bypass normal filtering
-    const logEntry: LogEntry = {
+    this._storeLog({
       level: LogLevel.DEBUG,
       message,
       timestamp: new Date().toISOString(),
+      data: data ? this._summarizeData(data) : undefined,
       metadata: {
-        ...(metadata || {}),
-        context: context || this._getContextType(),
-        timestamp: new Date().toISOString()
+        context: context || this._getContextType()
       }
-    };
-    
-    // Add data if provided
-    if (data !== undefined) {
-      logEntry.data = this._summarizeData(data);
-    }
-    
-    // Store the log directly
-    this._storeLog(logEntry);
+    });
   }
 
   /**
@@ -191,33 +144,19 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   info(message: string, data?: unknown, context?: string): void {
-    // Only log to console if console logging is enabled
-    if (this._logConsole) {
-      console.info(`[${context || this._getContextType()}] ${message}`, data || '');
-    }
+    if (!this._enabled) return;
     
-    // Create metadata with context if provided
-    const metadata = context ? { context } : undefined;
+    console.info(`${this._prefix} [${context || this._getContextType()}] ${message}`, data || '');
     
-    // Create a log entry manually to bypass normal filtering
-    const logEntry: LogEntry = {
+    this._storeLog({
       level: LogLevel.INFO,
       message,
       timestamp: new Date().toISOString(),
+      data: data ? this._summarizeData(data) : undefined,
       metadata: {
-        ...(metadata || {}),
-        context: context || this._getContextType(),
-        timestamp: new Date().toISOString()
+        context: context || this._getContextType()
       }
-    };
-    
-    // Add data if provided
-    if (data !== undefined) {
-      logEntry.data = this._summarizeData(data);
-    }
-    
-    // Store the log directly
-    this._storeLog(logEntry);
+    });
   }
 
   /**
@@ -227,33 +166,19 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   warn(message: string, data?: unknown, context?: string): void {
-    // Only log to console if console logging is enabled
-    if (this._logConsole) {
-      console.warn(`[${context || this._getContextType()}] ${message}`, data || '');
-    }
+    if (!this._enabled) return;
     
-    // Create metadata with context if provided
-    const metadata = context ? { context } : undefined;
+    console.warn(`${this._prefix} [${context || this._getContextType()}] ${message}`, data || '');
     
-    // Create a log entry manually to bypass normal filtering
-    const logEntry: LogEntry = {
+    this._storeLog({
       level: LogLevel.WARN,
       message,
       timestamp: new Date().toISOString(),
+      data: data ? this._summarizeData(data) : undefined,
       metadata: {
-        ...(metadata || {}),
-        context: context || this._getContextType(),
-        timestamp: new Date().toISOString()
+        context: context || this._getContextType()
       }
-    };
-    
-    // Add data if provided
-    if (data !== undefined) {
-      logEntry.data = this._summarizeData(data);
-    }
-    
-    // Store the log directly
-    this._storeLog(logEntry);
+    });
   }
 
   /**
@@ -263,33 +188,30 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   error(message: string, data?: unknown, context?: string): void {
-    // Extract error if it's in the data.error property (from ErrorService)
-    const error: any = data;
-    const contextValue = context || this._getContextType();
+    if (!this._enabled) return;
     
-    // Always log errors to console, even if console logging is disabled
-    // This ensures critical errors are not missed
-    console.error(`[${contextValue}] ${this._prefix} ${message}`, data || '');
+    const contextValue = context || this._getContextType();
+    console.error(`${this._prefix} [${contextValue}] ${message}`, data || '');
     
     // Log stack trace for errors
-    if (error && (error as Error).stack) {
-      console.error(`[${contextValue}] Stack trace:`, (error as Error).stack);
+    if (data instanceof Error && data.stack) {
+      console.error(`${this._prefix} [${contextValue}] Stack trace:`, data.stack);
     }
     
-    // Extract error properties to include in log
+    // Extract error properties for storage
     let errorMessage: string | undefined;
     let stack: string | undefined;
     let errorProps: Record<string, unknown> | undefined;
     
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      stack = error.stack;
+    if (data instanceof Error) {
+      errorMessage = data.message;
+      stack = data.stack;
       
       // Collect additional error properties
       errorProps = {};
-      for (const key in error) {
+      for (const key in data) {
         if (key !== 'message' && key !== 'stack') {
-          errorProps[key] = (error as any)[key];
+          errorProps[key] = (data as any)[key];
         }
       }
       if (Object.keys(errorProps).length === 0) {
@@ -297,135 +219,18 @@ class LoggingService {
       }
     }
     
-    // Create log entry directly
-    const logEntry: LogEntry = {
+    this._storeLog({
       level: LogLevel.ERROR,
       message,
       timestamp: new Date().toISOString(),
-      // Include error details in log entry
       errorMessage,
       stack,
       errorProps,
+      data: data instanceof Error ? undefined : this._summarizeData(data),
       metadata: {
-        context: contextValue,
-        timestamp: new Date().toISOString()
+        context: contextValue
       }
-    };
-    
-    // Add data if it's not the error itself
-    if (data !== undefined && data !== error) {
-      logEntry.data = this._summarizeData(data);
-    }
-    
-    // Store the log directly
-    this._storeLog(logEntry);
-  }
-
-  /**
-   * Internal logging method
-   * @param level - Log level
-   * @param message - Message to log
-   * @param data - Optional data
-   * @param error - Optional error object 
-   * @param metadata - Optional metadata
-   * @private
-   */
-  private _logMessage(
-    level: LogLevel, 
-    message: string, 
-    data?: unknown, 
-    error?: unknown, 
-    metadata?: Record<string, unknown>
-  ): void {
-    const fullMessage = `${this._prefix} ${message}`;
-    const timestamp = new Date().toISOString();
-    
-    // Log to console selectively based on settings
-    // Always log errors regardless of console logging setting
-    if (this._logConsole || level === LogLevel.ERROR) {
-      switch (level) {
-        case LogLevel.DEBUG:
-          if (this._logConsole) console.debug(fullMessage, data || '');
-          break;
-        case LogLevel.INFO:
-          if (this._logConsole) console.info(fullMessage, data || '');
-          break;
-        case LogLevel.WARN:
-          if (this._logConsole) console.warn(fullMessage, data || '');
-          break;
-        case LogLevel.ERROR:
-          console.error(fullMessage, data || '');
-          
-          // Log stack trace for errors
-          if (error && (error as Error).stack) {
-            console.error('Stack trace:', (error as Error).stack);
-          }
-          break;
-        default:
-          if (this._logConsole) console.log(fullMessage, data || '');
-      }
-    }
-    
-    // Store log if enabled for this level
-    if (this._shouldStoreLog(level)) {
-      const logEntry: Partial<LogEntry> = {
-        level,
-        message,
-        timestamp
-      };
-      
-      // Extract error properties if available
-      if (error instanceof Error) {
-        logEntry.errorMessage = error.message;
-        logEntry.stack = error.stack;
-        
-        // Add any additional properties from the error
-        const errorProps: Record<string, unknown> = {};
-        for (const key in error) {
-          if (key !== 'message' && key !== 'stack') {
-            errorProps[key] = (error as any)[key];
-          }
-        }
-        
-        if (Object.keys(errorProps).length > 0) {
-          logEntry.errorProps = errorProps;
-        }
-      }
-      
-      // Add data if available (summarized to avoid large objects)
-      if (data !== undefined && data !== null) {
-        if (data !== error) { // Don't duplicate error data
-          logEntry.data = this._summarizeData(data);
-        }
-      }
-      
-      // Add metadata if available
-      if (metadata) {
-        logEntry.metadata = metadata;
-      }
-      
-      this._storeLog(logEntry as LogEntry);
-    }
-  }
-
-  /**
-   * Determine if this log level should be stored
-   * @param level - Log level
-   * @returns Whether to store this log
-   * @private
-   */
-  private _shouldStoreLog(level: LogLevel): boolean {
-    // If we're explicitly told to store debug logs, store all log levels
-    if (this._storeDebugLogs) {
-      return true;
-    }
-    
-    // Even if not storing debug logs generally, always store errors and warnings
-    if (level === LogLevel.ERROR || level === LogLevel.WARN || level === LogLevel.INFO) {
-      return true;
-    }
-    
-    return false;
+    });
   }
 
   /**
@@ -510,92 +315,51 @@ class LoggingService {
     return data;
   }
 
-  // No need for setStorageService as we're using direct import
-  
   /**
-   * Set console logging enabled state
-   * @param enabled - Whether to log to console
-   */
-  setConsoleLogging(enabled: boolean): void {
-    this._logConsole = enabled;
-    this.debug(`Console logging ${enabled ? 'enabled' : 'disabled'}`);
-  }
-
-  private _storeLog(logEntry: LogEntry): void {
-    try {
-      // Get existing metadata or create empty object
-      const existingMetadata = logEntry.metadata || {};
-      
-      // Add context information to the log - only use auto-detection if no explicit context
-      logEntry.metadata = {
-        ...existingMetadata,
-        // Only use auto-detected context if no explicit context was provided
-        context: existingMetadata.context || this._getContextType(),
-        timestamp: new Date().toISOString()
-      };
-      
-      // Log to console with context info for debugging
-      if (this._logConsole && this._debugEnabled) {
-        console.debug(
-          `[${logEntry.metadata.context}] [${logEntry.level}] ${logEntry.message}`, 
-          logEntry.data || ''
-        );
-      }
-      
-      // Save directly to IndexedDB using storage service
-      this._saveLogToIDB(logEntry);
-    } catch (error) {
-      // Don't use this.error to avoid potential infinite recursion
-      // Only log critical errors when console is enabled
-      if (this._logConsole) {
-        console.error(`${this._prefix} Failed to store log`, error);
-      }
-    }
-  }
-  
-  /**
-   * Save log entry to IndexedDB using the storage module
-   * @param logEntry - Log entry to save
+   * Store a log entry using chrome.storage.local
+   * @param logEntry - Log entry to store
    * @private
    */
-  private _saveLogToIDB(logEntry: LogEntry): void {
-    // Only debug log in development - removed for production
-    
-    // Ensure log has a context if it doesn't already
-    if (!logEntry.metadata || !logEntry.metadata.context) {
-      logEntry.metadata = {
-        ...(logEntry.metadata || {}),
-        context: this._getContextType()
-      };
-    }
-    
-    // Ensure log has a timestamp
-    logEntry.timestamp = logEntry.timestamp || new Date().toISOString();
-    
+  private _storeLog(logEntry: LogEntry): void {
     try {
-      // Create a direct log entry copy to ensure it's completely standalone
-      const directLog = {
-        ...logEntry,
-        // Ensure metadata is properly structured
-        metadata: {
-          ...(logEntry.metadata || {}),
-          timestamp: logEntry.timestamp,
-          // Use explicit context if provided, or get from environment
-          context: logEntry.metadata?.context || this._getContextType()
-        }
-      };
+      // Ensure the entry has a timestamp
+      logEntry.timestamp = logEntry.timestamp || new Date().toISOString();
       
-      // Save directly to avoid any transformation or filtering
-      storage.saveDebugLog(directLog).catch(err => {
-        console.error('Failed to save log to IDB', err);
-      });
+      // Generate a unique ID for the log entry
+      const id = `log_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      
+      // Use chrome.storage.local to store the log
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        // First, get existing logs
+        chrome.storage.local.get(['logs'], (result) => {
+          let logs = result.logs || [];
+          
+          // Add new log entry
+          logs.push({
+            id,
+            ...logEntry
+          });
+          
+          // Limit the number of stored logs
+          if (logs.length > this._maxStoredLogs) {
+            logs = logs.slice(-this._maxStoredLogs);
+          }
+          
+          // Save back to storage
+          chrome.storage.local.set({ logs }, () => {
+            if (chrome.runtime.lastError) {
+              console.error('Failed to save log to chrome.storage', chrome.runtime.lastError);
+            }
+          });
+        });
+      }
     } catch (error) {
-      console.error('Failed to save log to IDB', error);
+      console.error('Failed to store log', error);
     }
   }
-  
+
   /**
-   * Get the current context type
+   * Get the current execution context type
    * @returns Context type string
    * @private
    */
@@ -638,97 +402,64 @@ class LoggingService {
   }
 
   /**
-   * Get stored logs
-   * @returns Array of log entries
-   * @private
-   */
-  private async _fetchLogsFromIDB(): Promise<LogEntry[]> {
-    try {
-      // Get the most recent 200 logs from IndexedDB
-      const logs = await storage.getDebugLogs(200);
-      return logs;
-    } catch (error) {
-      console.error('Error fetching logs from IndexedDB', error);
-      return [];
-    }
-  }
-  
-  private _getStoredLogs(): LogEntry[] {
-    // Since we need a synchronous response but IndexedDB is async,
-    // just return an empty array - we'll rely on the async methods
-    // to get the actual logs when needed
-    return [];
-  }
-
-  /**
-   * Get all stored logs
-   * @returns Array of log entries
-   */
-  getStoredLogs(): LogEntry[] {
-    return this._getStoredLogs();
-  }
-
-  /**
-   * Get filtered logs by level and/or context
+   * Get logs from chrome.storage
    * @param options - Filter options
-   * @returns Filtered log entries
+   * @returns Promise resolving to filtered logs
    */
-  getFilteredLogs(options: LogFilterOptions = {}): LogEntry[] {
-    const logs = this._getStoredLogs();
-    
-    // Apply filters
-    let filtered = logs;
-    
-    if (options.level) {
-      filtered = filtered.filter(log => log.level === options.level);
-    }
-    
-    if (options.context && filtered.length > 0) {
-      filtered = filtered.filter(log => {
-        // Check if context exists in metadata
-        return log.metadata && log.metadata.context === options.context;
-      });
-    }
-    
-    // Apply limit
-    if (options.limit && filtered.length > options.limit) {
-      filtered = filtered.slice(0, options.limit);
-    }
-    
-    return filtered;
-  }
-
-  /**
-   * Clear stored logs
-   */
-  clearStoredLogs(): void {
-    try {
-      // Clear logs through the storage service
-      storage.clearLogs();
-      
-      // Debug logs cleared
-    } catch (error) {
-      // Only log when console logging is enabled
-      if (this._logConsole) {
-        console.error(`${this._prefix} Failed to clear logs`, error);
+  async getLogs(options: LogFilterOptions = {}): Promise<LogEntry[]> {
+    return new Promise((resolve) => {
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.get(['logs'], (result) => {
+          let logs: LogEntry[] = result.logs || [];
+          
+          // Apply filters
+          if (options.level) {
+            logs = logs.filter((log: LogEntry) => log.level === options.level);
+          }
+          
+          if (options.context) {
+            logs = logs.filter((log: LogEntry) => 
+              log.metadata && log.metadata.context === options.context
+            );
+          }
+          
+          // Sort by timestamp (newest first)
+          logs.sort((a: LogEntry, b: LogEntry) => {
+            const aTime = a.timestamp || '';
+            const bTime = b.timestamp || '';
+            return bTime.localeCompare(aTime);
+          });
+          
+          // Apply limit
+          if (options.limit && logs.length > options.limit) {
+            logs = logs.slice(0, options.limit);
+          }
+          
+          resolve(logs);
+        });
+      } else {
+        resolve([]);
       }
-    }
+    });
   }
 
   /**
-   * Convert log level to numeric severity value for comparison
-   * @param level - Log level
-   * @returns Severity value
-   * @private
+   * Clear all stored logs
+   * @returns Promise that resolves when logs are cleared
    */
-  private _getSeverityValue(level: LogLevel): number {
-    switch (level) {
-      case LogLevel.DEBUG: return 0;
-      case LogLevel.INFO: return 1;
-      case LogLevel.WARN: return 2;
-      case LogLevel.ERROR: return 3;
-      default: return 1; // Default to INFO level
-    }
+  async clearLogs(): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.remove(['logs'], () => {
+          if (chrome.runtime.lastError) {
+            console.error('Failed to clear logs', chrome.runtime.lastError);
+          }
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
   }
 }
 

@@ -147,8 +147,8 @@ export const loggingService = {
   setDebugLogging: jest.fn(),
   setLogLevel: jest.fn(),
   isDebugLoggingEnabled: jest.fn().mockReturnValue(false),
-  getStoredLogs: jest.fn().mockReturnValue([]),
-  getFilteredLogs: jest.fn().mockReturnValue([])
+  getLogs: jest.fn().mockResolvedValue([]),
+  clearLogs: jest.fn().mockResolvedValue(undefined)
 };
 
 // In test file:

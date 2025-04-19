@@ -16,11 +16,8 @@ export const loggingService = {
   error: jest.fn(),
   setDebugLogging: jest.fn(),
   setLogLevel: jest.fn(),
-  setStoreDebugLogs: jest.fn(),
   initialize: jest.fn(),
-  setConsoleLogging: jest.fn(),
-  isDebugLoggingEnabled: jest.fn().mockReturnValue(false),
-  getStoredLogs: jest.fn().mockReturnValue([]),
-  getFilteredLogs: jest.fn().mockReturnValue([]),
-  clearStoredLogs: jest.fn()
+  isDebugLoggingEnabled: jest.fn(() => false),
+  getLogs: jest.fn(() => Promise.resolve([])),
+  clearLogs: jest.fn(() => Promise.resolve())
 };

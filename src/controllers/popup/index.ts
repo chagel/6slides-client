@@ -10,7 +10,6 @@ import { storage } from '../../models/storage';
 import { configManager } from '../../models/config_manager';
 import { debugService } from '../../services/debug_service';
 import { authService } from '../../services/auth_service';
-import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';
 
 /**
@@ -234,18 +233,15 @@ class PopupController {
       if (response && response.slides && response.slides.length > 0) {
         this.updateStatus(`Found ${response.slides.length} slides! Creating presentation...`, 'ready');
         
-        // Store debug info
-        const debugInfo: Partial<DebugInfo> = {
-          timestamp: new Date().toISOString(),
+        // Log debug info
+        loggingService.debug('Popup extraction complete', {
           sourceType: pageInfo.type,
           url: (pageInfo.tab as chrome.tabs.Tab).url,
-          slideCount: response.slides.length,
-          logs: []
-        };
+          slideCount: response.slides.length
+        });
         
-        // Store slides and debug info
+        // Store slides
         await storage.saveSlides(response.slides);
-        await storage.saveDebugInfo(debugInfo);
         
         // Open viewer in the current tab
         if ((pageInfo.tab as chrome.tabs.Tab).id) {
@@ -257,14 +253,13 @@ class PopupController {
         // Close the popup
         window.close();
       } else if (response && response.error) {
-        loggingService.error('Extraction error details', response);
-        this.updateStatus(`Error: ${response.error}`, 'not-ready');
-        
-        // Store error info for debugging
-        await storage.saveErrorInfo({
+        // Log error details
+        loggingService.error('Extraction error', {
           message: response.error,
-          stack: response.stack
+          stack: response.stack,
+          details: response
         });
+        this.updateStatus(`Error: ${response.error}`, 'not-ready');
       } else {
         this.updateStatus('Error: No slides found. Make sure your page follows the template format and has at least one H1 heading.', 'not-ready');
       }
