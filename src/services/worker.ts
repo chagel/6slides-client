@@ -1,7 +1,6 @@
 // Notion to Slides - Service Worker
 import { messagingService } from './messaging_service';
 import { authService } from './auth_service';
-import { loggingService } from './logging_service';
 import { configManager } from '../models/config_manager';
 
 // Open the viewer in a new tab
@@ -19,18 +18,20 @@ async function handleAuth(request: any): Promise<any> {
   
   try {
     switch (request.authAction) {
-      case 'login':
+      case 'login': {
         console.log('Starting sign-in flow from worker');
         const userInfo = await authService.signIn();
         console.log('Sign-in completed:', !!userInfo);
         return { success: !!userInfo, userInfo };
+      }
         
-      case 'logout':
+      case 'logout': {
         console.log('Processing logout request');
         await authService.signOut();
         return { success: true };
+      }
         
-      case 'check':
+      case 'check': {
         const isLoggedIn = await authService.isLoggedIn();
         const currentUser = await authService.getCurrentUser();
         const subscription = await configManager.getSubscription();
@@ -41,10 +42,12 @@ async function handleAuth(request: any): Promise<any> {
           currentUser,
           subscription
         };
+      }
         
-      default:
+      default: {
         console.error('Unknown auth action:', request.authAction);
         return { error: 'Unknown auth action: ' + request.authAction };
+      }
     }
   } catch (error) {
     console.error('Error handling auth request:', error);
