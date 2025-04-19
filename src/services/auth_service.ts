@@ -7,9 +7,12 @@
 import { loggingService } from './logging_service';
 import { configManager } from '../models/config_manager';
 
-const CLIENT_ID = chrome.runtime.getManifest().oauth2?.client_id || 'ai27EuZJRn6jbyot6p4gZMELrTo7_nRPPxFqQ2zTTmE';
+// Get client ID from manifest or use default
+const CLIENT_ID = chrome.runtime?.getManifest()?.oauth2?.client_id || 'ai27EuZJRn6jbyot6p4gZMELrTo7_nRPPxFqQ2zTTmE';
 const OAUTH_SERVER = 'http://localhost:3000';
-const REDIRECT_URL = chrome.identity.getRedirectURL();
+// Safe redirect URL retrieval
+const REDIRECT_URL = (chrome.identity?.getRedirectURL && chrome.identity.getRedirectURL()) || 
+  (chrome.runtime?.id ? `https://${chrome.runtime.id}.chromiumapp.org/` : '');
 const SCOPES = ['public', 'profile', 'subscription'];
 
 /**
