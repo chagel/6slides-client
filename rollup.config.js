@@ -47,14 +47,6 @@ const entries = [
       format: 'iife',
       name: 'notionSlidesViewer'
     }
-  },
-  {
-    input: 'src/assets/data/changelog.ts',
-    output: {
-      file: 'dist/assets/data/changelog.js',
-      format: 'iife',
-      name: 'changelog'
-    }
   }
 ];
 

@@ -4,26 +4,31 @@
  * Handles the developer tools section of the about page
  */
 
-import { loggingService } from '../../services/logging_service';
 import { configManager } from '../../models/config_manager';
-import { LogViewerController } from './log_viewer_controller';
+import { storage } from '../../models/storage';
 
 /**
  * Controller for the developer tools section
  */
 export class DeveloperController {
-  // Log viewer controller
-  private logViewerController: LogViewerController;
-  
   /**
    * Initialize the developer controller
    */
   constructor() {
-    // Initialize log viewer - assuming debug is enabled for developers
-    this.logViewerController = new LogViewerController(true);
-    
-    // Additionally check for debug status asynchronously
+    // Initialize debug settings
     this.initializeDebugSettings();
+    
+    // Set up event listeners for debug settings controls
+    const debugLoggingSelector = document.getElementById('debugLoggingSelector') as HTMLSelectElement;
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    
+    if (debugLoggingSelector) {
+      debugLoggingSelector.addEventListener('change', this.handleDebugLoggingChange.bind(this));
+    }
+    
+    if (clearCacheBtn) {
+      clearCacheBtn.addEventListener('click', this.handleClearCacheClick.bind(this));
+    }
   }
   
   /**
@@ -35,12 +40,11 @@ export class DeveloperController {
       // Handle both boolean and string representation
       const debugEnabled = settings.debugLogging === true || 
                           (typeof settings.debugLogging === 'string' && settings.debugLogging === 'true');
-      // No longer logging debug status
       
-      // Make log viewer visible if debug is enabled
-      // LogViewerController doesn't have setDebugEnabled, so we're using setVisible instead
-      if (this.logViewerController) {
-        this.logViewerController.setVisible(debugEnabled);
+      // Update UI to reflect current setting
+      const debugLoggingSelector = document.getElementById('debugLoggingSelector') as HTMLSelectElement;
+      if (debugLoggingSelector) {
+        debugLoggingSelector.value = debugEnabled ? 'true' : 'false';
       }
     } catch (error) {
       console.error('Error initializing debug settings:', error);
@@ -48,9 +52,48 @@ export class DeveloperController {
   }
   
   /**
-   * Get the log viewer controller
+   * Handle debug logging setting change
    */
-  getLogViewerController(): LogViewerController {
-    return this.logViewerController;
+  private async handleDebugLoggingChange(event: Event): Promise<void> {
+    const select = event.target as HTMLSelectElement;
+    const value = select.value === 'true';
+    
+    try {
+      await configManager.setValue('debugLogging', value);
+      console.log(`Debug logging ${value ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      console.error('Error saving debug setting:', error);
+    }
+  }
+  
+  /**
+   * Handle clear cache button click
+   */
+  private async handleClearCacheClick(): Promise<void> {
+    if (confirm('Are you sure you want to clear all cached data? This will reset your settings.')) {
+      try {
+        // Clear all data from storage
+        await storage.clearAll();
+        // Reset config to defaults
+        await configManager.resetToDefaults();
+        console.log('Cache cleared successfully');
+        
+        // Show a success message to the user
+        const clearCacheBtn = document.getElementById('clearCacheBtn');
+        if (clearCacheBtn) {
+          const originalText = clearCacheBtn.textContent;
+          clearCacheBtn.textContent = 'Cleared!';
+          
+          setTimeout(() => {
+            if (clearCacheBtn) {
+              clearCacheBtn.textContent = originalText;
+            }
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('Error clearing cache:', error);
+        alert('Error clearing cache. Please try again.');
+      }
+    }
   }
 }
