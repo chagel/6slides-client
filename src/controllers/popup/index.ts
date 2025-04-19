@@ -9,6 +9,7 @@ import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
 import { configManager } from '../../models/config_manager';
 import { debugService } from '../../services/debug_service';
+import { authService } from '../../services/auth_service';
 import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';
 
@@ -191,6 +192,9 @@ class PopupController {
   private async handleConvertClick(): Promise<void> {
     // Disable button during processing
     this.convertBtn.disabled = true;
+
+    // Validate subscription data
+    await chrome.runtime.sendMessage({ action: 'validate_subscription' });
     
     // Log subscription status when beginning extraction
     const hasPro = await configManager.hasPro();
@@ -322,9 +326,21 @@ class PopupController {
       const subscriptionBadge = document.getElementById('subscription-badge');
       if (!subscriptionBadge) return;
       
-      // Get subscription status from config manager
-      const hasPro = await configManager.hasPro();
-      const { level } = await configManager.getSubscription();
+      // Get subscription status from background service worker
+      const response = await chrome.runtime.sendMessage({
+        action: 'auth',
+        authAction: 'check'
+      });
+      
+      const subscription = response.subscription;
+      const level = subscription?.level;
+      const expiryTimestamp = subscription?.expiry;
+      
+      // Determine if user has pro features
+      const hasPro = (
+        (level === 'pro' || level === 'vip') && 
+        (expiryTimestamp === null || expiryTimestamp > Date.now())
+      );
       
       // Reset all classes
       subscriptionBadge.className = 'subscription-badge';
@@ -334,9 +350,9 @@ class PopupController {
         if (level === 'pro') {
           subscriptionBadge.classList.add('pro');
           subscriptionBadge.textContent = 'PRO';
-        } else if (level === 'team') {
-          subscriptionBadge.classList.add('team');
-          subscriptionBadge.textContent = 'TEAM';
+        } else if (level === 'vip') {
+          subscriptionBadge.classList.add('vip');
+          subscriptionBadge.textContent = 'VIP';
         }
       } else {
         subscriptionBadge.classList.add('free');
@@ -347,7 +363,7 @@ class PopupController {
       loggingService.debug('Subscription status', { 
         level, 
         hasPro, 
-        expiry: await configManager.getValue('subscriptionExpiry', null) 
+        expiry: expiryTimestamp 
       }, 'popup');
     } catch (error) {
       loggingService.error('Error updating subscription badge', error, 'popup');

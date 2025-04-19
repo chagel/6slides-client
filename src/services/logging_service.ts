@@ -600,23 +600,40 @@ class LoggingService {
    * @private
    */
   private _getContextType(): string {
-    // Determine context based on URL or other environment factors
-    const url = window.location.href || '';
-    
-    if (url.includes('viewer.html')) {
-      return 'viewer';
-    } else if (url.includes('popup.html')) {
-      return 'popup';
-    } else if (url.includes('about.html')) {
-      return 'about';
-    } else if (url.includes('settings.html')) {
-      return 'settings';
-    } else if (url.includes('components/sidebar.html')) {
-      return 'sidebar';
-    } else if (typeof chrome !== 'undefined' && chrome.runtime) {
-      return 'content_script';
-    } else {
+    try {
+      // First check if we're in a service worker context
+      if (typeof self !== 'undefined' && typeof window === 'undefined' && 
+          typeof chrome !== 'undefined' && chrome.runtime) {
+        return 'service_worker';
+      }
+      
+      // If we have a window object, check the URL
+      if (typeof window !== 'undefined' && window.location) {
+        const url = window.location.href || '';
+        
+        if (url.includes('viewer.html')) {
+          return 'viewer';
+        } else if (url.includes('popup.html')) {
+          return 'popup';
+        } else if (url.includes('about.html')) {
+          return 'about';
+        } else if (url.includes('settings.html')) {
+          return 'settings';
+        } else if (url.includes('components/sidebar.html')) {
+          return 'sidebar';
+        }
+      }
+      
+      // Content script or other context
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        return 'content_script';
+      }
+      
+      // Fallback for unknown contexts
       return 'unknown';
+    } catch (error) {
+      // If any error occurs (like window not being defined), assume it's a service worker
+      return 'service_worker';
     }
   }
 

@@ -13,7 +13,7 @@ import { storage } from './storage';
 export enum SubscriptionLevel {
   FREE = 'free',
   PRO = 'pro',
-  TEAM = 'team'
+  VIP = 'vip'
 }
 
 /**
@@ -33,6 +33,10 @@ export interface Config {
   // Subscription settings
   subscriptionLevel: SubscriptionLevel;
   subscriptionExpiry: number | null; // timestamp
+  
+  // User authentication
+  userEmail: string | null;
+  userToken: string | null;
   
   // Allow additional properties
   [key: string]: any;
@@ -62,7 +66,11 @@ export const DEFAULT_CONFIG: Config = {
   
   // Subscription settings
   subscriptionLevel: SubscriptionLevel.FREE,
-  subscriptionExpiry: null
+  subscriptionExpiry: null,
+  
+  // User authentication
+  userEmail: null,
+  userToken: null
 };
 
 /**
@@ -210,7 +218,7 @@ class ConfigManager {
     
     // Check for valid subscription and not expired
     const result = (
-      (level === SubscriptionLevel.PRO || level === SubscriptionLevel.TEAM) && 
+      (level === SubscriptionLevel.PRO || level === SubscriptionLevel.VIP) && 
       (expiry === null || expiry > Date.now())
     );
     return result;
