@@ -13,7 +13,7 @@ import { storage } from './storage';
 export enum SubscriptionLevel {
   FREE = 'free',
   PRO = 'pro',
-  TEAM = 'team'
+  VIP = 'vip'
 }
 
 /**
@@ -218,7 +218,7 @@ class ConfigManager {
     
     // Check for valid subscription and not expired
     const result = (
-      (level === SubscriptionLevel.PRO || level === SubscriptionLevel.TEAM) && 
+      (level === SubscriptionLevel.PRO || level === SubscriptionLevel.VIP) && 
       (expiry === null || expiry > Date.now())
     );
     return result;

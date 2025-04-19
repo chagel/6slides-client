@@ -20,7 +20,7 @@ export class DeveloperController {
   private setProBtn: HTMLElement | null;
   private setProExpiryBtn: HTMLElement | null;
   private setProExpiredBtn: HTMLElement | null;
-  private setTeamBtn: HTMLElement | null;
+  private setVipBtn: HTMLElement | null;
 
   // Log viewer controller
   private logViewerController: LogViewerController;
@@ -37,7 +37,7 @@ export class DeveloperController {
     this.setProBtn = document.getElementById('setProBtn');
     this.setProExpiryBtn = document.getElementById('setProExpiryBtn');
     this.setProExpiredBtn = document.getElementById('setProExpiredBtn');
-    this.setTeamBtn = document.getElementById('setTeamBtn');
+    this.setVipBtn = document.getElementById('setVipBtn');
     
     // Initialize log viewer - assuming debug is enabled for developers
     this.logViewerController = new LogViewerController(true);
@@ -98,8 +98,8 @@ export class DeveloperController {
       this.setProExpiredBtn.addEventListener('click', this.setProExpiredSubscription.bind(this));
     }
     
-    if (this.setTeamBtn) {
-      this.setTeamBtn.addEventListener('click', this.setTeamSubscription.bind(this));
+    if (this.setVipBtn) {
+      this.setVipBtn.addEventListener('click', this.setVipSubscription.bind(this));
     }
   }
   
@@ -167,10 +167,10 @@ export class DeveloperController {
   }
   
   /**
-   * Set team subscription
+   * Set VIP subscription
    */
-  private async setTeamSubscription(): Promise<void> {
-    await configManager.setSubscription(SubscriptionLevel.TEAM, null);
+  private async setVipSubscription(): Promise<void> {
+    await configManager.setSubscription(SubscriptionLevel.VIP, null);
     this.updateSubscriptionTestStatus();
     window.location.reload(); // Reload to see changes
   }

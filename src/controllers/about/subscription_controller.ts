@@ -64,11 +64,13 @@ export class SubscriptionController {
     
     // Login buttons
     if (this.loginButton) {
-      this.loginButton.addEventListener('click', this.handleLoginClick.bind(this));
+      loggingService.debug('Login button found, binding click handler');
+      // Use an arrow function to preserve this context and add error handling
+      this.loginButton.addEventListener('click', () => this.handleLoginClick());
     }
     
     if (this.logoutButton) {
-      this.logoutButton.addEventListener('click', this.handleLogoutClick.bind(this));
+      this.logoutButton.addEventListener('click', () => this.handleLogoutClick());
     }
   }
   
@@ -77,8 +79,21 @@ export class SubscriptionController {
    */
   async updateSubscriptionUI(): Promise<void> {
     try {
-      const hasPro = await configManager.hasPro();
-      const { level, expiry: expiryTimestamp } = await configManager.getSubscription();
+      // Get subscription status from background service worker
+      const response = await chrome.runtime.sendMessage({
+        action: 'auth',
+        authAction: 'check'
+      });
+      
+      const subscription = response.subscription;
+      const level = subscription?.level;
+      const expiryTimestamp = subscription?.expiry;
+      
+      // Determine if user has pro features
+      const hasPro = (
+        (level === 'pro' || level === 'team') && 
+        (expiryTimestamp === null || expiryTimestamp > Date.now())
+      );
       
       // Show/hide appropriate subscription info sections
       if (this.freeSubscriptionInfo) {
@@ -99,6 +114,11 @@ export class SubscriptionController {
       
       // Update global subscription indicator in sidebar
       this.updateGlobalSubscriptionIndicator(level, hasPro);
+      
+      // Validate subscription data in background
+      chrome.runtime.sendMessage({
+        action: 'validate_subscription'
+      });
       
       loggingService.debug('Subscription UI updated', { hasPro, level });
     } catch (error) {
@@ -131,11 +151,11 @@ export class SubscriptionController {
         badge.classList.add('pro');
         badge.textContent = 'PRO';
         text.textContent = 'Pro Plan';
-      } else if (level === SubscriptionLevel.TEAM) {
-        indicator.classList.add('team');
-        badge.classList.add('team');
-        badge.textContent = 'TEAM';
-        text.textContent = 'Team Plan';
+      } else if (level === SubscriptionLevel.VIP) {
+        indicator.classList.add('vip');
+        badge.classList.add('vip');
+        badge.textContent = 'VIP';
+        text.textContent = 'VIP Plan';
       }
     } else {
       indicator.classList.add('free');
@@ -286,11 +306,34 @@ export class SubscriptionController {
    * Handle login button click
    */
   private async handleLoginClick(): Promise<void> {
+    loggingService.debug('handleLoginClick method called');
+    
     try {
-      // Start the login process
-      const userInfo = await authService.signIn();
+      // Show loading state
+      if (this.loginButton) {
+        this.loginButton.textContent = 'Logging in...';
+        this.loginButton.setAttribute('disabled', 'true');
+      }
       
-      if (userInfo) {
+      loggingService.debug('Sending auth message to background script');
+      
+      // Use the background script to start the login process
+      const response = await chrome.runtime.sendMessage({
+        action: 'auth', 
+        authAction: 'login'
+      });
+      
+      loggingService.debug('Received response from background script', response);
+      
+      // Reset login button state
+      if (this.loginButton) {
+        this.loginButton.textContent = 'Log In';
+        this.loginButton.removeAttribute('disabled');
+      }
+      
+      if (response.success && response.userInfo) {
+        const userInfo = response.userInfo;
+        
         loggingService.debug('Login successful', { 
           email: userInfo.email,
           subscription: userInfo.subscription?.level
@@ -305,10 +348,42 @@ export class SubscriptionController {
           this.showSubscriptionActivatedNotification();
         }
       } else {
-        loggingService.error('Login failed');
+        loggingService.error('Login failed', response.error || 'Unknown error');
+        
+        // Show error message
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'login-error';
+        errorMessage.textContent = 'Login failed. Please try again.';
+        errorMessage.style.color = '#e53e3e';
+        errorMessage.style.fontSize = '14px';
+        errorMessage.style.marginTop = '8px';
+        
+        // Add to login section
+        if (this.loginSection) {
+          // Remove any existing error message first
+          const existingError = this.loginSection.querySelector('.login-error');
+          if (existingError) {
+            existingError.remove();
+          }
+          
+          this.loginSection.appendChild(errorMessage);
+          
+          // Remove the error message after 5 seconds
+          setTimeout(() => {
+            if (errorMessage.parentNode) {
+              errorMessage.parentNode.removeChild(errorMessage);
+            }
+          }, 5000);
+        }
       }
     } catch (error) {
       loggingService.error('Error during login', error);
+      
+      // Reset login button state
+      if (this.loginButton) {
+        this.loginButton.textContent = 'Log In';
+        this.loginButton.removeAttribute('disabled');
+      }
     }
   }
   
@@ -370,15 +445,41 @@ export class SubscriptionController {
    */
   private async handleLogoutClick(): Promise<void> {
     try {
-      // Sign out
-      await authService.signOut();
+      // Show loading state
+      if (this.logoutButton) {
+        this.logoutButton.textContent = 'Logging out...';
+        this.logoutButton.setAttribute('disabled', 'true');
+      }
       
-      // Update the UI
-      this.updateLoginUI();
+      // Use the background script to sign out
+      const response = await chrome.runtime.sendMessage({
+        action: 'auth',
+        authAction: 'logout'
+      });
       
-      loggingService.debug('Logout successful');
+      // Reset logout button state
+      if (this.logoutButton) {
+        this.logoutButton.textContent = 'Log Out';
+        this.logoutButton.removeAttribute('disabled');
+      }
+      
+      if (response.success) {
+        // Update the UI
+        this.updateLoginUI();
+        this.updateSubscriptionUI();
+        
+        loggingService.debug('Logout successful');
+      } else {
+        loggingService.error('Logout failed', response.error || 'Unknown error');
+      }
     } catch (error) {
       loggingService.error('Error during logout', error);
+      
+      // Reset logout button state
+      if (this.logoutButton) {
+        this.logoutButton.textContent = 'Log Out';
+        this.logoutButton.removeAttribute('disabled');
+      }
     }
   }
   
@@ -387,8 +488,14 @@ export class SubscriptionController {
    */
   async updateLoginUI(): Promise<void> {
     try {
-      const isLoggedIn = await authService.isLoggedIn();
-      const user = await authService.getCurrentUser();
+      // Get auth status from the background service worker
+      const response = await chrome.runtime.sendMessage({
+        action: 'auth',
+        authAction: 'check'
+      });
+      
+      const isLoggedIn = response.isLoggedIn;
+      const user = response.currentUser;
       
       // Show/hide login sections based on auth state
       if (this.loginSection) {
