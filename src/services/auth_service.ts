@@ -7,12 +7,9 @@
 import { loggingService } from './logging_service';
 import { configManager } from '../models/config_manager';
 
-// OAuth configuration
-const CLIENT_ID = 'ai27EuZJRn6jbyot6p4gZMELrTo7_nRPPxFqQ2zTTmE'; 
-// const OAUTH_SERVER = 'https://api.notion-slides.com'; 
+const CLIENT_ID = chrome.runtime.getManifest().oauth2?.client_id || 'ai27EuZJRn6jbyot6p4gZMELrTo7_nRPPxFqQ2zTTmE';
 const OAUTH_SERVER = 'http://localhost:3000';
-// Safely get redirect URL with fallback
-const REDIRECT_URL =  chrome.identity.getRedirectURL();
+const REDIRECT_URL = chrome.identity.getRedirectURL();
 const SCOPES = ['public', 'profile', 'subscription'];
 
 /**
