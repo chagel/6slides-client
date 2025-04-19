@@ -340,7 +340,7 @@ class AuthService {
   }
   
   /**
-   * Verify subscription data using cryptographic signature
+   * Verify subscription data using HMAC signature
    * @param userInfo User information including subscription data
    * @returns Promise resolving to boolean indicating if data is verified
    */
@@ -348,34 +348,117 @@ class AuthService {
     try {
       console.log('Verifying subscription data');
       
-      // In a real implementation, this would:
-      // 1. Extract the subscription data and signature
-      // 2. Use crypto APIs to verify the signature against the data
-      // 3. Check that the signature was created by your trusted backend
-      
-      // For mock implementation, we'll simulate verification
+      // 1. Check if subscription data and signature exist
       if (!userInfo.subscription || !userInfo.subscription.signature) {
         console.log('No subscription data or signature found');
         return false;
       }
+
+      // 2. Format the data exactly as the server does for HMAC generation
+      // Format: "EMAIL:PLAN:EXPIRY_TIMESTAMP"
+      const email = userInfo.email.toUpperCase();
+      const plan = userInfo.subscription.level.toUpperCase();
+      // Convert to seconds if it's in milliseconds, or use null for no expiry
+      const expiry = userInfo.subscription.expiry ? Math.floor(userInfo.subscription.expiry / 1000) : '';
+      const dataToVerify = `${email}:${plan}:${expiry}`;
       
-      // In a real app, you would:
-      // const verified = await window.crypto.subtle.verify(
-      //   algorithm,
-      //   publicKey,
-      //   signature,
-      //   data
-      // );
+      // 3. Import the HMAC secret key (must match server's Rails.application.credentials.secret_key_base)
+      const key = await this.getHmacKey();
       
-      // Mock verification (always returns true for demo)
-      const verified = true;
+      // 4. Calculate the HMAC using the same algorithm as the server
+      const hmacHex = await this.calculateHmacSha256(dataToVerify, key);
+      
+      // 5. Compare our calculated HMAC with the signature from the server
+      const verified = hmacHex === userInfo.subscription.signature;
       
       console.log('Subscription verification result:', verified);
+      
       return verified;
     } catch (error) {
       console.error('Error verifying subscription data:', error);
       return false;
     }
+  }
+  
+  /**
+   * Calculate HMAC-SHA256 for a string using the provided key
+   * @param data The string to hash
+   * @param key The secret key
+   * @returns Hex string of the HMAC
+   */
+  private async calculateHmacSha256(data: string, key: string): Promise<string> {
+    try {
+      // 1. Encode the data and key
+      const encoder = new TextEncoder();
+      const dataBuffer = encoder.encode(data);
+      const keyBuffer = encoder.encode(key);
+      
+      // 2. Import the key for HMAC 
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        keyBuffer,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+      
+      // 3. Calculate the HMAC
+      const signature = await crypto.subtle.sign(
+        'HMAC',
+        cryptoKey,
+        dataBuffer
+      );
+      
+      // 4. Convert to hex string to match Ruby's hexdigest output
+      return this.arrayBufferToHex(signature);
+    } catch (error) {
+      console.error('Error in calculateHmacSha256:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Convert ArrayBuffer to hex string
+   * @param buffer ArrayBuffer to convert
+   * @returns Hex string
+   */
+  private arrayBufferToHex(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    return Array.from(bytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+  
+  /**
+   * Convert an ArrayBuffer to a Base64 string
+   * Uses service worker context (self)
+   * @param buffer ArrayBuffer to convert
+   * @returns Base64 encoded string
+   */
+  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    
+    // Use btoa in service worker context
+    const base64 = self.btoa(binary);
+    
+    // Convert standard Base64 to URL-safe Base64
+    return base64
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+  }
+  
+  /**
+   * Get the HMAC key for signature verification
+   * Must match Rails.application.credentials.secret_key_base on the server
+   */
+  private async getHmacKey(): Promise<string> {
+    return '6SlIdE.CoM';
   }
   
   /**
@@ -449,7 +532,7 @@ class AuthService {
   
   /**
    * Validate subscription data at startup
-   * This prevents tampering with stored subscription data
+   * This prevents tampering with stored subscription data between sessions
    * @returns Promise resolving when validation is complete
    */
   async validateSubscriptionDataAtStartup(): Promise<void> {
@@ -459,38 +542,61 @@ class AuthService {
       const config = await configManager.getConfig();
       const { level, expiry } = await configManager.getSubscription();
       
-      // If we have a subscription signature, we need to validate the subscription
-      if (config.subscriptionSignature) {
-        // Package the data for validation
-        const subscriptionData = {
-          level,
-          expiry,
+      // Skip validation if user is on free plan or missing required data
+      if (level === 'free' || !config.userEmail || !config.subscriptionSignature) {
+        console.log('Free plan or missing data, skipping validation');
+        return;
+      }
+      
+      // Check for expired subscription
+      if (expiry && expiry < Date.now()) {
+        console.log('Subscription has expired, resetting to free plan');
+        await this.resetToFreePlan();
+        return;
+      }
+      
+      // Package the data for validation in the same format as used by the server
+      // We know userEmail and userToken are not null here because we checked earlier
+      const userInfo: UserInfo = {
+        email: config.userEmail!,
+        token: config.userToken!,
+        subscription: {
+          level: level,
+          expiry: expiry,
           signature: config.subscriptionSignature
-        };
-        
-        // Verify the subscription data
-        const dataToVerify = {
-          email: config.userEmail,
-          token: config.userToken,
-          subscription: subscriptionData
-        };
-        
-        const isValid = await this.verifySubscriptionData(dataToVerify);
-        
-        if (!isValid) {
-          console.warn('Invalid subscription data detected, resetting to free');
-          
-          // If validation fails, reset to free
-          await configManager.setSubscription('free' as any, null);
-        } else {
-          console.log('Subscription data validated successfully');
         }
+      };
+      
+      // Verify the subscription data using our new method
+      const isValid = await this.verifySubscriptionData(userInfo);
+      
+      if (!isValid) {
+        console.warn('Invalid subscription data detected, possible tampering');
+        loggingService.warn('Subscription data tampering detected', {
+          subscriptionLevel: level,
+          expiryDate: expiry ? new Date(expiry).toISOString() : null
+        });
+        
+        // If validation fails, reset to free
+        await this.resetToFreePlan();
       } else {
-        console.log('No subscription signature found, skipping validation');
+        console.log('Subscription data validated successfully');
       }
     } catch (error) {
       console.error('Error validating subscription data:', error);
+      // Reset to free plan on any errors
+      await this.resetToFreePlan();
     }
+  }
+  
+  /**
+   * Reset user to free plan (used when validation fails)
+   * @private
+   */
+  private async resetToFreePlan(): Promise<void> {
+    await configManager.setSubscription('free' as any, null);
+    await configManager.setValue('subscriptionSignature', null);
+    console.log('Reset to free plan completed');
   }
 
   /**
@@ -506,8 +612,17 @@ class AuthService {
     
     // Store subscription signature to validate later
     if (userInfo.subscription?.signature) {
+      // Store the signature for later validation
       await configManager.setValue('subscriptionSignature', userInfo.subscription.signature);
-      console.log('Saved subscription signature');
+      console.log('Saved subscription signature for future validation');
+      
+      // Log signature details for debugging (truncated for security)
+      const truncatedSignature = userInfo.subscription.signature.substring(0, 8) + '...';
+      console.log('Signature saved:', truncatedSignature);
+    } else {
+      // Clear any existing signature if user has no subscription
+      await configManager.setValue('subscriptionSignature', null);
+      console.log('Cleared subscription signature (no subscription data)');
     }
     
     // Also save to chrome.storage for cross-context access
@@ -520,6 +635,9 @@ class AuthService {
       // Include subscription signature if available
       if (userInfo.subscription?.signature) {
         data.subscriptionSignature = userInfo.subscription.signature;
+      } else {
+        // Chrome storage requires explicit removal
+        await chrome.storage.local.remove(['subscriptionSignature']);
       }
       
       await chrome.storage.local.set(data);
