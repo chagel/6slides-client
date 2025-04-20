@@ -7,6 +7,7 @@
 import { loggingService } from '../../services/logging_service';
 import { PresentationRenderer } from '../../models/renderer';
 import { configManager } from '../../models/config_manager';
+import { errorService, ErrorTypes, ErrorSeverity } from '../../services/error_service';
 import { debugService } from '../../services/debug_service';
 
 /**
@@ -83,10 +84,11 @@ async function initialize(): Promise<void> {
     // Single log to indicate completion
     loggingService.debug('Viewer ready', null, 'viewer');
   } catch (error) {
-    // Log the error
-    loggingService.error('Viewer initialization failed', {
-      error: error instanceof Error ? error : new Error(String(error)),
-      context: 'viewer_initialization'
+    // Use error service for consistent error handling
+    errorService.trackError(error instanceof Error ? error : new Error(String(error)), {
+      type: ErrorTypes.UI,
+      context: 'viewer_initialization',
+      severity: ErrorSeverity.ERROR
     });
     
     alert('Error: ' + (error instanceof Error ? error.message : String(error)));

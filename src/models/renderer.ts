@@ -8,6 +8,7 @@ import { loggingService } from '../services/logging_service';
 import { storage } from './storage';
 import { Presentation } from './domain/presentation';
 import { configManager } from './config_manager';
+import { errorService, ErrorTypes, ErrorSeverity } from '../services/error_service';
 import { PresentationSettings } from './domain/types';
 import { Slide } from '../types/index';
 
@@ -85,9 +86,11 @@ export class PresentationRenderer {
       
       // Check if we have slides
       if (!Array.isArray(rawSlides) || rawSlides.length === 0) {
-        loggingService.error('No slides data found in storage', {
+        loggingService.error('No slides data found in storage', null, 'viewer');
+        errorService.trackError('No slides data found in storage', {
+          type: ErrorTypes.RENDERING,
           context: 'presentation_loading'
-        }, 'viewer');
+        });
         this.showNoSlidesMessage();
         return;
       }
@@ -109,10 +112,11 @@ export class PresentationRenderer {
       // Initialize reveal.js
       this.initReveal(settings);
     } catch (error) {
-      // Log the error
-      loggingService.error('Presentation rendering failed', {
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: 'presentation_rendering'
+      // Use error service for consistent error handling
+      errorService.trackError(error instanceof Error ? error : new Error(String(error)), {
+        type: ErrorTypes.RENDERING,
+        context: 'presentation_rendering',
+        severity: ErrorSeverity.ERROR
       });
       
       this.showErrorMessage(error instanceof Error ? error.message : String(error));

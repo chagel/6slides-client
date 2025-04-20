@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notion Slides - Transform Notes Into Presentations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --gradient-1: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+        --gradient-2: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        --gradient-3: linear-gradient(135deg, #10b981, #3b82f6);
+        --gradient-4: linear-gradient(135deg, #f59e0b, #ef4444);
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .font-playfair {
+        font-family: "Playfair Display", serif;
+      }
+
+      .font-outfit {
+        font-family: "Outfit", sans-serif;
+      }
+
+      /* Micro-interactions */
+      .hover-up {
+        transition: transform 0.3s ease;
+      }
+      .hover-up:hover {
+        transform: translateY(-4px);
+      }
+
+      .feature-icon {
+        transition: all 0.5s ease;
+      }
+      .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+      }
+
+      .pricing-card {
+        transition: all 0.5s ease;
+      }
+      .pricing-card:hover {
+        transform: translateY(-8px);
+        box-shadow:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      .faq-item {
+        transition: all 0.3s ease;
+      }
+      .faq-item:hover {
+        background-color: rgba(249, 250, 251, 1);
+        transform: translateX(8px);
+      }
+
+      /* Gradient text */
+      .gradient-text-1 {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: var(--gradient-1);
+      }
+
+      /* Typing cursor animation */
+      @keyframes blink {
+        0% {
+          border-right-color: rgba(99, 102, 241, 0.8);
+        }
+        50% {
+          border-right-color: transparent;
+        }
+        100% {
+          border-right-color: rgba(99, 102, 241, 0.8);
+        }
+      }
+
+      #typed-word {
+        border-right: 3px solid transparent;
+        min-width: 180px; /* Increased width to fit all words including "Markdown" */
+        display: inline-block;
+        text-align: left;
+        position: relative;
+        padding-left: 1px; /* Ensure enough space for left cursor */
+        vertical-align: middle; /* Maintain consistent vertical alignment */
+        height: 1.2em; /* Fixed height to prevent layout shifts */
+        line-height: normal; /* Normalize line height */
+      }
+
+      #typed-word.typed-complete {
+        animation: blink 1s step-end infinite;
+        border-right: 3px solid rgba(99, 102, 241, 0.8);
+      }
+
+      /* Empty element with cursor */
+      #typed-word.empty-cursor {
+        position: relative;
+        height: 1.2em;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      #typed-word.empty-cursor::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        height: 1em; /* Match text height more precisely */
+        width: 3px;
+        background-color: rgba(99, 102, 241, 0.8);
+        animation: blink 1s step-end infinite;
+        /* Center vertically */
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      /* Sparkle/explosion effect */
+      .sparkle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: #6366f1;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+      }
+
+      @keyframes explode {
+        0% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(0);
+        }
+        50% {
+          opacity: 0.8;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(3)
+            translate(var(--tx), var(--ty));
+        }
+      }
+
+      .gradient-text-2 {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: var(--gradient-2);
+      }
+
+      .gradient-text-3 {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: var(--gradient-3);
+      }
+
+      .gradient-text-4 {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: var(--gradient-4);
+      }
+
+      /* Gradient backgrounds */
+      .bg-gradient-1 {
+        background-image: var(--gradient-1);
+      }
+
+      .bg-gradient-2 {
+        background-image: var(--gradient-2);
+      }
+
+      /* Background patterns */
+      .bg-pattern-dots {
+        background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+
+      .bg-pattern-grid {
+        background-size: 40px 40px;
+        background-image:
+          linear-gradient(to right, #f3f4f6 1px, transparent 1px),
+          linear-gradient(to bottom, #f3f4f6 1px, transparent 1px);
+      }
+
+      /* Section title animation */
+      .section-title {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background-image: var(--gradient-2);
+        transition: width 0.5s ease;
+      }
+
+      .section-title:hover::after {
+        width: 100%;
+      }
+
+      /* Animated circle */
+      @keyframes pulse {
+        0% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+        }
+
+        70% {
+          transform: scale(1);
+          box-shadow: 0 0 0 15px rgba(99, 102, 241, 0);
+        }
+
+        100% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+        }
+      }
+
+      .animate-pulse-slow {
+        animation: pulse 2s infinite;
+      }
+
+      .animate-pulse-delay {
+        animation: pulse 2s infinite 0.5s;
+      }
+
+      .animate-pulse-long {
+        animation: pulse 2s infinite 1s;
+      }
+
+      /* Floating animation */
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      .animate-float {
+        animation: float 5s ease-in-out infinite;
+      }
+
+      .animate-float-slow {
+        animation: float 6s ease-in-out infinite;
+      }
+
+      /* Background gradient animation */
+      @keyframes gradientAnimation {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .animated-gradient {
+        background: linear-gradient(-45deg, #3b82f6, #8b5cf6, #6366f1, #a855f7);
+        background-size: 400% 400%;
+        animation: gradientAnimation 15s ease infinite;
+      }
+
+      .hero-gradient {
+        background: linear-gradient(
+          135deg,
+          rgba(238, 242, 255, 0.95),
+          rgba(224, 231, 255, 0.9),
+          rgba(199, 210, 254, 0.8)
+        );
+        background-size: 200% 200%;
+        animation: gradientAnimation 15s ease infinite;
+      }
+
+      .features-gradient {
+        background: linear-gradient(to bottom, #f9fafb, #ffffff);
+        background-size: 100% 100%;
+      }
+
+      .testimonials-gradient {
+        background: linear-gradient(to bottom, #ffffff, #f9fafb);
+        background-size: 100% 100%;
+      }
+
+      .faq-gradient {
+        background: linear-gradient(to bottom, #f9fafb, #ffffff);
+        background-size: 100% 100%;
+      }
+
+      /* Highlight shadow effect */
+      .highlight-shadow {
+        box-shadow: rgba(99, 102, 241, 0.1) 0px 8px 24px;
+        transition: box-shadow 0.3s ease;
+      }
+      .highlight-shadow:hover {
+        box-shadow: rgba(99, 102, 241, 0.3) 0px 12px 28px;
+      }
+
+      /* Card hover effect */
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px) scale(1.02);
+      }
+
+      /* Customized scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+    </style>
+  </head>
+  <body class="bg-white text-gray-800 antialiased overflow-x-hidden">
+    <!-- Navigation header -->
+    <nav class="bg-white/95 py-4 fixed w-full z-50 shadow-sm backdrop-blur-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center">
+            <img
+              src="src/assets/icons/icon128.png"
+              alt="Notion Slides Logo"
+              class="h-10 w-10"
+            />
+            <span class="ml-3 text-xl font-bold text-gray-900"
+              >Notion Slides</span
+            >
+          </div>
+          <div class="hidden md:flex items-center space-x-8">
+            <a
+              href="#features"
+              class="text-gray-600 hover:text-gray-900 transition-colors duration-300"
+              >Features</a
+            >
+            <a
+              href="#how-it-works"
+              class="text-gray-600 hover:text-gray-900 transition-colors duration-300"
+              >How It Works</a
+            >
+            <a
+              href="#pricing"
+              class="text-gray-600 hover:text-gray-900 transition-colors duration-300"
+              >Pricing</a
+            >
+            <a
+              href="#faq"
+              class="text-gray-600 hover:text-gray-900 transition-colors duration-300"
+              >FAQ</a
+            >
+            <a
+              href="#"
+              class="px-5 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gradient-2 hover:opacity-90 transition-all duration-300 flex items-center justify-center"
+            >
+              <img
+                src="src/assets/icons/chrome.png"
+                alt="Chrome logo"
+                class="h-4 w-4 mr-1.5"
+              />
+              Add to Chrome
+            </a>
+          </div>
+          <button
+            type="button"
+            aria-label="Toggle menu"
+            class="md:hidden bg-gray-100 p-2 rounded-md"
+          >
+            <svg
+              class="h-6 w-6 text-gray-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section with animated background -->
+    <header
+      class="relative overflow-hidden hero-gradient bg-pattern-dots pt-20"
+    >
+      <div
+        class="absolute top-20 left-10 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"
+      ></div>
+      <div
+        class="absolute top-10 right-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float-slow"
+      ></div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="py-20 md:py-28">
+          <div class="text-center">
+            <h1
+              class="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-gray-900 mb-6 font-outfit"
+            >
+              <span class="inline-flex items-center"
+                >Transform <span class="mx-2"></span
+                ><span id="typed-word" class="gradient-text-1">Notion</span
+                ><span class="mx-2"></span> Into <span class="mx-2"></span
+                ><span class="gradient-text-2">Slides</span></span
+              >
+            </h1>
+            <p
+              class="max-w-2xl mx-auto text-xl md:text-2xl text-gray-600 mb-8 font-light"
+            >
+              Create elegant, minimalist presentations directly from your Notion
+              pages in seconds. No design skills required.
+            </p>
+            <div class="mt-8 max-w-md mx-auto sm:flex sm:justify-center">
+              <div class="rounded-md shadow">
+                <a
+                  href="#"
+                  class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-2 hover:opacity-90 md:py-4 md:text-base md:px-8 hover-up"
+                >
+                  <img
+                    src="src/assets/icons/chrome.png"
+                    alt="Chrome logo"
+                    class="h-5 w-5 mr-2"
+                  />
+                  Add to Chrome
+                </a>
+              </div>
+              <div class="mt-3 sm:mt-0 sm:ml-3">
+                <a
+                  href="#how-it-works"
+                  class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-base md:px-8 shadow-lg"
+                >
+                  Learn more
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="mt-16 max-w-4xl mx-auto animate-float">
+            <div
+              class="relative rounded-xl shadow-2xl overflow-hidden highlight-shadow"
+            >
+              <img
+                class="w-full"
+                src="https://placehold.co/1200x675/e2e8f0/64748b?text=Notion+Slides+Preview"
+                alt="Notion Slides Preview"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"
+      ></div>
+    </header>
+
+    <!-- Intro Pitch with animated border -->
+    <section class="py-20 bg-white">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+        <div
+          class="absolute -top-10 -left-10 w-20 h-20 border-t-4 border-l-4 border-indigo-500 opacity-50"
+        ></div>
+        <div
+          class="absolute -bottom-10 -right-10 w-20 h-20 border-b-4 border-r-4 border-indigo-500 opacity-50"
+        ></div>
+        <h2
+          class="text-3xl md:text-4xl font-bold text-gray-900 mb-6 font-outfit section-title inline-block pb-2"
+        >
+          Presentations that
+          <span class="gradient-text-3">match your thinking</span>
+        </h2>
+        <p class="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+          Notion Slides bridges the gap between your organized thoughts and
+          compelling presentations. Built for professionals, educators, and
+          students who value their time and prefer clean, focused slides that
+          emphasize content over decoration.
+        </p>
+        <p class="text-lg md:text-xl text-gray-600 leading-relaxed">
+          No more copying and pasting between apps or fighting with complex
+          design tools. Turn your existing Notion documents into
+          presentation-ready slides with a single click.
+        </p>
+      </div>
+    </section>
+
+    <!-- Key Features with animated cards -->
+    <section id="features" class="py-20 bg-pattern-grid features-gradient">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 font-outfit"
+        >
+          <span class="gradient-text-2">Key Features</span>
+        </h2>
+        <div class="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
+          <!-- Feature 1 -->
+          <div
+            class="bg-white p-8 rounded-xl shadow-xl hover:shadow-2xl feature-card card-hover"
+          >
+            <div
+              class="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mb-6 mx-auto"
+            >
+              <svg
+                class="h-8 w-8 text-blue-600 feature-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 text-center">
+              One-Click Conversion
+            </h3>
+            <p class="text-gray-600 text-center">
+              Transform any Notion page into a presentation with a single click.
+              Maintains your content structure, formatting, and images.
+            </p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div
+            class="bg-white p-8 rounded-xl shadow-xl hover:shadow-2xl feature-card card-hover"
+          >
+            <div
+              class="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center mb-6 mx-auto"
+            >
+              <svg
+                class="h-8 w-8 text-purple-600 feature-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 text-center">
+              Elegant Themes
+            </h3>
+            <p class="text-gray-600 text-center">
+              Choose from a collection of minimalist, professional themes
+              designed for readability and visual impact.
+            </p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div
+            class="bg-white p-8 rounded-xl shadow-xl hover:shadow-2xl feature-card card-hover"
+          >
+            <div
+              class="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-6 mx-auto"
+            >
+              <svg
+                class="h-8 w-8 text-green-600 feature-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 text-center">
+              Presentation Mode
+            </h3>
+            <p class="text-gray-600 text-center">
+              Present directly in your browser with a clean, distraction-free
+              interface. Keyboard shortcuts included.
+            </p>
+          </div>
+
+          <!-- Feature 4 -->
+          <div
+            class="bg-white p-8 rounded-xl shadow-xl hover:shadow-2xl feature-card card-hover"
+          >
+            <div
+              class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mb-6 mx-auto"
+            >
+              <svg
+                class="h-8 w-8 text-red-600 feature-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3 text-center">
+              Privacy First
+            </h3>
+            <p class="text-gray-600 text-center">
+              Your content never leaves your browser. No servers, no data
+              collection, just secure, local processing.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works with animated steps -->
+    <section id="how-it-works" class="py-20 bg-white overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <!-- Decorative elements -->
+        <div
+          class="absolute top-1/4 left-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        ></div>
+        <div
+          class="absolute bottom-1/4 right-0 w-64 h-64 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        ></div>
+
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 font-outfit"
+        >
+          <span class="gradient-text-3">How It Works</span>
+        </h2>
+
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-3 relative z-10">
+          <!-- Step 1 -->
+          <div class="text-center card-hover">
+            <div
+              class="bg-gradient-2 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse-slow"
+            >
+              <span class="text-white text-2xl font-bold">1</span>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">
+              Open Your Notion Page
+            </h3>
+            <p class="text-gray-600">
+              Navigate to the Notion page you want to convert into a
+              presentation.
+            </p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="text-center card-hover">
+            <div
+              class="bg-gradient-2 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse-delay"
+            >
+              <span class="text-white text-2xl font-bold">2</span>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">
+              Click the Extension
+            </h3>
+            <p class="text-gray-600">
+              Click the Notion Slides icon in your browser toolbar and select
+              "Present"
+            </p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="text-center card-hover">
+            <div
+              class="bg-gradient-2 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse-long"
+            >
+              <span class="text-white text-2xl font-bold">3</span>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">Present</h3>
+            <p class="text-gray-600">
+              Instantly view your elegant presentation, ready to share or
+              present directly from your browser.
+            </p>
+          </div>
+        </div>
+
+        <!-- Removed horizontal connecting line -->
+      </div>
+    </section>
+
+    <!-- Testimonials with animated cards -->
+    <section class="py-20 testimonials-gradient">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 font-outfit"
+        >
+          <span class="gradient-text-1">What Users Say</span>
+        </h2>
+        <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
+          <!-- Testimonial 1 -->
+          <div
+            class="bg-white p-8 rounded-xl shadow-xl hover-up card-hover transform transition"
+          >
+            <div class="flex items-center mb-6">
+              <div
+                class="h-14 w-14 rounded-full bg-gradient-2 flex items-center justify-center mr-4 shadow-md"
+              >
+                <span class="text-white font-semibold">JD</span>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-900">Jane Doe</h3>
+                <p class="text-gray-500">Product Manager</p>
+              </div>
+            </div>
+            <p class="text-gray-600 italic leading-relaxed text-lg">
+              "Notion Slides has completely changed how I prepare for client
+              meetings. What used to take hours now takes minutes, and the
+              presentations look more professional."
+            </p>
+          </div>
+
+          <!-- Testimonial 2 -->
+          <div
+            class="bg-white p-8 rounded-xl shadow-xl hover-up card-hover transform transition"
+          >
+            <div class="flex items-center mb-6">
+              <div
+                class="h-14 w-14 rounded-full bg-gradient-3 flex items-center justify-center mr-4 shadow-md"
+              >
+                <span class="text-white font-semibold">MS</span>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-900">Mark Smith</h3>
+                <p class="text-gray-500">College Professor</p>
+              </div>
+            </div>
+            <p class="text-gray-600 italic leading-relaxed text-lg">
+              "I write all my lecture notes in Notion, and now I can turn them
+              into slides with one click. My students appreciate the clean,
+              distraction-free format."
+            </p>
+          </div>
+
+          <!-- Testimonial 3 -->
+          <div
+            class="bg-white p-8 rounded-xl shadow-xl hover-up card-hover transform transition"
+          >
+            <div class="flex items-center mb-6">
+              <div
+                class="h-14 w-14 rounded-full bg-gradient-1 flex items-center justify-center mr-4 shadow-md"
+              >
+                <span class="text-white font-semibold">AL</span>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-900">Amelia Lee</h3>
+                <p class="text-gray-500">Design Lead</p>
+              </div>
+            </div>
+            <p class="text-gray-600 italic leading-relaxed text-lg">
+              "As a designer, I'm particular about presentations. Notion Slides
+              creates the most elegant, minimalist slides I've seen from any
+              conversion tool."
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Table with animated cards -->
+    <section id="pricing" class="py-20 bg-white relative overflow-hidden">
+      <div
+        class="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+      ></div>
+      <div
+        class="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+      ></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <h2 class="text-4xl md:text-5xl font-bold text-center mb-4 font-outfit">
+          <span class="gradient-text-2">Simple, Transparent Pricing</span>
+        </h2>
+        <p class="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-16">
+          Choose the plan that works for you. All plans include core features
+          with no hidden fees.
+        </p>
+
+        <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
+          <!-- Free Plan -->
+          <div
+            class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden pricing-card shadow-xl"
+          >
+            <div class="p-8 border-b border-gray-200">
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+              <p class="text-gray-500 mb-6">For personal use</p>
+              <p class="text-4xl font-bold text-gray-900 mb-6">$0</p>
+              <a
+                href="#"
+                class="block text-center px-6 py-3 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 w-full font-semibold transition-all duration-300"
+              >
+                Get Started
+              </a>
+            </div>
+            <div class="p-8">
+              <ul class="space-y-4">
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Basic theme options</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600"
+                    >Up to 10 slides per presentation</span
+                  >
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Basic presentation controls</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Community support</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Pro Plan - Highlighted -->
+          <div
+            class="bg-white border-2 border-indigo-500 rounded-2xl shadow-2xl relative pricing-card transform scale-105 z-20"
+          >
+            <div
+              class="absolute top-0 right-0 bg-gradient-2 text-white text-xs font-semibold px-4 py-1 rounded-bl-lg rounded-tr-lg"
+            >
+              MOST POPULAR
+            </div>
+            <div class="p-8 border-b border-gray-200 bg-indigo-50">
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
+              <p class="text-gray-500 mb-6">For professionals</p>
+              <p class="text-4xl font-bold text-gray-900 mb-6">
+                $9.9<span class="text-lg font-normal text-gray-500">/month</span>
+              </p>
+              <a
+                href="#"
+                class="block text-center px-6 py-3 border border-transparent rounded-md text-white bg-gradient-2 hover:opacity-90 w-full font-semibold transition-all duration-300"
+              >
+                Get Started
+              </a>
+            </div>
+            <div class="p-8">
+              <ul class="space-y-4">
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">All Free features</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Unlimited slides</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600"
+                    >Advanced theme customization</span
+                  >
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Priority email support</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Team Plan -->
+          <div
+            class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden pricing-card shadow-xl"
+          >
+            <div class="p-8 border-b border-gray-200">
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">Team</h3>
+              <p class="text-gray-500 mb-6">For teams and businesses</p>
+              <p class="text-4xl font-bold text-gray-900 mb-6">
+                $19.9<span class="text-lg font-normal text-gray-500">/user/month</span>
+              </p>
+              <a
+                href="#"
+                class="block text-center px-6 py-3 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 w-full font-semibold transition-all duration-300"
+              >
+                Contact Sales
+              </a>
+            </div>
+            <div class="p-8">
+              <ul class="space-y-4">
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">All Pro features</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Export to PDF</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Team management dashboard</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Custom branding</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Advanced analytics</span>
+                </li>
+                <li class="flex items-start">
+                  <svg
+                    class="h-6 w-6 text-green-500 mr-3 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span class="text-gray-600">Dedicated account manager</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ with animated items -->
+    <section id="faq" class="py-20 faq-gradient">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-center mb-16 font-outfit"
+        >
+          <span class="gradient-text-1">Frequently Asked Questions</span>
+        </h2>
+        <div class="space-y-8">
+          <!-- FAQ Item 1 -->
+          <div
+            class="bg-white rounded-xl shadow-xl p-8 faq-item highlight-shadow"
+          >
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              How does Notion Slides work?
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Notion Slides reads the content of your Notion page directly in
+              your browser and converts it into a presentation format. Headings
+              become slide titles, text blocks become bullet points, and images
+              are preserved. Your content never leaves your browser — we process
+              everything locally for maximum privacy.
+            </p>
+          </div>
+
+          <!-- FAQ Item 2 -->
+          <div
+            class="bg-white rounded-xl shadow-xl p-8 faq-item highlight-shadow"
+          >
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Do I need to have Notion open to use this?
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Yes, Notion Slides works directly on your open Notion pages.
+              Simply navigate to the Notion page you want to convert, click our
+              extension icon, and we'll transform that page into a presentation.
+            </p>
+          </div>
+
+          <!-- FAQ Item 3 -->
+          <div
+            class="bg-white rounded-xl shadow-xl p-8 faq-item highlight-shadow"
+          >
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Can I customize the presentation themes?
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Absolutely! Free users can choose from our selection of basic
+              themes. Pro and Team users get access to additional premium themes
+              and customization options including custom colors, fonts, and
+              layouts.
+            </p>
+          </div>
+
+          <!-- FAQ Item 4 -->
+          <div
+            class="bg-white rounded-xl shadow-xl p-8 faq-item highlight-shadow"
+          >
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Is my data secure?
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Yes, your data never leaves your browser. We process everything
+              locally and don't store or transmit your Notion content to any
+              servers. Your presentations are stored in your browser's local
+              storage and can be exported as needed.
+            </p>
+          </div>
+
+          <!-- FAQ Item 5 -->
+          <div
+            class="bg-white rounded-xl shadow-xl p-8 faq-item highlight-shadow"
+          >
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+              Can I share my presentations with others?
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              For presenting live, you can simply share your screen like you 
+              would with any other presentation tool. 
+              However, we are working on an exporting features too. 
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA with animated background -->
+    <section class="py-20 animated-gradient text-white">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl md:text-5xl font-bold mb-8 font-outfit">
+          Ready to transform how you present?
+        </h2>
+        <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto font-light">
+          Join thousands of professionals who have simplified their presentation
+          workflow with Notion Slides.
+        </p>
+        <div class="inline-flex rounded-md shadow-lg">
+          <a
+            href="#"
+            class="px-10 py-4 border border-transparent text-xl font-bold rounded-lg text-indigo-600 bg-white hover:bg-gray-100 md:py-5 md:text-xl md:px-12 hover-up shadow-lg transition-all duration-300 flex items-center"
+          >
+            <img
+              src="src/assets/icons/chrome.png"
+              alt="Chrome logo"
+              class="h-6 w-6 mr-3"
+            />
+            Add to Chrome
+          </a>
+        </div>
+        <p class="mt-8 text-lg">
+          Claim your ⭐️⭐️⭐️⭐️⭐️ 5-star reviews in the Chrome Web Store
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+          <div>
+            <h3 class="text-xl font-bold mb-6 gradient-text-2">
+              Notion Slides
+            </h3>
+            <p class="text-gray-400 leading-relaxed">
+              Transform your Notion pages into elegant, minimalist presentations
+              with a single click.
+            </p>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold mb-6">Product</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Features</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Pricing</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Roadmap</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Release Notes</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold mb-6">Resources</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Help Center</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Documentation</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Community</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Tutorials</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold mb-6">Company</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Blog</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Careers</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors duration-300"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div
+          class="mt-16 pt-8 border-t border-gray-800 text-center text-gray-400"
+        >
+          <p>© 2025 Notion Slides. All rights reserved.</p>
+          <div class="mt-6 space-x-6">
+            <a
+              href="#"
+              class="text-gray-400 hover:text-white transition-colors duration-300"
+              >Privacy Policy</a
+            >
+            <a
+              href="#"
+              class="text-gray-400 hover:text-white transition-colors duration-300"
+              >Terms of Service</a
+            >
+            <a
+              href="#"
+              class="text-gray-400 hover:text-white transition-colors duration-300"
+              >Cookie Policy</a
+            >
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Enhanced JavaScript for microinteractions
+      document.addEventListener("DOMContentLoaded", function () {
+        // Typing effect with multiple words
+        const typedElement = document.getElementById("typed-word");
+        const words = ["Notion", "Markdown", "Ideas"];
+        let currentWordIndex = 0;
+        typedElement.textContent = "";
+
+        function typeWord(word, index) {
+          if (index < word.length) {
+            typedElement.textContent = word.substring(0, index + 1);
+            setTimeout(function () {
+              typeWord(word, index + 1);
+            }, 150);
+          } else {
+            // After typing completes, start a blinking cursor effect
+            typedElement.classList.add("typed-complete");
+
+            // Wait before transitioning to the next word
+            setTimeout(function () {
+              morphToNextWord(word);
+            }, 2000);
+          }
+        }
+
+        function morphToNextWord(currentWord) {
+          // Move to the next word
+          currentWordIndex = (currentWordIndex + 1) % words.length;
+          const nextWord = words[currentWordIndex];
+
+          // Check if this is the last word ("Ideas")
+          const isLastWord = currentWord === "Ideas";
+
+          // Remove typing completion class and keep the text for explosion
+          typedElement.classList.remove("typed-complete");
+
+          // Only create explosion effect for the last word
+          if (isLastWord) {
+            createExplosionEffect(typedElement, currentWord);
+          }
+
+          // Clear text after a small delay (longer if we're doing explosion)
+          const clearDelay = isLastWord ? 100 : 50;
+          setTimeout(function () {
+            typedElement.textContent = "";
+
+            // Show empty cursor with left position after a small delay
+            setTimeout(function () {
+              typedElement.classList.add("empty-cursor");
+
+              // Keep cursor visible before starting to type
+              setTimeout(function () {
+                // Start typing the next word
+                typedElement.classList.remove("empty-cursor");
+                typeWord(nextWord, 0);
+              }, 400);
+            }, 150);
+          }, clearDelay);
+        }
+
+        // Create explosion/sparkle effect
+        function createExplosionEffect(element, word) {
+          const rect = element.getBoundingClientRect();
+          const numParticles = Math.max(20, word.length * 6); // More particles for longer words
+
+          // Create a container for the particles
+          const container = document.createElement("div");
+          container.style.position = "absolute";
+          container.style.top = "0";
+          container.style.left = "0";
+          container.style.width = "100%";
+          container.style.height = "100%";
+          container.style.pointerEvents = "none";
+          container.style.zIndex = "100";
+          document.body.appendChild(container);
+
+          // Define possible colors for sparkles
+          const colors = [
+            "#6366F1",
+            "#8B5CF6",
+            "#EC4899",
+            "#10B981",
+            "#3B82F6",
+          ];
+
+          // Create and animate individual sparkles
+          for (let i = 0; i < numParticles; i++) {
+            // Create particles at random positions within the word
+            const sparkle = document.createElement("div");
+            sparkle.className = "sparkle";
+
+            // Randomize size
+            const size = 3 + Math.random() * 4;
+            sparkle.style.width = `${size}px`;
+            sparkle.style.height = `${size}px`;
+
+            // Random position within the element
+            const offsetX = Math.random() * rect.width;
+            const offsetY = Math.random() * rect.height;
+            sparkle.style.left = `${rect.left + offsetX}px`;
+            sparkle.style.top = `${rect.top + offsetY}px`;
+
+            // Random direction for the explosion
+            const angle = Math.random() * Math.PI * 2;
+            const tx = Math.cos(angle) * (30 + Math.random() * 70); // Random distance
+            const ty = Math.sin(angle) * (30 + Math.random() * 70);
+            sparkle.style.setProperty("--tx", `${tx}px`);
+            sparkle.style.setProperty("--ty", `${ty}px`);
+
+            // Random color
+            sparkle.style.backgroundColor =
+              colors[Math.floor(Math.random() * colors.length)];
+
+            // Random delay for more natural effect
+            const delay = Math.random() * 150;
+            sparkle.style.animation = `explode 0.8s ease-out ${delay}ms forwards`;
+
+            container.appendChild(sparkle);
+          }
+
+          // Remove the container after animations complete
+          setTimeout(() => {
+            document.body.removeChild(container);
+          }, 1500);
+        }
+
+        // Start typing after a short delay
+        setTimeout(function () {
+          typeWord(words[currentWordIndex], 0);
+        }, 500);
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            const targetId = this.getAttribute("href");
+            if (targetId === "#") return;
+
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+              window.scrollTo({
+                top: targetElement.offsetTop - 100,
+                behavior: "smooth",
+              });
+            }
+          });
+        });
+
+        // Reveal animations on scroll
+        const revealElements = document.querySelectorAll(
+          ".card-hover, .section-title, .faq-item",
+        );
+
+        const revealOnScroll = function () {
+          for (let i = 0; i < revealElements.length; i++) {
+            const windowHeight = window.innerHeight;
+            const elementTop = revealElements[i].getBoundingClientRect().top;
+            const elementVisible = 150;
+
+            if (elementTop < windowHeight - elementVisible) {
+              revealElements[i].classList.add("opacity-100");
+              revealElements[i].classList.remove("opacity-0");
+            }
+          }
+        };
+
+        window.addEventListener("scroll", revealOnScroll);
+        revealOnScroll();
+      });
+    </script>
+  </body>
+</html>

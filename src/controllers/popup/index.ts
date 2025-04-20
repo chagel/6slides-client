@@ -9,7 +9,7 @@ import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
 import { configManager } from '../../models/config_manager';
 import { debugService } from '../../services/debug_service';
-import { authService } from '../../services/auth_service';
+import { DebugInfo } from '../../types/storage';
 import { Slide } from '../../types/index';
 
 /**
@@ -191,9 +191,6 @@ class PopupController {
   private async handleConvertClick(): Promise<void> {
     // Disable button during processing
     this.convertBtn.disabled = true;
-
-    // Validate subscription data
-    await chrome.runtime.sendMessage({ action: 'validate_subscription' });
     
     // Log subscription status when beginning extraction
     const hasPro = await configManager.hasPro();
@@ -233,15 +230,18 @@ class PopupController {
       if (response && response.slides && response.slides.length > 0) {
         this.updateStatus(`Found ${response.slides.length} slides! Creating presentation...`, 'ready');
         
-        // Log debug info
-        loggingService.debug('Popup extraction complete', {
+        // Store debug info
+        const debugInfo: Partial<DebugInfo> = {
+          timestamp: new Date().toISOString(),
           sourceType: pageInfo.type,
           url: (pageInfo.tab as chrome.tabs.Tab).url,
-          slideCount: response.slides.length
-        });
+          slideCount: response.slides.length,
+          logs: []
+        };
         
-        // Store slides
+        // Store slides and debug info
         await storage.saveSlides(response.slides);
+        await storage.saveDebugInfo(debugInfo);
         
         // Open viewer in the current tab
         if ((pageInfo.tab as chrome.tabs.Tab).id) {
@@ -253,13 +253,14 @@ class PopupController {
         // Close the popup
         window.close();
       } else if (response && response.error) {
-        // Log error details
-        loggingService.error('Extraction error', {
-          message: response.error,
-          stack: response.stack,
-          details: response
-        });
+        loggingService.error('Extraction error details', response);
         this.updateStatus(`Error: ${response.error}`, 'not-ready');
+        
+        // Store error info for debugging
+        await storage.saveErrorInfo({
+          message: response.error,
+          stack: response.stack
+        });
       } else {
         this.updateStatus('Error: No slides found. Make sure your page follows the template format and has at least one H1 heading.', 'not-ready');
       }
@@ -321,21 +322,9 @@ class PopupController {
       const subscriptionBadge = document.getElementById('subscription-badge');
       if (!subscriptionBadge) return;
       
-      // Get subscription status from background service worker
-      const response = await chrome.runtime.sendMessage({
-        action: 'auth',
-        authAction: 'check'
-      });
-      
-      const subscription = response.subscription;
-      const level = subscription?.level;
-      const expiryTimestamp = subscription?.expiry;
-      
-      // Determine if user has pro features
-      const hasPro = (
-        (level === 'pro' || level === 'vip') && 
-        (expiryTimestamp === null || expiryTimestamp > Date.now())
-      );
+      // Get subscription status from config manager
+      const hasPro = await configManager.hasPro();
+      const { level } = await configManager.getSubscription();
       
       // Reset all classes
       subscriptionBadge.className = 'subscription-badge';
@@ -345,9 +334,9 @@ class PopupController {
         if (level === 'pro') {
           subscriptionBadge.classList.add('pro');
           subscriptionBadge.textContent = 'PRO';
-        } else if (level === 'vip') {
-          subscriptionBadge.classList.add('vip');
-          subscriptionBadge.textContent = 'VIP';
+        } else if (level === 'team') {
+          subscriptionBadge.classList.add('team');
+          subscriptionBadge.textContent = 'TEAM';
         }
       } else {
         subscriptionBadge.classList.add('free');
@@ -358,7 +347,7 @@ class PopupController {
       loggingService.debug('Subscription status', { 
         level, 
         hasPro, 
-        expiry: expiryTimestamp 
+        expiry: await configManager.getValue('subscriptionExpiry', null) 
       }, 'popup');
     } catch (error) {
       loggingService.error('Error updating subscription badge', error, 'popup');

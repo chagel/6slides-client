@@ -8,7 +8,7 @@ import { source_manager, SourceType } from '../models/source_manager';
 import { content_processor } from '../models/content_processor';
 import { storage } from '../models/storage';
 import { Presentation } from '../models/domain/presentation';
-import { loggingService } from '../services/logging_service';
+import { errorService, ErrorTypes } from '../services/error_service';
 import { Slide } from '../types/index';
 import { configManager } from '../models/config_manager';
 
@@ -16,8 +16,6 @@ import { configManager } from '../models/config_manager';
  * Result of content extraction
  */
 export interface ExtractionResult {
-  /** Whether the extraction was successful */
-  success?: boolean;
   /** Extraction error if any */
   error?: string;
   /** Extracted source type */
@@ -26,8 +24,6 @@ export interface ExtractionResult {
   slides?: Slide[];
   /** Complete presentation */
   presentation?: Presentation;
-  /** Error context */
-  context?: string;
 }
 
 /**
@@ -150,12 +146,14 @@ class ContentController {
       await storage.clearSlides();
       await storage.saveSlides(presentation.toObject().slides);
       
-      // Log debug info
-      loggingService.debug('Content extraction complete', {
+      // Store debug info
+      await storage.saveDebugInfo({
+        timestamp: new Date().toISOString(),
         sourceType: sourceType.toString(),
         url,
         slideCount: presentation.slideCount,
-        title: presentation.title
+        title: presentation.title,
+        logs: []
       });
       
       return {
@@ -164,20 +162,16 @@ class ContentController {
         sourceType
       };
     } catch (error) {
-      // Log the error
-      const errorObj = error instanceof Error ? error : new Error(String(error));
-      
-      loggingService.error('Content extraction failed', {
-        error: errorObj,
+      // Use the error service to handle the error
+      const result = await errorService.handleError(error instanceof Error ? error : new Error(String(error)), {
+        type: ErrorTypes.EXTRACTION,
         context: 'content_extraction',
-        url
+        data: { url, sourceType: 'unknown' }
       });
       
-      // Return error result
+      // Add sourceType to the result to make it compatible with ExtractionResult
       return {
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-        context: 'content_extraction',
+        ...result,
         sourceType: null
       };
     }

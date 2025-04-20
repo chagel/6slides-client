@@ -117,6 +117,9 @@ class DebugService {
     
     // Configure logging services
     loggingService.setDebugLogging(isDebugEnabled);
+    // Keep console logging disabled to reduce noise
+    loggingService.setConsoleLogging(false);
+    loggingService.setStoreDebugLogs(isDebugEnabled);
     
     // Log status change
     if (isDebugEnabled) {
