@@ -4,31 +4,49 @@
  * Handles the developer tools section of the about page
  */
 
-import { configManager } from '../../models/config_manager';
-import { storage } from '../../models/storage';
+import { loggingService } from '../../services/logging_service';
+import { configManager, SubscriptionLevel } from '../../models/config_manager';
+import { LogViewerController } from './log_viewer_controller';
 
 /**
  * Controller for the developer tools section
  */
 export class DeveloperController {
+  // Testing elements
+  private testSubLevel: HTMLElement | null;
+  private testHasPro: HTMLElement | null;
+  private testSubExpiry: HTMLElement | null;
+  private setFreeBtn: HTMLElement | null;
+  private setProBtn: HTMLElement | null;
+  private setProExpiryBtn: HTMLElement | null;
+  private setProExpiredBtn: HTMLElement | null;
+  private setTeamBtn: HTMLElement | null;
+
+  // Log viewer controller
+  private logViewerController: LogViewerController;
+  
   /**
    * Initialize the developer controller
    */
   constructor() {
-    // Initialize debug settings
+    // Testing elements
+    this.testSubLevel = document.getElementById('testSubLevel');
+    this.testHasPro = document.getElementById('testHasPro');
+    this.testSubExpiry = document.getElementById('testSubExpiry');
+    this.setFreeBtn = document.getElementById('setFreeBtn');
+    this.setProBtn = document.getElementById('setProBtn');
+    this.setProExpiryBtn = document.getElementById('setProExpiryBtn');
+    this.setProExpiredBtn = document.getElementById('setProExpiredBtn');
+    this.setTeamBtn = document.getElementById('setTeamBtn');
+    
+    // Initialize log viewer - assuming debug is enabled for developers
+    this.logViewerController = new LogViewerController(true);
+    
+    this.bindEventHandlers();
+    this.updateSubscriptionTestStatus();
+    
+    // Additionally check for debug status asynchronously
     this.initializeDebugSettings();
-    
-    // Set up event listeners for debug settings controls
-    const debugLoggingSelector = document.getElementById('debugLoggingSelector') as HTMLSelectElement;
-    const clearCacheBtn = document.getElementById('clearCacheBtn');
-    
-    if (debugLoggingSelector) {
-      debugLoggingSelector.addEventListener('change', this.handleDebugLoggingChange.bind(this));
-    }
-    
-    if (clearCacheBtn) {
-      clearCacheBtn.addEventListener('click', this.handleClearCacheClick.bind(this));
-    }
   }
   
   /**
@@ -40,11 +58,12 @@ export class DeveloperController {
       // Handle both boolean and string representation
       const debugEnabled = settings.debugLogging === true || 
                           (typeof settings.debugLogging === 'string' && settings.debugLogging === 'true');
+      // No longer logging debug status
       
-      // Update UI to reflect current setting
-      const debugLoggingSelector = document.getElementById('debugLoggingSelector') as HTMLSelectElement;
-      if (debugLoggingSelector) {
-        debugLoggingSelector.value = debugEnabled ? 'true' : 'false';
+      // Make log viewer visible if debug is enabled
+      // LogViewerController doesn't have setDebugEnabled, so we're using setVisible instead
+      if (this.logViewerController) {
+        this.logViewerController.setVisible(debugEnabled);
       }
     } catch (error) {
       console.error('Error initializing debug settings:', error);
@@ -52,48 +71,107 @@ export class DeveloperController {
   }
   
   /**
-   * Handle debug logging setting change
+   * Get the log viewer controller
    */
-  private async handleDebugLoggingChange(event: Event): Promise<void> {
-    const select = event.target as HTMLSelectElement;
-    const value = select.value === 'true';
+  getLogViewerController(): LogViewerController {
+    return this.logViewerController;
+  }
+  
+  /**
+   * Bind event handlers to UI elements
+   */
+  private bindEventHandlers(): void {
+    // Setup subscription test buttons
+    if (this.setFreeBtn) {
+      this.setFreeBtn.addEventListener('click', this.setFreeSubscription.bind(this));
+    }
     
-    try {
-      await configManager.setValue('debugLogging', value);
-      console.log(`Debug logging ${value ? 'enabled' : 'disabled'}`);
-    } catch (error) {
-      console.error('Error saving debug setting:', error);
+    if (this.setProBtn) {
+      this.setProBtn.addEventListener('click', this.setProSubscription.bind(this));
+    }
+    
+    if (this.setProExpiryBtn) {
+      this.setProExpiryBtn.addEventListener('click', this.setProWithExpirySubscription.bind(this));
+    }
+    
+    if (this.setProExpiredBtn) {
+      this.setProExpiredBtn.addEventListener('click', this.setProExpiredSubscription.bind(this));
+    }
+    
+    if (this.setTeamBtn) {
+      this.setTeamBtn.addEventListener('click', this.setTeamSubscription.bind(this));
     }
   }
   
   /**
-   * Handle clear cache button click
+   * Update the subscription test status display
    */
-  private async handleClearCacheClick(): Promise<void> {
-    if (confirm('Are you sure you want to clear all cached data? This will reset your settings.')) {
-      try {
-        // Clear all data from storage
-        await storage.clearAll();
-        // Reset config to defaults
-        await configManager.resetToDefaults();
-        console.log('Cache cleared successfully');
-        
-        // Show a success message to the user
-        const clearCacheBtn = document.getElementById('clearCacheBtn');
-        if (clearCacheBtn) {
-          const originalText = clearCacheBtn.textContent;
-          clearCacheBtn.textContent = 'Cleared!';
-          
-          setTimeout(() => {
-            if (clearCacheBtn) {
-              clearCacheBtn.textContent = originalText;
-            }
-          }, 2000);
-        }
-      } catch (error) {
-        console.error('Error clearing cache:', error);
-        alert('Error clearing cache. Please try again.');
-      }
+  private async updateSubscriptionTestStatus(): Promise<void> {
+    try {
+      // Get subscription status directly from configManager (async)
+      const hasPro = await configManager.hasPro();
+      const { level, expiry } = await configManager.getSubscription();
+      
+      // Format expiry date if exists
+      const expiryText = expiry 
+        ? new Date(expiry).toLocaleDateString() 
+        : 'Never';
+      
+      // Update UI
+      if (this.testSubLevel) this.testSubLevel.textContent = level?.toUpperCase() || 'FREE';
+      if (this.testHasPro) this.testHasPro.textContent = hasPro ? 'YES ✅' : 'NO ❌';
+      if (this.testSubExpiry) this.testSubExpiry.textContent = expiryText;
+    } catch (error) {
+      console.error('Error updating subscription status:', error);
     }
+  }
+  
+  /**
+   * Set free subscription
+   */
+  private async setFreeSubscription(): Promise<void> {
+    await configManager.setSubscription(SubscriptionLevel.FREE);
+    this.updateSubscriptionTestStatus();
+    window.location.reload(); // Reload to see changes
+  }
+  
+  /**
+   * Set pro subscription
+   */
+  private async setProSubscription(): Promise<void> {
+    await configManager.setSubscription(SubscriptionLevel.PRO, null);
+    this.updateSubscriptionTestStatus();
+    window.location.reload(); // Reload to see changes
+  }
+  
+  /**
+   * Set pro subscription with expiry
+   */
+  private async setProWithExpirySubscription(): Promise<void> {
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    const expiryDate = Date.now() + thirtyDaysMs;
+    await configManager.setSubscription(SubscriptionLevel.PRO, expiryDate);
+    this.updateSubscriptionTestStatus();
+    window.location.reload(); // Reload to see changes
+  }
+  
+  /**
+   * Set pro expired subscription
+   */
+  private async setProExpiredSubscription(): Promise<void> {
+    const yesterdayMs = -24 * 60 * 60 * 1000;
+    const expiryDate = Date.now() + yesterdayMs;
+    await configManager.setSubscription(SubscriptionLevel.PRO, expiryDate);
+    this.updateSubscriptionTestStatus();
+    window.location.reload(); // Reload to see changes
+  }
+  
+  /**
+   * Set team subscription
+   */
+  private async setTeamSubscription(): Promise<void> {
+    await configManager.setSubscription(SubscriptionLevel.TEAM, null);
+    this.updateSubscriptionTestStatus();
+    window.location.reload(); // Reload to see changes
   }
 }
