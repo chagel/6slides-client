@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Notion Extractors
+ * Six Slides - Notion Extractors
  * 
  * Export all Notion-specific extractors
  */

@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Base Extractor
+ * Six Slides - Base Extractor
  * 
  * Base class for all content extractors
  */

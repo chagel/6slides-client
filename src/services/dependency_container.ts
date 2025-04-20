@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Dependency Container
+ * Six Slides - Dependency Container
  * 
  * A simple dependency injection container
  */

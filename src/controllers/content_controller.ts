@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Content Controller
+ * Six Slides - Content Controller
  * 
  * Manages content extraction from various sources
  */
@@ -51,7 +51,7 @@ class ContentController {
    */
   async applyFreeUserSlideLimit(slides: Slide[]): Promise<Slide[]> {
     // Apply free user slide limit
-    const FREE_SLIDE_LIMIT = 10;
+    const FREE_SLIDE_LIMIT = 6;
       
     // Get subscription status using async methods
     const hasPro = await configManager.hasPro();
@@ -72,13 +72,13 @@ class ContentController {
       
       // Add a "Upgrade to Pro" slide at the end
       const upgradeSlide: Slide = {
-        title: 'Why stop now?',
+        title: 'You have hit Slide 6',
         content: `
 
-## ${slides.length - limit} more slides are waiting!
+You're doing great! Most stories are best told in 6 slides - but if yours needs more room, consider to unlock and support us.
 
 <div style="text-align: center; margin-top: 30px;">
-<a href="https://notion-slides.com/pricing" style="background: #7C63F6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Upgrade to Pro</a>
+<a href="https://6slides.com/" style="background: #7C63F6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Upgrade to go beyond</a>
 </div>`,
         sourceType: 'upgrade'
       };

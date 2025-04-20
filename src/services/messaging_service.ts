@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Messaging Service
+ * Six Slides - Messaging Service
  * 
  * Handles communication between extension components
  */

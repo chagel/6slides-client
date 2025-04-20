@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Image Extractor
+ * Six Slides - Image Extractor
  * 
  * Extracts image elements and converts them to markdown
  */

@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Debug Service
+ * Six Slides - Debug Service
  * 
  * Centralized debugging utilities to provide consistent debugging functionality
  * across different parts of the application.

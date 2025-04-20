@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Viewer Script
+ * Six Slides - Viewer Script
  * 
  * This script renders markdown content from Notion as slides using reveal.js.
  */
@@ -46,7 +46,7 @@ let viewerInitialized = false;
 
 async function initialize(): Promise<void> {
   // Set document title
-  document.title = 'Notion Slides';
+  document.title = 'Six Slides';
   
   // Initialize immediately without waiting for DOM events
   if (viewerInitialized) {

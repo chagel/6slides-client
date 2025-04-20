@@ -1,8 +1,8 @@
 # Licenses
 
-## Notion Slides Extension License
+## Six Slides Extension License
 
-Copyright (c) 2025 Notion Slides
+Copyright (c) 2025 Six Slides
 
 
 ## Third-Party Licenses

@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Presentation Domain Model
+ * Six Slides - Presentation Domain Model
  * 
  * Represents a complete presentation with slides
  */

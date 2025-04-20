@@ -1,10 +1,10 @@
-# Notion Slides Architecture
+# Six Slides Architecture
 
-This document outlines the architecture of the Notion Slides Chrome extension, detailing how the system is structured to support multiple content sources and be extensible for future enhancements. The architecture follows Domain-Driven Design principles with clear domain models, dependency injection, and a layered approach that separates concerns while maintaining flexibility.
+This document outlines the architecture of the Six Slides Chrome extension, detailing how the system is structured to support multiple content sources and be extensible for future enhancements. The architecture follows Domain-Driven Design principles with clear domain models, dependency injection, and a layered approach that separates concerns while maintaining flexibility.
 
 ## Overview
 
-**Notion Slides** is a Chrome extension that transforms various content sources into elegant presentations. The codebase is written in **TypeScript**, providing type safety and better developer experience while maintaining the same architecture and design principles.
+**Six Slides** is a Chrome extension that transforms various content sources into elegant presentations. The codebase is written in **TypeScript**, providing type safety and better developer experience while maintaining the same architecture and design principles.
 
 ## Business Requirements
 
@@ -480,7 +480,7 @@ class LoggingService {
     this._enabled = true;
     this._debugEnabled = false;
     this._logLevel = LogLevel.INFO;
-    this._prefix = '[Notion Slides]';
+    this._prefix = '[Six Slides]';
     this._storeDebugLogs = false;
   }
   
@@ -875,7 +875,7 @@ The following diagram shows the key domain models and their relationships:
 
 ---
 
-This architecture enables Notion Slides to support multiple content sources while maintaining a clean, modular, and extensible codebase. Key architectural benefits include:
+This architecture enables Six Slides to support multiple content sources while maintaining a clean, modular, and extensible codebase. Key architectural benefits include:
 
 1. **TypeScript Integration** - Strong typing throughout the codebase for improved safety and developer experience
 2. **Domain-Driven Design** - Clear domain objects with TypeScript interfaces encapsulate business rules and validation logic

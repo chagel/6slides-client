@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Presentation Renderer
+ * Six Slides - Presentation Renderer
  * 
  * Handles rendering slides with reveal.js
  */

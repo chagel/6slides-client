@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Blockquote Extractor
+ * Six Slides - Blockquote Extractor
  * 
  * Extracts blockquote elements from documents and converts them to markdown
  */

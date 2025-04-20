@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Service Registry
+ * Six Slides - Service Registry
  * 
  * Registers all services with the dependency container
  */
@@ -33,7 +33,7 @@ export function registerServices(): void {
   loggingService.initialize({
     debugEnabled: false, // Will be updated from config later
     logLevel: LogLevel.INFO,
-    prefix: '[Notion Slides]',
+    prefix: '[Six Slides]',
     maxStoredLogs: 150 // Store more logs for better troubleshooting
   });
   
