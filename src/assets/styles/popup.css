@@ -1,6 +1,4 @@
 /* Popup Styles - Premium Version */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
   --primary-color: #7C63F6;
   --primary-hover: #6A50E0;
@@ -197,8 +195,13 @@ button:hover svg {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-light);
+  padding: 12px;
+  margin-left: -16px;
+  margin-right: -16px;
+  margin-bottom: -16px;
+  background-color: var(--bg-light);
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
 }
 
 .footer-section {
@@ -218,7 +221,7 @@ button:hover svg {
 }
 
 .settings-link:hover, .account-link:hover {
-  background-color: var(--bg-light);
+  background-color: rgba(255, 255, 255, 0.4);
   color: var(--text-primary);
 }
 
@@ -229,7 +232,7 @@ button:hover svg {
 
 .primary-link:hover {
   color: var(--primary-hover);
-  background-color: rgba(124, 99, 246, 0.05);
+  background-color: rgba(124, 99, 246, 0.1);
 }
 
 .settings-link svg, .account-link svg {
