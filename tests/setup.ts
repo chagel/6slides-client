@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Testing Setup
+ * Six Slides - Testing Setup
  */
 
 // Import Jest functions

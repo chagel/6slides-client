@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Content Processor
+ * Six Slides - Content Processor
  * 
  * Normalizes content from different sources into a standard format
  */

@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Top Navigation Controller
+ * Six Slides - Top Navigation Controller
  * 
  * Handles the top navigation functionality including user info and subscription status
  */
@@ -287,7 +287,7 @@ export class TopNavController {
         this.pageTitleEl.textContent = 'Developer';
         break;
       default:
-        this.pageTitleEl.textContent = 'Notion to Slides';
+        this.pageTitleEl.textContent = 'Six Slides';
     }
   }
   

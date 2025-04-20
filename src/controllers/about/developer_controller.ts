@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Developer Controller
+ * Six Slides - Developer Controller
  * 
  * Handles the developer tools section of the about page
  */

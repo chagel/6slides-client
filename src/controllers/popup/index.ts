@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Popup Script
+ * Six Slides - Popup Script
  * 
  * Handles the popup UI and initiates the content extraction process.
  */

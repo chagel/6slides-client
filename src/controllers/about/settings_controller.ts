@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Settings Controller
+ * Six Slides - Settings Controller
  * 
  * Handles the settings section of the About page, including theme,
  * transition, and other presentation settings.

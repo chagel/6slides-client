@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Logging Service
+ * Six Slides - Logging Service
  * 
  * Centralized logging functionality with support for different levels.
  * Provides core logging capabilities for the entire application.
@@ -64,7 +64,7 @@ class LoggingService {
     this._enabled = true;       // Master switch for all logging
     this._debugEnabled = true;  // Debug-level logging enabled for development
     this._logLevel = LogLevel.DEBUG;
-    this._prefix = '[Notion Slides]';
+    this._prefix = '[Six Slides]';
     this._maxStoredLogs = 100;    // Maximum number of logs to keep in storage
   }
 

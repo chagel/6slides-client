@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Storage Module
+ * Six Slides - Storage Module
  * 
  * Handles data persistence using IndexedDB
  */

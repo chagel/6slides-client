@@ -1,5 +1,5 @@
 /**
- * Common type definitions for Notion Slides
+ * Common type definitions for Six Slides
  */
 
 /**

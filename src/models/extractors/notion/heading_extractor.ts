@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Heading Extractor
+ * Six Slides - Heading Extractor
  * 
  * Extracts heading elements from Notion pages
  */

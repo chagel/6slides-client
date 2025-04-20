@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Build Script
+ * Six Slides - Build Script
  * 
  * Build script to bundle modular code using Rollup
  */
@@ -185,7 +185,7 @@ async function build() {
   const quietBuild = process.env.QUIET_BUILD === 'true';
   
   if (!quietBuild) {
-    console.log('Building Notion Slides extension...');
+    console.log('Building Six Slides extension...');
   }
   
   // Clean dist directory - add debug message

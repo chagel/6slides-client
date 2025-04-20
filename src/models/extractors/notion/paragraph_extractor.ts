@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Paragraph Extractor
+ * Six Slides - Paragraph Extractor
  * 
  * Extracts paragraph elements and converts them to markdown with formatting
  */

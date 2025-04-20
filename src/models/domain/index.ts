@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Domain Models
+ * Six Slides - Domain Models
  * 
  * Export all domain models for easy access
  */

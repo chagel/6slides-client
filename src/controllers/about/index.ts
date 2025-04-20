@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Main UI Controller
+ * Six Slides - Main UI Controller
  * 
  * Handles the main UI functionality including about, settings, and pro features
  */

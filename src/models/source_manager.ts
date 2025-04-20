@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Source Manager
+ * Six Slides - Source Manager
  * 
  * Detects and manages different content sources for extraction
  */

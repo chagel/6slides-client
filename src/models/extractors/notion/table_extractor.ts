@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Table Extractor
+ * Six Slides - Table Extractor
  * 
  * Extracts table elements from documents and converts to markdown format
  */

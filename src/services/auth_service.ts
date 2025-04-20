@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Authentication Service
+ * Six Slides - Authentication Service
  * 
  * Handles user authentication using chrome.identity
  */

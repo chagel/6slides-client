@@ -1,10 +1,10 @@
-# Notion Slides Testing Guide
+# Six Slides Testing Guide
 
-This guide covers the testing setup, strategies, and best practices for the Notion Slides extension, including how to test subscription features.
+This guide covers the testing setup, strategies, and best practices for the Six Slides extension, including how to test subscription features.
 
 ## Testing Setup
 
-Notion Slides uses Jest as its primary testing framework, configured for ES modules and JSDOM for DOM simulation.
+Six Slides uses Jest as its primary testing framework, configured for ES modules and JSDOM for DOM simulation.
 
 ### Key Configuration Files
 
@@ -297,7 +297,7 @@ describe('HeadingExtractor', () => {
 
 ## Subscription Testing
 
-Notion to Slides implements a subscription-based model with FREE and PRO tiers. This section covers how to test these features effectively.
+Six Slides implements a subscription-based model with FREE and PRO tiers. This section covers how to test these features effectively.
 
 ### Subscription Test Tools
 

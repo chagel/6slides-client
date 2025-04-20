@@ -1,4 +1,4 @@
-// Notion to Slides - Application Bootstrap
+// Six Slides - Application Bootstrap
 import { getService } from './services/dependency_container';
 import { ExtractionResult } from './controllers/content_controller';
 import { Slide } from './types/index';

@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Code Block Extractor
+ * Six Slides - Code Block Extractor
  * 
  * Extracts code blocks from Notion pages
  */

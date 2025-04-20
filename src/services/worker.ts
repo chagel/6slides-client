@@ -1,4 +1,4 @@
-// Notion to Slides - Service Worker
+// Six Slides - Service Worker
 import { messagingService } from './messaging_service';
 import { authService } from './auth_service';
 import { configManager } from '../models/config_manager';

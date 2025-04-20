@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Configuration Manager
+ * Six Slides - Configuration Manager
  * 
  * Centralized configuration management service
  */

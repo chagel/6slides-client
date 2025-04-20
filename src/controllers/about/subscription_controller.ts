@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Subscription Controller
+ * Six Slides - Subscription Controller
  * 
  * Handles subscription UI and features in the about page.
  */

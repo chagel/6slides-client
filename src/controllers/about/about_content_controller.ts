@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - About Content Controller
+ * Six Slides - About Content Controller
  * 
  * Handles the About page content, including showing/hiding Pro CTAs based on subscription status
  */

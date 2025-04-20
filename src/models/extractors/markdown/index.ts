@@ -1,5 +1,5 @@
 /**
- * Notion to Slides - Markdown Extractors
+ * Six Slides - Markdown Extractors
  * 
  * Export all Markdown-specific extractors
  */
