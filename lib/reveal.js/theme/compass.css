@@ -1,0 +1,175 @@
+/**
+ * Compass theme for reveal.js
+ * Interactive workshop style: medium-dark canvas with vibrant lime & coral accents
+ */
+
+:root {
+  /* Compass Palette */
+  --base:      #1C1F26;
+  --mantle:    #16181D;
+  --crust:     #121318;
+  --surface2:  #2A2D35;
+  --surface1:  #23262D;
+  --surface0:  #1E2128;
+  --overlay2:  #3B3E48;
+  --overlay1:  #333640;
+  --overlay0:  #2A2C3A;
+
+  --text:      #DFE3E8;
+  --subtext1:  #959DAE;
+  --subtext0:  #7B8492;
+
+  /* Accents */
+  --blue:      #28C76F;  /* Lime green */
+  --mauve:     #EA5455;  /* Coral red */
+  --teal:      #FF9F43;  /* Yellow */
+  --lavender:  #00CFE8;  /* Cyan */
+
+  --maroon:    #7367F0;  /* Purple for inline code */
+}
+
+body {
+  background:       var(--base);
+  color:            var(--text);
+  background-color: var(--base) !important;
+}
+
+.reveal {
+  font-family:      "Source Sans Pro", Helvetica, sans-serif;
+  font-size:        42px;
+  color:            var(--text);
+  background-color: var(--base);
+}
+
+.reveal-viewport {
+  background-color: var(--base);
+}
+
+.reveal .slides section,
+.reveal .slides section > section {
+  line-height:      1.3;
+  color:            var(--text);
+  background-color: transparent;
+}
+
+.reveal h1 {
+  font-size: 2.0em;
+  color:     var(--blue);
+}
+.reveal h2 {
+  font-size: 1.4em;
+  color:     var(--mauve);
+}
+.reveal h3 {
+  font-size: 1.2em;
+  color:     var(--teal);
+}
+.reveal h4 {
+  font-size: 1.0em;
+  color:     var(--lavender);
+}
+
+.reveal p {
+  margin:      20px 0;
+  line-height: 1.3;
+  font-size:   0.9em;
+}
+
+.reveal a {
+  color:           var(--blue);
+  text-decoration: none;
+  transition:      color 0.15s ease;
+}
+.reveal a:hover {
+  color:       var(--mauve);
+}
+
+.reveal code {
+  font-family:      monospace;
+  background-color: var(--crust);
+  padding:          2px 4px;
+  border-radius:    3px;
+  color:            var(--maroon);
+}
+
+.reveal pre {
+  width:             90%;
+  margin:            20px auto;
+  font-size:         0.55em;
+  font-family:       monospace;
+  line-height:       1.2em;
+  background-color:  var(--crust);
+  box-shadow:        0px 5px 15px rgba(0,0,0,0.15);
+}
+.reveal pre code {
+  display:    block;
+  padding:    15px;
+  overflow:   auto;
+  max-height: 600px;
+  color:      var(--text);
+}
+
+/* Tables */
+.reveal table {
+  margin:          auto;
+  border-collapse: collapse;
+}
+.reveal table th {
+  background-color: var(--surface0);
+  font-weight:      bold;
+}
+.reveal table th,
+.reveal table td {
+  text-align:    left;
+  padding:       0.2em 0.5em;
+  border-bottom: 1px solid var(--overlay1);
+}
+
+/* Blockquotes */
+.reveal blockquote {
+  width:            70%;
+  margin:           20px auto;
+  padding:          10px 20px;
+  font-style:       italic;
+  background-color: var(--surface0);
+  border-left:      4px solid var(--lavender);
+  color:            var(--subtext0);
+}
+
+.reveal ul,
+.reveal ol {
+  display:    inline-block;
+  margin:     0 0 0 1em;
+  text-align: left;
+}
+.reveal ul li,
+.reveal ol li {
+  margin-bottom: 0.5em;
+}
+
+/* Media */
+.reveal img,
+.reveal video,
+.reveal iframe {
+  max-width:  95%;
+  max-height: 95%;
+}
+
+/* Controls & Progress */
+.reveal .controls {
+  color: var(--blue);
+}
+.reveal .progress {
+  background: var(--surface0);
+  color:      var(--blue);
+}
+
+.reveal section img {
+  margin:       15px 0;
+  background:   rgba(0,0,0,0.12);
+  box-shadow:   0 0 10px rgba(0,0,0,0.15);
+}
+
+.reveal .slide-number {
+  color: var(--text);
+}
