@@ -2,6 +2,7 @@
 import { messagingService } from './messaging_service';
 import { authService } from './auth_service';
 import { configManager } from '../models/config_manager';
+import { loggingService } from './logging_service';
 
 // Open the viewer in a new tab
 function openViewer(): Promise<{success: boolean}> {
@@ -14,19 +15,19 @@ function openViewer(): Promise<{success: boolean}> {
 
 // Handle authentication request
 async function handleAuth(request: any): Promise<any> {
-  console.log('Auth request received in worker:', request?.authAction);
+  loggingService.debug('Auth request received in worker', { authAction: request?.authAction }, 'service_worker');
   
   try {
     switch (request.authAction) {
       case 'login': {
-        console.log('Starting sign-in flow from worker');
+        loggingService.debug('Starting sign-in flow from worker', {}, 'service_worker');
         const userInfo = await authService.signIn();
-        console.log('Sign-in completed:', !!userInfo);
+        loggingService.debug('Sign-in completed', { success: !!userInfo }, 'service_worker');
         return { success: !!userInfo, userInfo };
       }
         
       case 'logout': {
-        console.log('Processing logout request');
+        loggingService.debug('Processing logout request', {}, 'service_worker');
         await authService.signOut();
         return { success: true };
       }
@@ -36,7 +37,7 @@ async function handleAuth(request: any): Promise<any> {
         const currentUser = await authService.getCurrentUser();
         const subscription = await configManager.getSubscription();
         
-        console.log('Auth check:', { isLoggedIn, subscription: subscription?.level });
+        loggingService.debug('Auth check', { isLoggedIn, subscription: subscription?.level }, 'service_worker');
         return { 
           isLoggedIn, 
           currentUser,
@@ -45,12 +46,12 @@ async function handleAuth(request: any): Promise<any> {
       }
         
       default: {
-        console.error('Unknown auth action:', request.authAction);
+        loggingService.error('Unknown auth action', { authAction: request.authAction }, 'service_worker');
         return { error: 'Unknown auth action: ' + request.authAction };
       }
     }
   } catch (error) {
-    console.error('Error handling auth request:', error);
+    loggingService.error('Error handling auth request', { error }, 'service_worker');
     return { error: 'Authentication error', details: String(error) };
   }
 }
@@ -59,9 +60,9 @@ async function handleAuth(request: any): Promise<any> {
 async function validateSubscriptionData(): Promise<void> {
   try {
     await authService.validateSubscriptionDataAtStartup();
-    console.log('Subscription validation complete');
+    loggingService.debug('Subscription validation complete', {}, 'service_worker');
   } catch (error) {
-    console.error('Error validating subscription:', error);
+    loggingService.error('Error validating subscription', { error }, 'service_worker');
   }
 }
 

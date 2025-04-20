@@ -202,7 +202,7 @@ class ConfigManager {
         expiry: config.subscriptionExpiry || null
       };
     } catch (error) {
-      console.error('Error getting subscription data:', error);
+      loggingService.error('Error getting subscription data', { error }, 'config_manager');
       // Default to FREE if all else fails
       return { level: SubscriptionLevel.FREE, expiry: null };
     }
@@ -249,7 +249,7 @@ class ConfigManager {
           subscriptionExpiry: expiryDate
         });
       } catch (error) {
-        console.error('Error updating chrome.storage with subscription:', error);
+        loggingService.error('Error updating chrome.storage with subscription', { error }, 'config_manager');
       }
     }
     

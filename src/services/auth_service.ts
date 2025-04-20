@@ -68,7 +68,7 @@ class AuthService {
    */
   async signIn(): Promise<UserInfo | null> {
     try {
-      console.log('Starting sign-in process');
+      loggingService.debug('Starting sign-in process', {}, 'auth_service');
 
       // 1. Launch the auth flow to get an authorization code
       const authURL = new URL(`${OAUTH_SERVER}/oauth/authorize`);
@@ -77,96 +77,99 @@ class AuthService {
       authURL.searchParams.append('response_type', 'code');
       authURL.searchParams.append('scope', SCOPES.join(' '));
       
-      console.log('OAuth parameters:');
-      console.log('- Server:', OAUTH_SERVER);
-      console.log('- Client ID:', CLIENT_ID);
-      console.log('- Redirect URI:', REDIRECT_URL);
-      console.log('- Scopes:', SCOPES.join(' '));
+      loggingService.debug('OAuth parameters', {
+        server: OAUTH_SERVER,
+        clientId: CLIENT_ID,
+        redirectUri: REDIRECT_URL,
+        scopes: SCOPES.join(' ')
+      }, 'auth_service');
       
       // Generate and store a state parameter to prevent CSRF
       const state = Math.random().toString(36).substring(2, 15);
       authURL.searchParams.append('state', state);
-      console.log('- State:', state);
+      loggingService.debug('State parameter', { state }, 'auth_service');
       
       // Launch the web auth flow
-      console.log('Launching web auth flow...');
+      loggingService.debug('Launching web auth flow', {}, 'auth_service');
       const responseUrl = await this.launchAuthFlow(authURL.toString());
       
       if (!responseUrl) {
-        console.error('Auth flow was canceled or failed');
+        loggingService.error('Auth flow was canceled or failed', {}, 'auth_service');
         return null;
       }
       
-      console.log('Auth flow completed successfully');
-      console.log('Response URL received:', responseUrl);
+      loggingService.debug('Auth flow completed successfully', {}, 'auth_service');
+      loggingService.debug('Response URL received', { success: !!responseUrl }, 'auth_service');
       
       // 2. Extract the authorization code from the response URL
       const url = new URL(responseUrl);
       const code = url.searchParams.get('code');
       const returnedState = url.searchParams.get('state');
       
-      console.log('Extracted from response:');
-      console.log('- Code:', code ? `${code.substring(0, 10)}...` : 'none');
-      console.log('- State:', returnedState);
+      loggingService.debug('Extracted from response', {
+        code: code ? `${code.substring(0, 10)}...` : 'none',
+        state: returnedState
+      }, 'auth_service');
       
       // Verify state parameter to prevent CSRF attacks
       if (returnedState !== state) {
-        console.error('State parameter mismatch - possible CSRF attack');
-        console.error('Expected:', state);
-        console.error('Received:', returnedState);
+        loggingService.error('State parameter mismatch - possible CSRF attack', {
+          expected: state,
+          received: returnedState
+        }, 'auth_service');
         return null;
       }
       
       if (!code) {
-        console.error('No authorization code returned');
+        loggingService.error('No authorization code returned', {}, 'auth_service');
         return null;
       }
       
       // 3. Exchange the code for tokens with the backend
-      console.log('Exchanging authorization code for tokens...');
+      loggingService.debug('Exchanging authorization code for tokens', {}, 'auth_service');
       const tokenResponse = await this.exchangeCodeForTokens(code);
       
       if (!tokenResponse || !tokenResponse.access_token) {
-        console.error('Failed to exchange code for tokens');
-        if (tokenResponse) {
-          console.error('Token response did not contain access_token:', tokenResponse);
-        }
+        loggingService.error('Failed to exchange code for tokens', {
+          response: tokenResponse || null
+        }, 'auth_service');
         return null;
       }
       
-      console.log('Received access token:', 
-        tokenResponse.access_token ? `${tokenResponse.access_token.substring(0, 10)}...` : 'none');
+      loggingService.debug('Received access token', {
+        token: tokenResponse.access_token ? `${tokenResponse.access_token.substring(0, 10)}...` : 'none'
+      }, 'auth_service');
       
       // 4. Fetch user profile with the access token
-      console.log('Fetching user profile...');
-      console.log('Using access token:', tokenResponse.access_token);
+      loggingService.debug('Fetching user profile', {}, 'auth_service');
       const userInfo = await this.fetchUserProfile(tokenResponse.access_token);
       
       if (!userInfo) {
-        console.error('Failed to fetch user profile - make sure the user API endpoint is correct');
-        console.error('Check that the API is expecting the Authorization header and client_id parameter');
-        console.error('Full token response:', tokenResponse);
+        loggingService.error('Failed to fetch user profile', {
+          endpoint: `${OAUTH_SERVER}/api/v1/user`,
+          tokenResponse: tokenResponse
+        }, 'auth_service');
         return null;
       }
       
-      console.log('User profile retrieved successfully:', {
+      loggingService.debug('User profile retrieved successfully', {
         email: userInfo.email,
         name: userInfo.name,
         subscription: userInfo.subscription?.level
-      });
+      }, 'auth_service');
       
       // If user has no subscription data, they're on the free plan
       // No need to verify in this case
       if (!userInfo.subscription) {
-        console.log('No subscription data found, user is on free plan');
+        loggingService.debug('No subscription data found, user is on free plan', {}, 'auth_service');
         await this.saveUserInfo(userInfo);
         
         // Set default free subscription in config
         await configManager.setSubscription('free' as any, null);
         
-        console.log('User signed in successfully (free plan)', { 
+        loggingService.debug('User signed in successfully (free plan)', { 
           email: userInfo.email
-        });
+        }, 'auth_service');
         return userInfo;
       }
       
@@ -176,17 +179,17 @@ class AuthService {
         await this.saveUserInfo(userInfo);
         await this.updateSubscriptionFromUserInfo(userInfo);
         
-        console.log('User signed in successfully with verified subscription', { 
+        loggingService.debug('User signed in successfully with verified subscription', { 
           email: userInfo.email,
           subscription: userInfo.subscription.level
-        });
+        }, 'auth_service');
         return userInfo;
       } else {
-        console.error('Failed to verify subscription data');
+        loggingService.error('Failed to verify subscription data', {}, 'auth_service');
         return null;
       }
     } catch (error) {
-      console.error('Error during sign-in:', error);
+      loggingService.error('Error during sign-in', { error }, 'auth_service');
       return null;
     }
   }
@@ -197,12 +200,13 @@ class AuthService {
    * @returns Promise resolving to the redirect URL with auth code
    */
   private async launchAuthFlow(authUrl: string): Promise<string | null> {
-    console.log('Launching auth flow with URL:', authUrl);
-    console.log('Redirect URL:', REDIRECT_URL);
+    loggingService.debug('Launching auth flow', {
+      redirectUrl: REDIRECT_URL
+    }, 'auth_service');
     
     return new Promise((resolve) => {
       if (typeof chrome !== 'undefined' && chrome.identity && chrome.identity.launchWebAuthFlow) {
-        console.log('Using chrome.identity.launchWebAuthFlow');
+        loggingService.debug('Using chrome.identity.launchWebAuthFlow', {}, 'auth_service');
         
         chrome.identity.launchWebAuthFlow(
           {
@@ -211,18 +215,18 @@ class AuthService {
           },
           (responseUrl) => {
             if (chrome.runtime.lastError) {
-              console.error('Auth flow error:', chrome.runtime.lastError);
+              loggingService.error('Auth flow error', { error: chrome.runtime.lastError }, 'auth_service');
               resolve(null);
               return;
             }
             
-            console.log('Received auth response URL:', responseUrl ? 'success' : 'no response');
+            loggingService.debug('Received auth response URL', { success: !!responseUrl }, 'auth_service');
             
             resolve(responseUrl || null);
           }
         );
       } else {
-        console.error('Chrome identity API not available');
+        loggingService.error('Chrome identity API not available', {}, 'auth_service');
         resolve(null);
       }
     });
@@ -236,7 +240,7 @@ class AuthService {
   private async exchangeCodeForTokens(code: string): Promise<any> {
     try {
       const tokenEndpoint = `${OAUTH_SERVER}/oauth/token`;
-      console.log('Exchanging code for tokens');
+      loggingService.debug('Exchanging code for tokens', {}, 'auth_service');
       
       const response = await fetch(tokenEndpoint, {
         method: 'POST',
@@ -255,32 +259,32 @@ class AuthService {
       if (!response.ok) {
         // First, log the raw response for debugging
         const responseText = await response.text();
-        console.error('Raw token exchange error response:', responseText);
         
         // Try to parse it as JSON if possible
         let errorData;
         try {
           errorData = JSON.parse(responseText);
-          console.error('Parsed token exchange error data:', errorData);
-        } catch (e) {
+        } catch (_) {
           errorData = { 
             error: 'Could not parse response as JSON', 
             status: response.status,
             statusText: response.statusText,
             rawResponse: responseText
           };
-          console.error('Error parsing token exchange response:', e);
         }
         
-        console.error('Token exchange failed:', errorData);
+        loggingService.error('Token exchange failed', { 
+          status: response.status,
+          errorData
+        }, 'auth_service');
         return null;
       }
       
       const tokenData = await response.json();
-      console.log('Successfully exchanged code for tokens');
+      loggingService.debug('Successfully exchanged code for tokens', {}, 'auth_service');
       return tokenData;
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error);
+      loggingService.error('Error exchanging code for tokens', { error }, 'auth_service');
       return null;
     }
   }
@@ -295,7 +299,7 @@ class AuthService {
       // Add the client_id parameter to the user endpoint URL
       const userEndpoint = `${OAUTH_SERVER}/api/v1/user?client_id=${CLIENT_ID}`;
       
-      console.log('Fetching user profile from:', userEndpoint.toString());
+      loggingService.debug('Fetching user profile', { endpoint: userEndpoint }, 'auth_service');
       
       const response = await fetch(userEndpoint.toString(), {
         method: 'GET',
@@ -309,15 +313,17 @@ class AuthService {
       if (!response.ok) {
         // First, log the raw response for debugging
         const responseText = await response.text();
-        console.error('User profile fetch failed:', responseText);
+        loggingService.error('User profile fetch failed', { 
+          status: response.status,
+          response: responseText 
+        }, 'auth_service');
         return null;
       }
       
       const userData = await response.json();
-      console.log('User profile fetched successfully');
-      
-      // Log the actual user data received
-      console.log('API returned user data:', userData);
+      loggingService.debug('User profile fetched successfully', {
+        hasSubscription: !!userData.subscription
+      }, 'auth_service');
       
       // Map the backend response to our UserInfo interface
       const userInfo: UserInfo = {
@@ -334,7 +340,7 @@ class AuthService {
       
       return userInfo;
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      loggingService.error('Error fetching user profile', { error }, 'auth_service');
       return null;
     }
   }
@@ -346,11 +352,11 @@ class AuthService {
    */
   private async verifySubscriptionData(userInfo: UserInfo): Promise<boolean> {
     try {
-      console.log('Verifying subscription data');
+      loggingService.debug('Verifying subscription data', {}, 'auth_service');
       
       // 1. Check if subscription data and signature exist
       if (!userInfo.subscription || !userInfo.subscription.signature) {
-        console.log('No subscription data or signature found');
+        loggingService.warn('No subscription data or signature found', {}, 'auth_service');
         return false;
       }
 
@@ -371,11 +377,11 @@ class AuthService {
       // 5. Compare our calculated HMAC with the signature from the server
       const verified = hmacHex === userInfo.subscription.signature;
       
-      console.log('Subscription verification result:', verified);
+      loggingService.debug('Subscription verification result', { verified }, 'auth_service');
       
       return verified;
     } catch (error) {
-      console.error('Error verifying subscription data:', error);
+      loggingService.error('Error verifying subscription data', { error }, 'auth_service');
       return false;
     }
   }
@@ -412,7 +418,7 @@ class AuthService {
       // 4. Convert to hex string to match Ruby's hexdigest output
       return this.arrayBufferToHex(signature);
     } catch (error) {
-      console.error('Error in calculateHmacSha256:', error);
+      loggingService.error('Error in calculateHmacSha256', { error }, 'auth_service');
       throw error;
     }
   }
@@ -467,10 +473,10 @@ class AuthService {
    */
   private async updateSubscriptionFromUserInfo(userInfo: UserInfo): Promise<void> {
     try {
-      console.log('Updating subscription from user info');
+      loggingService.debug('Updating subscription from user info', {}, 'auth_service');
       
       if (!userInfo.subscription) {
-        console.log('No subscription data to update');
+        loggingService.debug('No subscription data to update', {}, 'auth_service');
         return;
       }
       
@@ -493,12 +499,12 @@ class AuthService {
         userInfo.subscription.expiry
       );
       
-      console.log('Updated subscription:', { 
+      loggingService.debug('Updated subscription', { 
         level,
         expiry: userInfo.subscription.expiry 
-      });
+      }, 'auth_service');
     } catch (error) {
-      console.error('Error updating subscription from user info:', error);
+      loggingService.error('Error updating subscription from user info', { error }, 'auth_service');
     }
   }
 
@@ -508,7 +514,7 @@ class AuthService {
    */
   async signOut(): Promise<void> {
     try {
-      console.log('Signing out user');
+      loggingService.debug('Signing out user', {}, 'auth_service');
       
       // Clear user data
       await configManager.setValue('userEmail', null);
@@ -523,9 +529,9 @@ class AuthService {
       // Reset subscription to free
       await configManager.setSubscription('free' as any, null);
       
-      console.log('User signed out successfully');
+      loggingService.debug('User signed out successfully', {}, 'auth_service');
     } catch (error) {
-      console.error('Error during sign-out:', error);
+      loggingService.error('Error during sign-out', { error }, 'auth_service');
       throw error;
     }
   }
@@ -537,20 +543,20 @@ class AuthService {
    */
   async validateSubscriptionDataAtStartup(): Promise<void> {
     try {
-      console.log('Validating subscription data at startup');
+      loggingService.debug('Validating subscription data at startup', {}, 'auth_service');
       
       const config = await configManager.getConfig();
       const { level, expiry } = await configManager.getSubscription();
       
       // Skip validation if user is on free plan or missing required data
       if (level === 'free' || !config.userEmail || !config.subscriptionSignature) {
-        console.log('Free plan or missing data, skipping validation');
+        loggingService.debug('Free plan or missing data, skipping validation', {}, 'auth_service');
         return;
       }
       
       // Check for expired subscription
       if (expiry && expiry < Date.now()) {
-        console.log('Subscription has expired, resetting to free plan');
+        loggingService.debug('Subscription has expired, resetting to free plan', {}, 'auth_service');
         await this.resetToFreePlan();
         return;
       }
@@ -571,19 +577,18 @@ class AuthService {
       const isValid = await this.verifySubscriptionData(userInfo);
       
       if (!isValid) {
-        console.warn('Invalid subscription data detected, possible tampering');
         loggingService.warn('Subscription data tampering detected', {
           subscriptionLevel: level,
           expiryDate: expiry ? new Date(expiry).toISOString() : null
-        });
+        }, 'auth_service');
         
         // If validation fails, reset to free
         await this.resetToFreePlan();
       } else {
-        console.log('Subscription data validated successfully');
+        loggingService.debug('Subscription data validated successfully', {}, 'auth_service');
       }
     } catch (error) {
-      console.error('Error validating subscription data:', error);
+      loggingService.error('Error validating subscription data', { error }, 'auth_service');
       // Reset to free plan on any errors
       await this.resetToFreePlan();
     }
@@ -596,7 +601,7 @@ class AuthService {
   private async resetToFreePlan(): Promise<void> {
     await configManager.setSubscription('free' as any, null);
     await configManager.setValue('subscriptionSignature', null);
-    console.log('Reset to free plan completed');
+    loggingService.debug('Reset to free plan completed', {}, 'auth_service');
   }
 
   /**
@@ -604,7 +609,7 @@ class AuthService {
    * @param userInfo User information to save
    */
   private async saveUserInfo(userInfo: UserInfo): Promise<void> {
-    console.log('Saving user information');
+    loggingService.debug('Saving user information', {}, 'auth_service');
     
     // Save to IndexedDB via ConfigManager
     await configManager.setValue('userEmail', userInfo.email);
@@ -614,15 +619,15 @@ class AuthService {
     if (userInfo.subscription?.signature) {
       // Store the signature for later validation
       await configManager.setValue('subscriptionSignature', userInfo.subscription.signature);
-      console.log('Saved subscription signature for future validation');
+      loggingService.debug('Saved subscription signature for future validation', {}, 'auth_service');
       
       // Log signature details for debugging (truncated for security)
       const truncatedSignature = userInfo.subscription.signature.substring(0, 8) + '...';
-      console.log('Signature saved:', truncatedSignature);
+      loggingService.debug('Signature saved', { signature: truncatedSignature }, 'auth_service');
     } else {
       // Clear any existing signature if user has no subscription
       await configManager.setValue('subscriptionSignature', null);
-      console.log('Cleared subscription signature (no subscription data)');
+      loggingService.debug('Cleared subscription signature (no subscription data)', {}, 'auth_service');
     }
     
     // Also save to chrome.storage for cross-context access
@@ -641,10 +646,10 @@ class AuthService {
       }
       
       await chrome.storage.local.set(data);
-      console.log('User info saved to chrome.storage');
+      loggingService.debug('User info saved to chrome.storage', {}, 'auth_service');
     }
     
-    console.log('User information saved successfully');
+    loggingService.debug('User information saved successfully', {}, 'auth_service');
   }
 }
 

@@ -38,8 +38,9 @@ class PopupController {
   private convertBtn: HTMLButtonElement;
   private statusEl: HTMLElement;
   private instructionsLink: HTMLAnchorElement;
-  private aboutLink: HTMLAnchorElement;
+  // aboutLink removed
   private settingsLink: HTMLAnchorElement;
+  // No retry counter needed with recursive approach
   
   /**
    * Constructor for the popup controller
@@ -48,7 +49,7 @@ class PopupController {
     this.convertBtn = document.getElementById('convertBtn') as HTMLButtonElement;
     this.statusEl = document.getElementById('status') as HTMLElement;
     this.instructionsLink = document.getElementById('instructionsLink') as HTMLAnchorElement;
-    this.aboutLink = document.getElementById('aboutLink') as HTMLAnchorElement;
+    // aboutLink removed
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
     
     this.bindEventHandlers();
@@ -69,20 +70,20 @@ class PopupController {
   }
   
   /**
-   * Setup debug indicator
+   * Setup debug indicator in the bottom right corner
    */
   private async setupDebugIndicator(): Promise<void> {
     try {
       await debugService.setupDebugIndicator(
         {
-          position: 'top-right',
-          text: 'DEBUG',
+          position: 'bottom-right',
+          text: 'DEBUG MODE',
           zIndex: 1000
         },
         'popup'  // Context identifier for logging
       );
-    } catch (error) {
-      console.error('Error setting up debug indicator:', error);
+    } catch (_) {
+      // Error handled silently - debug indicator is not critical
     }
   }
   
@@ -95,8 +96,19 @@ class PopupController {
     
     // Links
     this.instructionsLink.addEventListener('click', this.handleInstructionsClick.bind(this));
-    this.aboutLink.addEventListener('click', this.handleAboutClick.bind(this));
+    // aboutLink removed
     this.settingsLink.addEventListener('click', this.handleSettingsClick.bind(this));
+    
+    // Account links
+    const loginLink = document.getElementById('loginLink');
+    if (loginLink) {
+      loginLink.addEventListener('click', this.handleLoginClick.bind(this));
+    }
+    
+    const accountLink = document.getElementById('accountLink');
+    if (accountLink) {
+      accountLink.addEventListener('click', this.handleAccountClick.bind(this));
+    }
   }
   
   /**
@@ -280,14 +292,7 @@ class PopupController {
     chrome.tabs.create({ url: chrome.runtime.getURL('about.html#help') });
   }
   
-  /**
-   * Handle about link click
-   * @param e - Click event
-   */
-  private handleAboutClick(e: MouseEvent): void {
-    e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#about') });
-  }
+  // About link handler removed
   
   /**
    * Handle settings link click
@@ -366,12 +371,132 @@ class PopupController {
   }
   
   /**
+   * Update login status section in the popup
+   * Shows/hides the appropriate login UI elements based on login status
+   */
+  private async updateLoginStatus(): Promise<void> {
+    try {
+      // Get account section elements
+      const accountSection = document.getElementById('account-status');
+      const loginLink = document.getElementById('loginLink');
+      const accountLink = document.getElementById('accountLink');
+      const userEmailDisplay = document.getElementById('userEmailDisplay');
+      
+      // Return early if elements don't exist
+      if (!accountSection || !loginLink || !accountLink || !userEmailDisplay) {
+        return;
+      }
+      
+      // Always show account section regardless of debug mode
+      accountSection.style.display = 'block';
+      
+      // Check if user is logged in
+      const isLoggedIn = await authService.isLoggedIn();
+      
+      if (isLoggedIn) {
+        // User is logged in - show account info
+        loginLink.style.display = 'none';
+        accountLink.style.display = 'flex';
+        
+        // Get and display user email
+        const userInfo = await authService.getCurrentUser();
+        if (userInfo && userInfo.email) {
+          userEmailDisplay.textContent = userInfo.email;
+        }
+        // Also update subscription badge since login may have changed it
+        await this.updateSubscriptionBadge();
+        
+        loggingService.debug('User logged in', { email: userInfo?.email }, 'popup');
+      } else {
+        // Check for pending login and try to complete it
+        const { popupLoginPending } = await chrome.storage.local.get('popupLoginPending');
+        if (popupLoginPending) {
+          loggingService.info('User login pending, attempting to complete sign-in', {}, 'popup');
+          
+          // Don't clear flag yet - will clear after successful sign-in
+          // Try to complete sign-in and get user info
+          const userInfo = await authService.signIn();
+          
+          if (userInfo) {
+            // Sign-in succeeded, clear the flag and update UI
+            await chrome.storage.local.remove('popupLoginPending');
+            
+            // Call ourselves recursively to show logged-in state
+            // The next call will go through the isLoggedIn=true path and update UI
+            loggingService.debug('Sign-in successful, updating login status recursively', 
+              { email: userInfo.email }, 'popup');
+            
+            // Recursive call to update login status
+            return this.updateLoginStatus();
+          }
+          
+          // Sign-in failed, clear flag to prevent further attempts
+          await chrome.storage.local.remove('popupLoginPending');
+          loggingService.debug('Sign-in completion attempt was unsuccessful', {}, 'popup');
+        }
+        // User is not logged in - show login link
+        loginLink.style.display = 'flex';
+        accountLink.style.display = 'none';
+        
+        loggingService.debug('User not logged in', {}, 'popup');
+      }
+    } catch (error) {
+      await chrome.storage.local.remove('popupLoginPending');
+      loggingService.error('Error updating login status', error, 'popup');
+    }
+  }
+  
+  /**
+   * Handle login link click
+   * @param e - Click event
+   */
+  private async handleLoginClick(e: MouseEvent): Promise<void> {
+    e.preventDefault();
+    
+    try {
+      // set popupLoginPending flag for coming back after login
+      loggingService.info('User initiated login', {}, 'popup');
+      
+      await chrome.storage.local.set({ 'popupLoginPending': true });
+      // Start the sign-in process
+      const userInfo = await authService.signIn();
+      
+      if (userInfo) {
+        // Clear the pending flag when successful
+        await chrome.storage.local.remove('popupLoginPending');
+        
+        // Update login UI if sign-in successful
+        await this.updateLoginStatus();
+        loggingService.info('User logged in successfully', { email: userInfo.email }, 'popup');
+      }
+      else {
+        loggingService.info('Signing in progress', { popupLoginPending: true }, 'popup');
+      }
+    } catch (error) {
+      await chrome.storage.local.remove('popupLoginPending');
+      loggingService.error('Login error', error, 'popup');
+    }
+  }
+  
+  /**
+   * Handle account link click
+   * @param e - Click event
+   */
+  private handleAccountClick(e: MouseEvent): void {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+  }
+  
+  /**
    * Check the current page and update UI accordingly
    */
   private async checkCurrentPage(): Promise<void> {
     try {
-      // Update subscription badge (async now)
-      await this.updateSubscriptionBadge();
+      // Update subscription badge and login status (async now)
+      await Promise.all([
+        this.updateLoginStatus(),
+        this.updateSubscriptionBadge()
+      ]);
       
       const [pageInfo, isViewer] = await Promise.all([
         this.checkIsCompatiblePage(),
@@ -414,7 +539,7 @@ function initialize(): void {
       popupInitialized = true;
       
       // Create popup controller
-      const popupController = new PopupController();
+      new PopupController();
       
       // Add a single log to indicate popup is ready
       loggingService.info('Popup initialized', null, 'popup');

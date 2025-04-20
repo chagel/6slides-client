@@ -6,6 +6,8 @@
 
 import { configManager } from '../../models/config_manager';
 import { storage } from '../../models/storage';
+import { loggingService } from '../../services/logging_service';
+import { debugService } from '../../services/debug_service';
 
 /**
  * Controller for the developer tools section
@@ -46,23 +48,49 @@ export class DeveloperController {
       if (debugLoggingSelector) {
         debugLoggingSelector.value = debugEnabled ? 'true' : 'false';
       }
+      
+      // Show debug indicator if debug is enabled
+      if (debugEnabled) {
+        await debugService.setupDebugIndicator(
+          { position: 'bottom-right', text: 'DEBUG MODE' },
+          'developer_page',
+          { source: 'initial_load' }
+        );
+      }
     } catch (error) {
-      console.error('Error initializing debug settings:', error);
+      loggingService.error('Error initializing debug settings', { error }, 'developer_controller');
     }
   }
   
   /**
-   * Handle debug logging setting change
+   * Handle debug logging setting change and immediately update the debug indicator
    */
   private async handleDebugLoggingChange(event: Event): Promise<void> {
     const select = event.target as HTMLSelectElement;
     const value = select.value === 'true';
     
     try {
+      // Save the setting
       await configManager.setValue('debugLogging', value);
-      console.log(`Debug logging ${value ? 'enabled' : 'disabled'}`);
+      loggingService.debug(`Debug logging ${value ? 'enabled' : 'disabled'}`, {}, 'developer_controller');
+      
+      // Update the debug indicator immediately
+      if (value) {
+        // Show the debug indicator in the bottom right corner
+        await debugService.setupDebugIndicator(
+          { position: 'bottom-right', text: 'DEBUG MODE' },
+          'developer_page',
+          { source: 'developer_settings' }
+        );
+      } else {
+        // Remove the existing debug indicator if present
+        const indicator = document.getElementById('debug-mode-indicator');
+        if (indicator && indicator.parentNode) {
+          indicator.parentNode.removeChild(indicator);
+        }
+      }
     } catch (error) {
-      console.error('Error saving debug setting:', error);
+      loggingService.error('Error saving debug setting', { error }, 'developer_controller');
     }
   }
   
@@ -76,7 +104,7 @@ export class DeveloperController {
         await storage.clearAll();
         // Reset config to defaults
         await configManager.resetToDefaults();
-        console.log('Cache cleared successfully');
+        loggingService.debug('Cache cleared successfully', {}, 'developer_controller');
         
         // Show a success message to the user
         const clearCacheBtn = document.getElementById('clearCacheBtn');
@@ -91,7 +119,7 @@ export class DeveloperController {
           }, 2000);
         }
       } catch (error) {
-        console.error('Error clearing cache:', error);
+        loggingService.error('Error clearing cache', { error }, 'developer_controller');
         alert('Error clearing cache. Please try again.');
       }
     }

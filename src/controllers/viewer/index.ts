@@ -33,8 +33,8 @@ async function setupDebugIndicator(): Promise<void> {
       'viewer',  // Context identifier for logging
       { config } // Additional data for logging
     );
-  } catch (error) {
-    console.error('Error setting up debug indicator:', error);
+  } catch (_) {
+    // Error handled silently - debug indicator is not critical
   }
 }
 
@@ -50,7 +50,7 @@ async function initialize(): Promise<void> {
   
   // Initialize immediately without waiting for DOM events
   if (viewerInitialized) {
-    console.warn('Viewer already initialized, preventing duplicate initialization');
+    loggingService.warn('Viewer already initialized, preventing duplicate initialization', null, 'viewer');
     return;
   }
   
@@ -98,12 +98,12 @@ if (document.readyState === 'loading') {
   // Document still loading, wait for it to finish
   document.addEventListener('DOMContentLoaded', () => {
     initialize().catch(error => {
-      console.error('Failed to initialize viewer:', error);
+      loggingService.error('Failed to initialize viewer', error, 'viewer');
     });
   });
 } else {
   // Document already loaded, initialize immediately
   initialize().catch(error => {
-    console.error('Failed to initialize viewer:', error);
+    loggingService.error('Failed to initialize viewer', error, 'viewer');
   });
 }

@@ -94,7 +94,7 @@ export class ListExtractor extends BaseExtractor implements IListExtractor {
       return '';
     }
     
-    console.log(`Processing list with ${listElements.length} items, ordered: ${isOrdered}`);
+    this.debug(`Processing list with ${listElements.length} items, ordered: ${isOrdered}`);
     
     // Extract text from each element
     const textItems = listElements.map(element => this.getElementText(element).trim());

@@ -6,7 +6,6 @@
 
 import { loggingService } from '../../services/logging_service';
 import { configManager, SubscriptionLevel } from '../../models/config_manager';
-import { authService } from '../../services/auth_service';
 
 /**
  * Controller for the subscription section
@@ -15,7 +14,9 @@ export class SubscriptionController {
   // Subscription elements
   private freeSubscriptionInfo: HTMLElement | null;
   private proSubscriptionInfo: HTMLElement | null;
+  private vipSubscriptionInfo: HTMLElement | null;
   private subscriptionExpiry: HTMLElement | null;
+  private vipStatus: HTMLElement | null;
   private manageButton: HTMLElement | null;
   private upgradeButton: HTMLElement | null;
   
@@ -33,7 +34,9 @@ export class SubscriptionController {
     // Subscription elements - now in the about page
     this.freeSubscriptionInfo = document.getElementById('freeSubscriptionInfo');
     this.proSubscriptionInfo = document.getElementById('proSubscriptionInfo');
+    this.vipSubscriptionInfo = document.getElementById('vipSubscriptionInfo');
     this.subscriptionExpiry = document.getElementById('subscriptionExpiry');
+    this.vipStatus = document.getElementById('vipStatus');
     this.manageButton = document.getElementById('manageSubscription');
     this.upgradeButton = document.getElementById('upgradeProButton');
     
@@ -89,11 +92,14 @@ export class SubscriptionController {
       const level = subscription?.level;
       const expiryTimestamp = subscription?.expiry;
       
-      // Determine if user has pro features
+      // Determine if user has pro or vip features
       const hasPro = (
-        (level === 'pro' || level === 'team') && 
+        (level === 'pro' || level === 'vip') && 
         (expiryTimestamp === null || expiryTimestamp > Date.now())
       );
+      
+      const isPro = hasPro && level === 'pro';
+      const isVip = hasPro && level === 'vip';
       
       // Show/hide appropriate subscription info sections
       if (this.freeSubscriptionInfo) {
@@ -101,7 +107,11 @@ export class SubscriptionController {
       }
       
       if (this.proSubscriptionInfo) {
-        this.proSubscriptionInfo.style.display = hasPro ? 'block' : 'none';
+        this.proSubscriptionInfo.style.display = isPro ? 'block' : 'none';
+      }
+      
+      if (this.vipSubscriptionInfo) {
+        this.vipSubscriptionInfo.style.display = isVip ? 'block' : 'none';
       }
       
       // Update expiry display if subscribed
@@ -143,6 +153,10 @@ export class SubscriptionController {
     // Update indicator class
     indicator.className = 'subscription-indicator';
     badge.className = 'subscription-badge';
+    
+    // Reset text content
+    badge.textContent = '';
+    text.textContent = '';
     
     // Update based on subscription level
     if (hasPro) {
@@ -445,6 +459,8 @@ export class SubscriptionController {
    */
   private async handleLogoutClick(): Promise<void> {
     try {
+      loggingService.debug('User initiated logout');
+
       // Show loading state
       if (this.logoutButton) {
         this.logoutButton.textContent = 'Logging out...';

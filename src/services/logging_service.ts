@@ -124,8 +124,6 @@ class LoggingService {
   debug(message: string, data?: unknown, context?: string): void {
     if (!this._enabled || !this._debugEnabled) return;
     
-    console.debug(`${this._prefix} [${context || this._getContextType()}] ${message}`, data || '');
-    
     this._storeLog({
       level: LogLevel.DEBUG,
       message,
@@ -146,8 +144,6 @@ class LoggingService {
   info(message: string, data?: unknown, context?: string): void {
     if (!this._enabled) return;
     
-    console.info(`${this._prefix} [${context || this._getContextType()}] ${message}`, data || '');
-    
     this._storeLog({
       level: LogLevel.INFO,
       message,
@@ -167,8 +163,6 @@ class LoggingService {
    */
   warn(message: string, data?: unknown, context?: string): void {
     if (!this._enabled) return;
-    
-    console.warn(`${this._prefix} [${context || this._getContextType()}] ${message}`, data || '');
     
     this._storeLog({
       level: LogLevel.WARN,
@@ -191,12 +185,6 @@ class LoggingService {
     if (!this._enabled) return;
     
     const contextValue = context || this._getContextType();
-    console.error(`${this._prefix} [${contextValue}] ${message}`, data || '');
-    
-    // Log stack trace for errors
-    if (data instanceof Error && data.stack) {
-      console.error(`${this._prefix} [${contextValue}] Stack trace:`, data.stack);
-    }
     
     // Extract error properties for storage
     let errorMessage: string | undefined;
@@ -347,14 +335,12 @@ class LoggingService {
           
           // Save back to storage
           chrome.storage.local.set({ logs }, () => {
-            if (chrome.runtime.lastError) {
-              console.error('Failed to save log to chrome.storage', chrome.runtime.lastError);
-            }
+            // Errors handled silently - this is the logging system itself
           });
         });
       }
-    } catch (error) {
-      console.error('Failed to store log', error);
+    } catch (_) {
+      // No further logging here to avoid potential infinite loops
     }
   }
 
@@ -451,9 +437,7 @@ class LoggingService {
     return new Promise((resolve) => {
       if (typeof chrome !== 'undefined' && chrome.storage) {
         chrome.storage.local.remove(['logs'], () => {
-          if (chrome.runtime.lastError) {
-            console.error('Failed to clear logs', chrome.runtime.lastError);
-          }
+          // Errors handled silently - this is the logging system itself
           resolve();
         });
       } else {
