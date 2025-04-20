@@ -7,7 +7,6 @@
 import { loggingService } from '../../services/logging_service';
 import { PresentationRenderer } from '../../models/renderer';
 import { configManager } from '../../models/config_manager';
-import { errorService, ErrorTypes, ErrorSeverity } from '../../services/error_service';
 import { debugService } from '../../services/debug_service';
 
 /**
@@ -34,8 +33,8 @@ async function setupDebugIndicator(): Promise<void> {
       'viewer',  // Context identifier for logging
       { config } // Additional data for logging
     );
-  } catch (error) {
-    console.error('Error setting up debug indicator:', error);
+  } catch (_) {
+    // Error handled silently - debug indicator is not critical
   }
 }
 
@@ -51,7 +50,7 @@ async function initialize(): Promise<void> {
   
   // Initialize immediately without waiting for DOM events
   if (viewerInitialized) {
-    console.warn('Viewer already initialized, preventing duplicate initialization');
+    loggingService.warn('Viewer already initialized, preventing duplicate initialization', null, 'viewer');
     return;
   }
   
@@ -84,11 +83,10 @@ async function initialize(): Promise<void> {
     // Single log to indicate completion
     loggingService.debug('Viewer ready', null, 'viewer');
   } catch (error) {
-    // Use error service for consistent error handling
-    errorService.trackError(error instanceof Error ? error : new Error(String(error)), {
-      type: ErrorTypes.UI,
-      context: 'viewer_initialization',
-      severity: ErrorSeverity.ERROR
+    // Log the error
+    loggingService.error('Viewer initialization failed', {
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: 'viewer_initialization'
     });
     
     alert('Error: ' + (error instanceof Error ? error.message : String(error)));
@@ -100,12 +98,12 @@ if (document.readyState === 'loading') {
   // Document still loading, wait for it to finish
   document.addEventListener('DOMContentLoaded', () => {
     initialize().catch(error => {
-      console.error('Failed to initialize viewer:', error);
+      loggingService.error('Failed to initialize viewer', error, 'viewer');
     });
   });
 } else {
   // Document already loaded, initialize immediately
   initialize().catch(error => {
-    console.error('Failed to initialize viewer:', error);
+    loggingService.error('Failed to initialize viewer', error, 'viewer');
   });
 }

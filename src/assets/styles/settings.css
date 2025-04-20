@@ -110,26 +110,7 @@ button:hover {
   margin-bottom: 15px;
 }
 
-.subscription-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 12px;
-  text-transform: uppercase;
-  margin-right: 15px;
-  min-width: 45px;
-  text-align: center;
-}
-
-.subscription-badge.free {
-  background-color: #E0E0E0;
-  color: #424242;
-}
-
-.subscription-badge.pro {
-  background-color: #F6B352;
-  color: #333;
-}
+/* Removed subscription badge styles - using common.css instead */
 
 .subscription-limits {
   flex-grow: 1;

@@ -135,7 +135,7 @@ class AboutPageController {
         'about'  // Context identifier for logging
       );
     } catch (error) {
-      console.error('Error setting up debug indicator:', error);
+      loggingService.error('Error setting up debug indicator', { error }, 'about_controller');
     }
   }
   

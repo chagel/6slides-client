@@ -17,6 +17,63 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
     transition: all 0.2s ease;
   }
+  
+  .login-button, .logout-button {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-decoration: none;
+  }
+  
+  .login-button {
+    background-color: #3e8bf4;
+    color: white;
+    box-shadow: 0 2px 6px rgba(62, 139, 244, 0.3);
+  }
+  
+  .login-button:hover {
+    background-color: #2e7be4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(62, 139, 244, 0.4);
+  }
+  
+  .logout-button {
+    background-color: #f0f1f5;
+    color: #505F79;
+  }
+  
+  .logout-button:hover {
+    background-color: #e2e4ea;
+    color: #344563;
+  }
+  
+  .user-info {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 16px;
+  }
+  
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e2e4ea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-weight: 600;
+    color: #505F79;
+  }
 </style>
 
 <section id="subscription" class="page-section">
@@ -31,6 +88,37 @@
   </div>
 
   <div class="about-section">
+    <!-- Login Section -->
+    <div class="login-section" style="margin-bottom: 30px; display: flex; justify-content: flex-end;">
+      <!-- User Info (shown when logged in) -->
+      <div id="userInfoSection" style="display: none;">
+        <div class="user-info">
+          <div class="user-avatar">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#505F79" stroke-width="2" fill="none">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div style="flex-grow: 1;">
+            <div id="userEmail" style="font-weight: 500;">user@example.com</div>
+          </div>
+          <button id="logoutButton" class="logout-button">Log Out</button>
+        </div>
+      </div>
+      
+      <!-- Login Button (shown when not logged in) -->
+      <div id="loginSection">
+        <button id="loginButton" class="login-button">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="vertical-align: middle; margin-right: 6px;">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          Log In
+        </button>
+      </div>
+    </div>
+    
     <!-- Enhanced Subscription Section -->
     <div class="subscription-section" style="margin-top: 20px; padding: 30px; border-radius: 12px; background: linear-gradient(150deg, #f8f9fa, #f0f1f5); box-shadow: 0 8px 24px rgba(0,0,0,0.05);">
       <h2 style="text-align: center; color: #333; margin-bottom: 24px;">Your Subscription</h2>
@@ -39,7 +127,7 @@
       <div id="freeSubscriptionInfo" class="subscription-info" style="text-align: center; max-width: 600px; margin: 0 auto;">
         <div class="current-plan-banner" style="background: #F7F8FA; padding: 12px; border-radius: 8px; margin-bottom: 24px;">
           <span style="font-size: 14px; color: #505F79;">Current Plan:</span>
-          <span class="subscription-badge free" style="font-size: 14px; font-weight: 700; color: #5E6C84; background: #EBECF0; padding: 4px 12px; border-radius: 24px; margin-left: 8px; display: inline-block;">FREE</span>
+          <span class="subscription-badge free" style="margin-left: 8px; font-size: 14px;">FREE</span>
         </div>
         
         <div class="pro-upgrade-card" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 1px solid #EAEBEF; margin-bottom: 24px;">
@@ -55,6 +143,19 @@
           <h3 style="margin: 0 0 16px; font-size: 20px; color: #333;">Upgrade to Pro for Unlimited Slides</h3>
           
           <p style="color: #505F79; margin-bottom: 20px;">You're currently limited to 10 slides per presentation. Unlock <strong>all features</strong> with Pro.</p>
+          
+          <!-- Account Login Prompt -->
+          <div id="accountPrompt" style="background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 20px; border-left: 3px solid #3e8bf4;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg viewBox="0 0 24 24" width="20" height="20" style="min-width: 20px; color: #3e8bf4;">
+                <circle cx="12" cy="12" r="10" fill="rgba(62, 139, 244, 0.1)" stroke="none"></circle>
+                <path d="M12 8v4M12 16h.01" stroke="#3e8bf4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              <span style="color: #344563; font-size: 13px;">
+                <span style="font-weight: 500;">Create an account</span> to save your subscription and access from any device
+              </span>
+            </div>
+          </div>
           
           <div class="features-comparison" style="display: flex; justify-content: space-between; text-align: left; margin-bottom: 24px;">
             <div style="flex: 1;">
@@ -86,13 +187,13 @@
           </div>
         </div>
         
-        <a href="#pricing" id="upgradeProButton" class="upgrade-button" style="display: inline-block; background: #7C63F6; color: white; font-weight: 600; padding: 12px 28px; border-radius: 8px; font-size: 16px; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(124, 99, 246, 0.3);">Upgrade to Pro</a>
+        <button id="upgradeProButton" class="upgrade-button" style="display: inline-block; background: #7C63F6; color: white; font-weight: 600; padding: 12px 28px; border-radius: 8px; font-size: 16px; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(124, 99, 246, 0.3);">Upgrade to Pro</button>
       </div>
       
       <!-- Pro Subscription Info -->
       <div id="proSubscriptionInfo" class="subscription-info" style="display:none; text-align: center; max-width: 600px; margin: 0 auto;">
         <div class="subscription-status">
-          <div class="subscription-badge pro" style="display: inline-block; font-size: 16px; font-weight: 700; color: white; background: #7C63F6; padding: 6px 14px; border-radius: 24px; margin-bottom: 16px;">PRO PLAN</div>
+          <div class="subscription-badge pro" style="font-size: 16px; margin-bottom: 16px;">PRO</div>
           
           <h3 style="margin: 0 0 24px; font-size: 22px; color: #333;">You have access to all premium features</h3>
           
@@ -123,75 +224,40 @@
         
         <button id="manageSubscription" class="manage-button" style="background: #E9ECF3; color: #505F79; font-weight: 500; padding: 10px 20px; border-radius: 6px; font-size: 14px; border: none; cursor: pointer; transition: all 0.2s ease;">Manage Subscription</button>
       </div>
-    </div>
-    
-    <!-- Pricing Section -->
-    <div id="pricing" style="margin-top: 40px;">
-      <h2>Pricing</h2>
       
-      <div class="pricing-options" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; margin-top: 20px;">
-        <div class="pricing-card" style="flex: 1; min-width: 280px; max-width: 340px; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 1px solid #EAEBEF;">
-          <div class="pricing-header" style="margin-bottom: 20px; text-align: center;">
-            <div style="font-size: 14px; font-weight: 600; color: #5E6C84; margin-bottom: 8px;">FREE</div>
-            <div class="price" style="font-size: 28px; font-weight: 700; color: #333;">$0</div>
-            <div style="color: #667085; font-size: 14px;">No credit card required</div>
-          </div>
+      <!-- VIP Subscription Info -->
+      <div id="vipSubscriptionInfo" class="subscription-info" style="display:none; text-align: center; max-width: 600px; margin: 0 auto;">
+        <div class="subscription-status">
+          <div class="subscription-badge vip" style="font-size: 16px; margin-bottom: 16px;">VIP</div>
           
-          <ul style="padding-left: 20px; margin-bottom: 24px; color: #505F79;">
-            <li style="margin-bottom: 8px;">10 slides per presentation</li>
-            <li style="margin-bottom: 8px;">Basic theme</li>
-            <li style="margin-bottom: 8px;">Basic transitions</li>
-            <li>Works with all Notion pages</li>
-          </ul>
+          <h3 style="margin: 0 0 24px; font-size: 22px; color: #333;">You have exclusive VIP access</h3>
           
-          <div style="text-align: center;">
-            <div class="current-plan-tag" style="display: inline-block; font-size: 12px; color: #5E6C84; background: #EBECF0; padding: 4px 8px; border-radius: 4px;">Current Plan</div>
+          <div class="benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">Unlimited Slides</span>
+              <span style="color: #505F79; font-size: 14px;">No restrictions on presentation length</span>
+            </div>
+            
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">Premium Themes</span>
+              <span style="color: #505F79; font-size: 14px;">Access to all theme options</span>
+            </div>
+            
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">VIP Support</span>
+              <span style="color: #505F79; font-size: 14px;">Priority customer service</span>
+            </div>
+            
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">Early Access</span>
+              <span style="color: #505F79; font-size: 14px;">First to get new features</span>
+            </div>
           </div>
         </div>
         
-        <div class="pricing-card" style="flex: 1; min-width: 280px; max-width: 340px; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 2px solid #7C63F6; position: relative; overflow: hidden;">
-          <div class="pricing-badge" style="position: absolute; top: 12px; right: -30px; background: #7C63F6; color: white; padding: 4px 30px; transform: rotate(45deg); font-size: 12px; font-weight: 600;">RECOMMENDED</div>
-          
-          <div class="pricing-header" style="margin-bottom: 20px; text-align: center;">
-            <div style="font-size: 14px; font-weight: 600; color: #7C63F6; margin-bottom: 8px;">PRO</div>
-            <div class="price" style="font-size: 28px; font-weight: 700; color: #333;">$9.99<span style="font-size: 16px; font-weight: 500;">/month</span></div>
-            <div style="color: #667085; font-size: 14px;">Cancel anytime</div>
-          </div>
-          
-          <ul style="padding-left: 20px; margin-bottom: 24px; color: #505F79;">
-            <li style="margin-bottom: 8px;"><strong>Unlimited slides</strong> per presentation</li>
-            <li style="margin-bottom: 8px;"><strong>All premium themes</strong></li>
-            <li style="margin-bottom: 8px;"><strong>Advanced transitions</strong></li>
-            <li style="margin-bottom: 8px;">Markdown support</li>
-            <li>Priority support</li>
-          </ul>
-          
-          <div style="text-align: center;">
-            <a href="#" class="upgrade-button" style="display: inline-block; background: #7C63F6; color: white; font-weight: 600; padding: 12px 28px; border-radius: 8px; font-size: 16px; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(124, 99, 246, 0.3);">Get Pro</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- FAQ Section -->
-    <div style="margin-top: 40px;">
-      <h2>Frequently Asked Questions</h2>
-      
-      <div class="faq-container" style="margin-top: 20px;">
-        <div class="faq-item" style="margin-bottom: 20px;">
-          <h3 style="font-size: 18px; color: #333; margin-bottom: 8px;">How does billing work?</h3>
-          <p style="color: #505F79;">You'll be billed monthly, and can cancel anytime. Your subscription will remain active until the end of your billing period.</p>
-        </div>
+        <div class="expiry-info" style="margin-bottom: 24px; color: #505F79;">VIP Status: <span id="vipStatus" style="font-weight: 600; color: #333;">Lifetime</span></div>
         
-        <div class="faq-item" style="margin-bottom: 20px;">
-          <h3 style="font-size: 18px; color: #333; margin-bottom: 8px;">Can I try Pro features before subscribing?</h3>
-          <p style="color: #505F79;">Currently, we don't offer a trial period. However, you can use the free plan to test the core functionality, and our Pro subscription comes with a satisfaction guarantee.</p>
-        </div>
-        
-        <div class="faq-item" style="margin-bottom: 20px;">
-          <h3 style="font-size: 18px; color: #333; margin-bottom: 8px;">How do I cancel my subscription?</h3>
-          <p style="color: #505F79;">You can cancel your subscription anytime from the Subscription page. After cancellation, you'll still have access to Pro features until the end of your billing period.</p>
-        </div>
+        <button id="manageVipSubscription" class="manage-button" style="background: #E9ECF3; color: #505F79; font-weight: 500; padding: 10px 20px; border-radius: 6px; font-size: 14px; border: none; cursor: pointer; transition: all 0.2s ease;">Manage Subscription</button>
       </div>
     </div>
   </div>
