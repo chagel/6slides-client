@@ -101,10 +101,12 @@ class AboutPageController {
         
         <!-- Content area -->
         <div class="content">
-          ${aboutContent}
-          ${settingsContent}
-          ${helpContent}
-          ${developerContent}
+          <div class="page-container">
+            ${aboutContent}
+            ${settingsContent}
+            ${helpContent}
+            ${developerContent}
+          </div>
         </div>
       `;
       
