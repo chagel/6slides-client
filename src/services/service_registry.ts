@@ -12,8 +12,6 @@ import { configManager } from '../models/config_manager';
 import { loggingService, LogLevel } from './logging_service';
 import { messagingService } from './messaging_service';
 import { debugService } from './debug_service';
-import { templateService } from './template_service';
-import { pageLoader } from './page_loader';
 import { content_controller } from '../controllers/content_controller';
 import { authService } from './auth_service';
 
@@ -29,8 +27,6 @@ export function registerServices(): void {
   container.register('loggingService', loggingService);
   container.register('messagingService', messagingService);
   container.register('debugService', debugService);
-  container.register('templateService', templateService);
-  container.register('pageLoader', pageLoader);
   container.register('authService', authService);
   
   // Initialize loggingService (still used as a singleton through direct imports)

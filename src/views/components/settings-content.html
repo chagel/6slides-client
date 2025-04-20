@@ -1,7 +1,5 @@
 <!-- Settings Section -->
 <section id="settings" class="page-section">
-  <h1>Settings</h1>
-  
   <!-- Using the same hero section structure as about page for consistent width -->
   <div class="hero-section">
     <div class="hero-content">
@@ -15,9 +13,9 @@
     <span id="saveStatus" style="color: green; display: none; padding: 8px; border-radius: 4px; background-color: rgba(0, 128, 0, 0.1);">Settings saved!</span>
   </div>
   
-  <!-- Appearance -->
+  <!-- Presentation -->
   <div class="setting-section">
-    <h2>Appearance</h2>
+    <h2>Presentation</h2>
     
     <div class="setting-row">
       <div>
@@ -26,9 +24,16 @@
       </div>
       <div class="setting-control">
         <select id="themeSelector">
-          <option value="default">Default (Dark)</option>
-          <option value="catppuccin-latte">Catppuccin Latte (Light)</option>
-          <option value="catppuccin-mocha">Catppuccin Mocha (Dark)</option>
+          <option value="default">Default</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <!-- PRO Themes -->
+          <option value="compass">Compass</option>
+          <option value="ignite">Ignite</option>
+          <option value="palette">Palette</option>
+          <option value="pulse">Pulse</option>
+          <option value="scholar">Scholar</option>
+          <option value="summit">Summit</option>
         </select>
       </div>
     </div>
@@ -49,11 +54,6 @@
         </select>
       </div>
     </div>
-  </div>
-  
-  <!-- Presentation -->
-  <div class="setting-section">
-    <h2>Presentation</h2>
     
     <div class="setting-row">
       <div>
@@ -80,6 +80,12 @@
         </select>
       </div>
     </div>
+  </div>
+  
+  <!-- Application appearance section for future use -->
+  <div class="setting-section" style="display: none;">
+    <h2>Appearance</h2>
+    <!-- Placeholder for future app appearance settings -->
   </div>
   
 </section>

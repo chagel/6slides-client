@@ -97,22 +97,35 @@ body {
   margin-left: var(--sidebar-width);
   padding: 30px;
   width: calc(100% - var(--sidebar-width));
+  min-width: 960px; /* 900px content width + 60px padding */
   box-sizing: border-box;
-  max-width: 1200px; /* Set a maximum width for the content */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-x: auto; /* Allow horizontal scrolling if needed for fixed width content */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content horizontally */
+}
+
+/* Container for consistent width across all pages */
+.page-container {
+  width: 900px; /* Fixed width */
+  min-width: 900px; /* Enforce minimum width */
+  max-width: 900px; /* Consistent fixed width */
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .page-section {
   display: none;
-  width: 100%;
+  width: 900px; /* Fixed width */
+  min-width: 900px; /* Force minimum width */
+  max-width: 900px; /* Enforce maximum width */
   box-sizing: border-box;
-  max-width: 100%;
   overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .page-section.active {
   display: block;
-  width: 100%;
+  width: 900px; /* Fixed width */
 }
 
 h1 {
@@ -153,6 +166,7 @@ button:hover {
   padding: 12px 0;
   border-bottom: 1px solid var(--border-color);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .setting-row:last-child {
@@ -189,10 +203,10 @@ select, input {
   padding: 20px;
   margin-bottom: 25px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  width: 100%;
+  width: 860px; /* 900px - 20px padding on each side */
   box-sizing: border-box;
-  max-width: 100%;
-  min-width: auto; /* Remove fixed minimum width */
+  max-width: 860px;
+  min-width: 860px;
   overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
@@ -205,9 +219,10 @@ select, input {
   text-align: center;
   position: relative;
   overflow: hidden;
-  width: 100%;
+  width: 860px; /* Match other section width */
+  min-width: 860px;
+  max-width: 860px;
   box-sizing: border-box;
-  max-width: none;
 }
 
 .hero-content {
@@ -289,18 +304,6 @@ select, input {
 .feature-description {
   color: #666;
   font-size: 14px;
-}
-
-.pro-badge {
-  background-color: #F6B352;
-  color: #333;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-left: 5px;
-  vertical-align: middle;
 }
 
 .pro-cta-container {
@@ -419,7 +422,9 @@ select, input {
   background-color: #f8f8f8;
   font-family: monospace;
   font-size: 12px;
-  max-width: 100%;
+  width: 820px;
+  min-width: 820px;
+  max-width: 820px;
   box-sizing: border-box;
 }
 
@@ -601,11 +606,13 @@ select, input {
 /* Subscription styles */
 .subscription-section {
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
 .subscription-info {
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -641,7 +648,7 @@ select, input {
 .help-tabs {
   margin-bottom: 30px;
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -677,10 +684,16 @@ select, input {
 
 .tab-content {
   display: none;
-  width: 100%;
+  width: 820px; /* Full width with consistent sizing */
+  max-width: 820px;
+  min-width: 820px;
+  box-sizing: border-box;
 }
 
 .tab-content.active {
   display: block;
-  width: 100%;
+  width: 820px;
+  max-width: 820px;
+  min-width: 820px;
+  box-sizing: border-box;
 }

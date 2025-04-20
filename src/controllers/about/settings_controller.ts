@@ -7,8 +7,7 @@
 
 import { loggingService } from '../../services/logging_service';
 import { storage } from '../../models/storage';
-import { debugService } from '../../services/debug_service';
-import { Settings } from '../../types/storage';
+import { configManager } from '../../models/config_manager';
 
 /**
  * Settings Controller for the About page
@@ -22,6 +21,16 @@ export class SettingsController {
   private debugLoggingSelector: HTMLSelectElement | null;
   private saveStatus: HTMLElement | null;
   private clearCacheBtn: HTMLElement | null;
+  
+  // Premium themes that require subscription
+  private readonly premiumThemes = [
+    'compass', 
+    'ignite', 
+    'palette', 
+    'pulse', 
+    'scholar', 
+    'summit'
+  ];
   
   // Event handlers
   private onSettingChanged: (() => void) | null = null;
@@ -50,6 +59,8 @@ export class SettingsController {
   private async initializeAsync(): Promise<void> {
     try {
       await this.loadSettings();
+      // Update theme options based on subscription
+      await this.updateThemeOptions();
       loggingService.debug('Settings loaded successfully');
     } catch (error) {
       loggingService.error('Error initializing settings', { error }, 'settings_controller');
@@ -70,8 +81,8 @@ export class SettingsController {
   private bindEventHandlers(): void {
     // Bind all setting selectors to save automatically on change
     if (this.themeSelector) {
-      this.themeSelector.addEventListener('change', () => {
-        this.handleThemeChange();
+      this.themeSelector.addEventListener('change', async () => {
+        await this.handleThemeChange();
         this.saveSettings();
       });
     }
@@ -196,8 +207,117 @@ export class SettingsController {
   /**
    * Handle theme change
    */
-  private handleThemeChange(): void {
-    // This is just a stub - will be handled by SubscriptionController
-    // We'll implement the full functionality in the main controller
+  private async handleThemeChange(): Promise<void> {
+    const hasPro = await configManager.hasPro();
+    const selectedTheme = this.themeSelector?.value || '';
+    
+    // If user selects a premium theme without pro, show upsell
+    if (!hasPro && this.premiumThemes.includes(selectedTheme)) {
+      this.showProFeatureOverlay('Premium Theme', 'Unlock additional beautiful themes to make your presentations stand out.');
+      
+      // Reset to default theme
+      if (this.themeSelector) {
+        this.themeSelector.value = 'default';
+      }
+    }
+  }
+
+  /**
+   * Show pro feature upgrade overlay
+   * @param feature - Feature name
+   * @param description - Feature description
+   */
+  private showProFeatureOverlay(feature: string, description: string): void {
+    // Create overlay element
+    const overlay = document.createElement('div');
+    overlay.className = 'pro-overlay';
+    
+    // Create overlay content
+    overlay.innerHTML = `
+      <div class="pro-overlay-content">
+        <h3>${feature} is a PRO feature</h3>
+        <p>${description}</p>
+        <button class="pro-overlay-button">Upgrade to Pro</button>
+      </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(overlay);
+    
+    // Handle overlay click to close
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+      }
+    });
+    
+    // Handle upgrade button
+    const upgradeButton = overlay.querySelector('.pro-overlay-button');
+    if (upgradeButton) {
+      upgradeButton.addEventListener('click', () => {
+        chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+        document.body.removeChild(overlay);
+      });
+    }
+  }
+
+  /**
+   * Update theme options based on subscription level
+   */
+  async updateThemeOptions(): Promise<void> {
+    // Early return if theme selector is not available yet
+    if (!this.themeSelector) {
+      return;
+    }
+    
+    const hasPro = await configManager.hasPro();
+    const settingRow = this.themeSelector.closest('.setting-row');
+    
+    // Get all theme options
+    const options = Array.from(this.themeSelector.options);
+    
+    // If user doesn't have pro, show premium themes with PRO badge but disable selection
+    if (!hasPro) {
+      options.forEach(option => {
+        if (this.premiumThemes.includes(option.value)) {
+          option.disabled = true;
+          if (option.textContent && !option.textContent.includes('(PRO)')) {
+            option.textContent += ' (PRO)';
+          }
+        }
+      });
+      
+      // If a pro theme is currently selected, switch to default
+      if (this.premiumThemes.includes(this.themeSelector.value)) {
+        this.themeSelector.value = 'default';
+      }
+      
+      // Add a PRO message below the theme selector
+      let proMessage = document.getElementById('theme-pro-message');
+      if (!proMessage && settingRow) {
+        proMessage = document.createElement('div');
+        proMessage.id = 'theme-pro-message';
+        proMessage.className = 'pro-message';
+        proMessage.innerHTML = '<span class="subscription-badge pro">PRO</span> Upgrade to access premium themes';
+        proMessage.style.fontSize = '12px';
+        proMessage.style.marginTop = '6px';
+        proMessage.style.color = 'var(--text-secondary)';
+        settingRow.querySelector('.setting-control')?.appendChild(proMessage);
+      }
+    } else {
+      // Enable all themes for pro users
+      options.forEach(option => {
+        option.disabled = false;
+        if (option.textContent && option.textContent.includes('(PRO)')) {
+          option.textContent = option.textContent.replace(' (PRO)', '');
+        }
+      });
+      
+      // Remove the PRO message if it exists
+      const proMessage = document.getElementById('theme-pro-message');
+      if (proMessage && proMessage.parentNode) {
+        proMessage.parentNode.removeChild(proMessage);
+      }
+    }
   }
 }
