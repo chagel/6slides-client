@@ -9,7 +9,7 @@ import { debugService } from '../../services/debug_service';
 import { SettingsController } from './settings_controller';
 import { SubscriptionController } from './subscription_controller';
 import { DeveloperController } from './developer_controller';
-import { pageLoader } from '../../services/page_loader';
+import { TopNavController } from './top_nav_controller';
 import { getExtensionVersion } from '../../utils/version';
 
 /**
@@ -20,6 +20,7 @@ class AboutPageController {
   private settingsController!: SettingsController;
   private subscriptionController!: SubscriptionController;
   private developerController!: DeveloperController;
+  private topNavController!: TopNavController;
   
   // Navigation elements
   private navLinks!: NodeListOf<Element>;
@@ -35,6 +36,7 @@ class AboutPageController {
       this.settingsController = new SettingsController();
       this.subscriptionController = new SubscriptionController();
       this.developerController = new DeveloperController();
+      this.topNavController = new TopNavController();
       
       // Get navigation elements
       this.navLinks = document.querySelectorAll('.nav-item');
@@ -73,8 +75,17 @@ class AboutPageController {
       `;
       
       // Fetch the HTML components
-      const [sidebar, aboutContent, settingsContent, subscriptionContent, helpContent, developerContent] = await Promise.all([
+      const [
+        sidebar, 
+        topNav,
+        aboutContent, 
+        settingsContent, 
+        subscriptionContent, 
+        helpContent, 
+        developerContent
+      ] = await Promise.all([
         fetch('components/sidebar.html').then(response => response.text()),
+        fetch('components/top-nav.html').then(response => response.text()),
         fetch('components/about-content.html').then(response => response.text()),
         fetch('components/settings-content.html').then(response => response.text()),
         fetch('components/subscription-content.html').then(response => response.text()),
@@ -86,6 +97,9 @@ class AboutPageController {
       const combinedHTML = `
         <!-- Sidebar -->
         ${sidebar}
+        
+        <!-- Top Navigation -->
+        ${topNav}
         
         <!-- Content area -->
         <div class="content">

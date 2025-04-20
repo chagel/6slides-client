@@ -75,14 +75,6 @@ function copyStaticFiles() {
     copyFiles(componentsDir, componentsDestDir);
   }
   
-  // Copy templates directory
-  const templatesDir = path.join(SRC_DIR, 'views', 'templates');
-  const templatesDestDir = path.join(DIST_DIR, 'templates');
-  
-  if (fs.existsSync(templatesDir)) {
-    copyFiles(templatesDir, templatesDestDir);
-  }
-  
   // Create directories for services
   const servicesDestDir = path.join(DIST_DIR, 'services');
   if (!fs.existsSync(servicesDestDir)) {
