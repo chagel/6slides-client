@@ -90,7 +90,7 @@ class DebugService {
     const indicator = document.createElement('div');
     indicator.id = this.indicatorId;
     
-    // Set basic styles
+    // Set basic styles without !important
     indicator.style.position = 'fixed';
     indicator.style.padding = '2px 6px';
     indicator.style.fontSize = '10px';
@@ -99,7 +99,20 @@ class DebugService {
     indicator.style.backgroundColor = mergedOptions.color;
     indicator.style.borderRadius = '3px';
     indicator.style.zIndex = String(mergedOptions.zIndex);
-    indicator.textContent = mergedOptions.text;
+    indicator.style.lineHeight = '15px';
+    indicator.style.fontFamily = '-apple-system, "system-ui", "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    
+    // Create indicator with expand/collapse icon
+    const statusIcon = document.createElement('span');
+    statusIcon.id = 'debug-indicator-icon';
+    statusIcon.innerHTML = ' &#9658;'; // Default (collapsed) state with space before
+    statusIcon.style.fontSize = '8px';
+    
+    const textSpan = document.createElement('span');
+    textSpan.textContent = mergedOptions.text;
+    
+    indicator.appendChild(textSpan);
+    indicator.appendChild(statusIcon);
     
     // Set position
     switch(mergedOptions.position) {
@@ -216,6 +229,12 @@ class DebugService {
   private async _toggleDebugSidebar(): Promise<void> {
     this._sidebarVisible = !this._sidebarVisible;
     
+    // Update indicator icon based on sidebar visibility using HTML entities
+    const statusIcon = document.getElementById('debug-indicator-icon');
+    if (statusIcon) {
+      statusIcon.innerHTML = this._sidebarVisible ? ' &#9650;' : ' &#9658;'; // Up or right arrow
+    }
+    
     if (this._sidebarVisible) {
       await this._showDebugSidebar();
     } else {
@@ -269,8 +288,8 @@ class DebugService {
       z-index: 1;
     `;
     
-    // Title with log count and small close button
-    titleBar.innerHTML = '<b>Debug Logs</b> <span id="debug-log-count"></span> <span style="float:right;cursor:pointer" id="debug-close">x</span>';
+    // Title with log count, refresh button, clear button, report button, and close button
+    titleBar.innerHTML = '<b>Debug Logs</b> <span id="debug-log-count"></span> <span style="margin-left:15px;cursor:pointer;font-size:11px;" id="debug-refresh">[Refresh]</span> <span style="margin-left:8px;cursor:pointer;font-size:11px;" id="debug-clear">[Clear]</span> <span style="margin-left:8px;cursor:pointer;font-size:11px;" id="debug-report">[Report]</span> <span style="float:right;cursor:pointer" id="debug-close">x</span>';
     
     // Simple logs container - just a div
     const logsContainer = document.createElement('div');
@@ -287,6 +306,31 @@ class DebugService {
     const closeButton = document.getElementById('debug-close');
     if (closeButton) {
       closeButton.addEventListener('click', () => this._toggleDebugSidebar());
+    }
+    
+    // Add refresh button handler
+    const refreshButton = document.getElementById('debug-refresh');
+    if (refreshButton) {
+      refreshButton.addEventListener('click', () => {
+        this._updateDebugSidebar();
+      });
+    }
+    
+    // Add clear button handler
+    const clearButton = document.getElementById('debug-clear');
+    if (clearButton) {
+      clearButton.addEventListener('click', async () => {
+        await loggingService.clearLogs();
+        this._updateDebugSidebar();
+      });
+    }
+    
+    // Add report button handler
+    const reportButton = document.getElementById('debug-report');
+    if (reportButton) {
+      reportButton.addEventListener('click', async () => {
+        this._sendDebugReport();
+      });
     }
     
     // Add ESC key handler
@@ -522,6 +566,99 @@ class DebugService {
   private _logDebugEnabled(): void {
     // Use the logging service instead of direct console logging
     loggingService.debug('Debug mode active');
+  }
+  
+  /**
+   * Send debug report via email with downloadable log file
+   * @private
+   */
+  private async _sendDebugReport(): Promise<void> {
+    // Show confirmation dialog
+    const confirmed = confirm(
+      "You can report to us if you have found a bug. This will download a debug report file and open your email client.\n\n" +
+      "Please attach the downloaded file to the email before sending it to Six Slides support.\n\n" +
+      "Would you like to continue?"
+    );
+    
+    if (!confirmed) {
+      return; // User cancelled
+    }
+    
+    try {
+      // Get all logs
+      const logs = await loggingService.getLogs();
+      
+      // Get user settings
+      const settings = await storage.getSettings();
+      
+      // Collect system information
+      const systemInfo = {
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
+        version: getExtensionVersion(),
+        settings: settings
+      };
+      
+      // Create a complete report object
+      const report = {
+        systemInfo,
+        logs
+      };
+      
+      // Convert to JSON string
+      const reportJson = JSON.stringify(report, null, 2);
+      
+      // Create a blob with the data
+      const blob = new Blob([reportJson], { type: 'application/json' });
+      
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `sixslides-debug-report-${timestamp}.json`;
+      
+      // Create download link element
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = filename;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+      
+      // Trigger download
+      downloadLink.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Show notification that file was downloaded
+      alert(
+        `Debug report file has been downloaded: ${filename}\n\n` +
+        "Your email client will open next. Please attach this file to your email before sending."
+      );
+      
+      // Also open email with instructions
+      const subject = encodeURIComponent(`Six Slides Debug Report - ${new Date().toLocaleString()}`);
+      const body = encodeURIComponent(
+        `Debug Report\n\n` +
+        `IMPORTANT: Please attach the debug report file (${filename}) that was just downloaded.\n\n` +
+        `Browser: ${navigator.userAgent}\n` +
+        `URL: ${window.location.href}\n` +
+        `Version: ${getExtensionVersion()}\n\n` +
+        `Please describe the issue you're experiencing:\n`
+      );
+      
+      // Open email client after a short delay to ensure download starts first
+      setTimeout(() => {
+        const mailtoLink = `mailto:support@6slides.com?subject=${subject}&body=${body}`;
+        window.open(mailtoLink);
+      }, 500); // Increased delay to allow user to read the alert
+    } catch (error) {
+      console.error('Failed to create debug report:', error);
+      alert('Failed to create debug report. Please try again.');
+    }
   }
   
 }
