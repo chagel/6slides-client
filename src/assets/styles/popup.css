@@ -218,10 +218,25 @@ button:hover svg {
   color: var(--text-primary);
 }
 
+.primary-link {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.primary-link:hover {
+  color: var(--primary-hover);
+  background-color: rgba(124, 99, 246, 0.05);
+}
+
 .settings-link svg, .account-link svg {
   margin-right: 6px;
   color: var(--text-secondary);
 }
+
+.primary-link svg {
+  color: var(--primary-color);
+}
+
 
 #userEmailDisplay {
   max-width: 120px;

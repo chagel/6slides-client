@@ -62,15 +62,80 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 12px;
 }
 
 .user-info .subscription-badge {
-  margin-right: 12px;
+  margin-right: 4px;
 }
 
 .user-email {
   font-size: 14px;
   color: var(--text-color);
+}
+
+/* Login/Logout buttons in top nav */
+#login-section-topnav, #user-info-topnav {
+  display: flex;
+  align-items: center;
+}
+
+.login-button, .logout-button, .subscription-button, .signup-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.login-button {
+  background-color: transparent;
+  color: #505F79;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.login-button:hover {
+  background-color: #f5f6f8;
+  border-color: #cfd4db;
+  color: #344563;
+}
+
+.logout-button {
+  background-color: #f0f1f5;
+  color: #505F79;
+  margin-left: 8px;
+}
+
+.logout-button:hover {
+  background-color: #e2e4ea;
+  color: #344563;
+}
+
+.subscription-button {
+  background-color: #3F51B5;  /* Match primary color variable */
+  color: white;
+  margin-left: 8px;
+  border: none;
+}
+
+.subscription-button:hover {
+  background-color: #303F9F;  /* Match hover color variable */
+}
+
+.signup-button {
+  background-color: #3F51B5;  /* Match primary color variable */
+  color: white;
+  margin-right: 8px;
+}
+
+.signup-button:hover {
+  background-color: #303F9F;  /* Match hover color variable */
 }
 
 /* Sidebar styles */
