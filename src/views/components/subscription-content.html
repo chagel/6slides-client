@@ -127,7 +127,7 @@
       <div id="freeSubscriptionInfo" class="subscription-info" style="text-align: center; max-width: 600px; margin: 0 auto;">
         <div class="current-plan-banner" style="background: #F7F8FA; padding: 12px; border-radius: 8px; margin-bottom: 24px;">
           <span style="font-size: 14px; color: #505F79;">Current Plan:</span>
-          <span class="subscription-badge free" style="font-size: 14px; font-weight: 700; color: #5E6C84; background: #EBECF0; padding: 4px 12px; border-radius: 24px; margin-left: 8px; display: inline-block;">FREE</span>
+          <span class="subscription-badge free" style="margin-left: 8px; font-size: 14px;">FREE</span>
         </div>
         
         <div class="pro-upgrade-card" style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 1px solid #EAEBEF; margin-bottom: 24px;">
@@ -193,7 +193,7 @@
       <!-- Pro Subscription Info -->
       <div id="proSubscriptionInfo" class="subscription-info" style="display:none; text-align: center; max-width: 600px; margin: 0 auto;">
         <div class="subscription-status">
-          <div class="subscription-badge pro" style="display: inline-block; font-size: 16px; font-weight: 700; color: white; background: #7C63F6; padding: 6px 14px; border-radius: 24px; margin-bottom: 16px;">PRO PLAN</div>
+          <div class="subscription-badge pro" style="font-size: 16px; margin-bottom: 16px;">PRO</div>
           
           <h3 style="margin: 0 0 24px; font-size: 22px; color: #333;">You have access to all premium features</h3>
           
@@ -223,6 +223,41 @@
         <div class="expiry-info" style="margin-bottom: 24px; color: #505F79;">Subscription expires: <span id="subscriptionExpiry" style="font-weight: 600; color: #333;">Never</span></div>
         
         <button id="manageSubscription" class="manage-button" style="background: #E9ECF3; color: #505F79; font-weight: 500; padding: 10px 20px; border-radius: 6px; font-size: 14px; border: none; cursor: pointer; transition: all 0.2s ease;">Manage Subscription</button>
+      </div>
+      
+      <!-- VIP Subscription Info -->
+      <div id="vipSubscriptionInfo" class="subscription-info" style="display:none; text-align: center; max-width: 600px; margin: 0 auto;">
+        <div class="subscription-status">
+          <div class="subscription-badge vip" style="font-size: 16px; margin-bottom: 16px;">VIP</div>
+          
+          <h3 style="margin: 0 0 24px; font-size: 22px; color: #333;">You have exclusive VIP access</h3>
+          
+          <div class="benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">Unlimited Slides</span>
+              <span style="color: #505F79; font-size: 14px;">No restrictions on presentation length</span>
+            </div>
+            
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">Premium Themes</span>
+              <span style="color: #505F79; font-size: 14px;">Access to all theme options</span>
+            </div>
+            
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">VIP Support</span>
+              <span style="color: #505F79; font-size: 14px;">Priority customer service</span>
+            </div>
+            
+            <div class="benefit-item" style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+              <span style="display: block; font-weight: 600; margin-bottom: 4px;">Early Access</span>
+              <span style="color: #505F79; font-size: 14px;">First to get new features</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="expiry-info" style="margin-bottom: 24px; color: #505F79;">VIP Status: <span id="vipStatus" style="font-weight: 600; color: #333;">Lifetime</span></div>
+        
+        <button id="manageVipSubscription" class="manage-button" style="background: #E9ECF3; color: #505F79; font-weight: 500; padding: 10px 20px; border-radius: 6px; font-size: 14px; border: none; cursor: pointer; transition: all 0.2s ease;">Manage Subscription</button>
       </div>
     </div>
   </div>

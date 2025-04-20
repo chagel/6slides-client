@@ -6,7 +6,10 @@
   <link rel="stylesheet" href="assets/styles/popup.css">
 </head>
 <body>
-  <h1>Notion to Slides</h1>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h1 style="margin: 0;">Notion to Slides</h1>
+    <div id="subscription-badge" class="subscription-badge free">FREE</div>
+  </div>
   <div class="template-info">
     <p>Convert your Notion page to a presentation:</p>
     <ul>
@@ -22,11 +25,10 @@
   
   <div class="action-container">
     <button id="convertBtn">Present</button>
-    <div id="subscription-badge" class="subscription-badge free">FREE</div>
   </div>
   <div id="status"></div>
   
-  <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+  <div style="margin-top: 20px; display: flex; justify-content: flex-start; align-items: center;">
     <a href="#" id="settingsLink" style="color: #666; text-decoration: none; display: flex; align-items: center; font-size: 13px;">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
         <circle cx="12" cy="12" r="3"></circle>
@@ -34,8 +36,6 @@
       </svg>
       Settings
     </a>
-    <span style="color: #666; font-size: 11px;">{{VERSION}}</span>
-    <a href="#" id="aboutLink" style="color: #666; text-decoration: none; font-size: 13px;">About</a>
   </div>
   <script src="controllers/popup/index.js"></script>
 </body>

@@ -38,7 +38,7 @@ class PopupController {
   private convertBtn: HTMLButtonElement;
   private statusEl: HTMLElement;
   private instructionsLink: HTMLAnchorElement;
-  private aboutLink: HTMLAnchorElement;
+  // aboutLink removed
   private settingsLink: HTMLAnchorElement;
   
   /**
@@ -48,7 +48,7 @@ class PopupController {
     this.convertBtn = document.getElementById('convertBtn') as HTMLButtonElement;
     this.statusEl = document.getElementById('status') as HTMLElement;
     this.instructionsLink = document.getElementById('instructionsLink') as HTMLAnchorElement;
-    this.aboutLink = document.getElementById('aboutLink') as HTMLAnchorElement;
+    // aboutLink removed
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
     
     this.bindEventHandlers();
@@ -69,14 +69,14 @@ class PopupController {
   }
   
   /**
-   * Setup debug indicator
+   * Setup debug indicator in the bottom right corner
    */
   private async setupDebugIndicator(): Promise<void> {
     try {
       await debugService.setupDebugIndicator(
         {
-          position: 'top-right',
-          text: 'DEBUG',
+          position: 'bottom-right',
+          text: 'DEBUG MODE',
           zIndex: 1000
         },
         'popup'  // Context identifier for logging
@@ -95,7 +95,7 @@ class PopupController {
     
     // Links
     this.instructionsLink.addEventListener('click', this.handleInstructionsClick.bind(this));
-    this.aboutLink.addEventListener('click', this.handleAboutClick.bind(this));
+    // aboutLink removed
     this.settingsLink.addEventListener('click', this.handleSettingsClick.bind(this));
   }
   
@@ -280,14 +280,7 @@ class PopupController {
     chrome.tabs.create({ url: chrome.runtime.getURL('about.html#help') });
   }
   
-  /**
-   * Handle about link click
-   * @param e - Click event
-   */
-  private handleAboutClick(e: MouseEvent): void {
-    e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#about') });
-  }
+  // About link handler removed
   
   /**
    * Handle settings link click
