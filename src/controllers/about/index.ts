@@ -9,6 +9,7 @@ import { debugService } from '../../services/debug_service';
 import { SettingsController } from './settings_controller';
 import { DeveloperController } from './developer_controller';
 import { TopNavController } from './top_nav_controller';
+import { AboutContentController } from './about_content_controller';
 import { getExtensionVersion } from '../../utils/version';
 
 /**
@@ -19,6 +20,7 @@ class AboutPageController {
   private settingsController!: SettingsController;
   private developerController!: DeveloperController;
   private topNavController!: TopNavController;
+  private aboutContentController!: AboutContentController;
   
   // Navigation elements
   private navLinks!: NodeListOf<Element>;
@@ -34,6 +36,7 @@ class AboutPageController {
       this.settingsController = new SettingsController();
       this.developerController = new DeveloperController();
       this.topNavController = new TopNavController();
+      this.aboutContentController = new AboutContentController();
       
       // Get navigation elements
       this.navLinks = document.querySelectorAll('.nav-item');

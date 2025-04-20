@@ -291,18 +291,6 @@ select, input {
   font-size: 14px;
 }
 
-.pro-badge {
-  background-color: #F6B352;
-  color: #333;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-left: 5px;
-  vertical-align: middle;
-}
-
 .pro-cta-container {
   text-align: center;
   margin: 30px auto;
