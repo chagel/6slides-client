@@ -43,7 +43,11 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin: -16px -16px 16px -16px;
+  padding: 16px;
+  background-color: var(--bg-light);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Info box styles */
@@ -246,11 +250,17 @@ button:hover svg {
 }
 
 /* Subscription badge */
+.subscription-link {
+  margin-left: auto;
+  text-decoration: none;
+}
+
 .subscription-badge {
   padding: 5px 12px;
   font-weight: 600;
   box-shadow: var(--shadow-sm);
   letter-spacing: 0.02em;
+  cursor: pointer;
 }
 
 /* Animations */

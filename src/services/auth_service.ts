@@ -94,7 +94,7 @@ class AuthService {
       const responseUrl = await this.launchAuthFlow(authURL.toString());
       
       if (!responseUrl) {
-        loggingService.error('Auth flow was canceled or failed', {}, 'auth_service');
+        loggingService.error('Auth flow was canceled or failed. Server is unreachable.', {}, 'auth_service');
         return null;
       }
       

@@ -11,6 +11,7 @@ import { configManager } from '../../models/config_manager';
 import { debugService } from '../../services/debug_service';
 import { authService } from '../../services/auth_service';
 import { Slide } from '../../types/index';
+import { showNotification } from '../../utils/notification';
 
 /**
  * Response from content script
@@ -108,6 +109,12 @@ class PopupController {
     const accountLink = document.getElementById('accountLink');
     if (accountLink) {
       accountLink.addEventListener('click', this.handleAccountClick.bind(this));
+    }
+    
+    // Subscription badge link
+    const subscriptionLink = document.getElementById('subscriptionLink');
+    if (subscriptionLink) {
+      subscriptionLink.addEventListener('click', this.handleSubscriptionLinkClick.bind(this));
     }
   }
   
@@ -433,6 +440,7 @@ class PopupController {
           // Sign-in failed, clear flag to prevent further attempts
           await chrome.storage.local.remove('popupLoginPending');
           loggingService.debug('Sign-in completion attempt was unsuccessful', {}, 'popup');
+          showNotification('Login failed. Please try again.', 'error');
         }
         // User is not logged in - show login link
         loginLink.style.display = 'flex';
@@ -485,6 +493,15 @@ class PopupController {
   private handleAccountClick(e: MouseEvent): void {
     e.preventDefault();
     chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+  }
+  
+  /**
+   * Handle subscription link click
+   * @param e - Click event
+   */
+  private handleSubscriptionLinkClick(e: MouseEvent): void {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'https://6slides.com' });
   }
   
   /**

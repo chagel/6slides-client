@@ -73,9 +73,7 @@ class LoggingService {
    * @param config - Logging configuration
    */
   initialize(config: LoggingConfig = {}): void {
-    if (typeof config.enabled === 'boolean') this._enabled = config.enabled;
     if (typeof config.debugEnabled === 'boolean') this._debugEnabled = config.debugEnabled;
-    if (config.logLevel) this._logLevel = config.logLevel;
     if (config.prefix) this._prefix = config.prefix;
     if (typeof config.maxStoredLogs === 'number') this._maxStoredLogs = config.maxStoredLogs;
     
@@ -122,7 +120,7 @@ class LoggingService {
    * @param context - Optional explicit context to override automatic detection
    */
   debug(message: string, data?: unknown, context?: string): void {
-    if (!this._enabled || !this._debugEnabled) return;
+    if (!this._enabled) return;
     
     this._storeLog({
       level: LogLevel.DEBUG,

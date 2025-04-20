@@ -9,7 +9,7 @@ import { storage } from '../models/storage';
 import { source_manager } from '../models/source_manager';
 import { content_processor } from '../models/content_processor';
 import { configManager } from '../models/config_manager';
-import { loggingService, LogLevel } from './logging_service';
+import { loggingService } from './logging_service';
 import { messagingService } from './messaging_service';
 import { debugService } from './debug_service';
 import { content_controller } from '../controllers/content_controller';
@@ -29,19 +29,16 @@ export function registerServices(): void {
   container.register('debugService', debugService);
   container.register('authService', authService);
   
-  // Initialize loggingService (still used as a singleton through direct imports)
+  // Initialize loggingService with the user's debug preference
   loggingService.initialize({
-    debugEnabled: false, // Will be updated from config later
-    logLevel: LogLevel.INFO,
+    debugEnabled: true, 
     prefix: '[Six Slides]',
-    maxStoredLogs: 150 // Store more logs for better troubleshooting
+    maxStoredLogs: 500
   });
-  
-  // Initialize logging with error handling capabilities
   
   // Register content_controller directly instead of the factory function
   container.register('content_controller', content_controller);
 }
 
-// Initialize services
+// Initialize services immediately with IIFE
 registerServices();
