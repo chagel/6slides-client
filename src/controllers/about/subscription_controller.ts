@@ -6,7 +6,6 @@
 
 import { loggingService } from '../../services/logging_service';
 import { configManager, SubscriptionLevel } from '../../models/config_manager';
-import { authService } from '../../services/auth_service';
 
 /**
  * Controller for the subscription section
@@ -460,6 +459,8 @@ export class SubscriptionController {
    */
   private async handleLogoutClick(): Promise<void> {
     try {
+      loggingService.debug('User initiated logout');
+
       // Show loading state
       if (this.logoutButton) {
         this.logoutButton.textContent = 'Logging out...';
