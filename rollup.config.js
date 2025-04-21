@@ -97,6 +97,7 @@ export default entries.map(entry => {
           'process.env.NODE_ENV': JSON.stringify(env), // Use our local env variable to ensure it's consistent
           'process.env.API_URL': JSON.stringify(process.env.API_URL || ''),
           'process.env.WEB_URL': JSON.stringify(process.env.WEB_URL || ''),
+          'process.env.OAUTH_CLIENT_ID': JSON.stringify(process.env.OAUTH_CLIENT_ID || ''),
           // Add a general debug flag based on environment
           'process.env.IS_DEVELOPMENT': JSON.stringify(isDevelopment),
           // Add a timestamp for cache busting in development
