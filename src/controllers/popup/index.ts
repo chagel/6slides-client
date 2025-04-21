@@ -492,7 +492,7 @@ class PopupController {
    */
   private handleAccountClick(e: MouseEvent): void {
     e.preventDefault();
-    chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+    chrome.tabs.create({ url: `${process.env.WEB_URL}/subscription` });
   }
   
   /**
@@ -501,7 +501,7 @@ class PopupController {
    */
   private handleSubscriptionLinkClick(e: MouseEvent): void {
     e.preventDefault();
-    chrome.tabs.create({ url: 'https://6slides.com' });
+    chrome.tabs.create({ url: `${process.env.WEB_URL}` });
   }
   
   /**

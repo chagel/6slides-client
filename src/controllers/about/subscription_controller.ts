@@ -257,7 +257,7 @@ export class SubscriptionController {
     const upgradeButton = overlay.querySelector('.pro-overlay-button');
     if (upgradeButton) {
       upgradeButton.addEventListener('click', () => {
-        chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+        chrome.tabs.create({ url: `${process.env.WEB_URL}/subscription` });
         document.body.removeChild(overlay);
       });
     }
@@ -288,7 +288,7 @@ export class SubscriptionController {
    */
   private handleUpgradeClick(e: MouseEvent): void {
     e.preventDefault();
-    chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+    chrome.tabs.create({ url: `${process.env.WEB_URL}/subscription` });
   }
   
   /**
@@ -296,7 +296,7 @@ export class SubscriptionController {
    */
   private handleManageClick(): void {
     // Open subscription management page
-    chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+    chrome.tabs.create({ url: `${process.env.WEB_URL}/subscription` });
   }
   
   // Login/logout handlers now in TopNavController

@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Six Slides",
-  "version": "1.5.1",
-  "description": "Present your Notion pages as simple, elegant, and secure slides",
+  "version": "1.0.1",
+  "description": "Transform your Notion pages into slides with a single click.",
   "icons": {
     "16": "assets/icons/icon16.png",
     "48": "assets/icons/icon48.png",
     "128": "assets/icons/icon128.png"
   },
   "permissions": ["scripting", "activeTab", "tabs", "storage", "identity", "alarms"],
-  "host_permissions": ["<all_urls>", "http://localhost:3000/*"],
+  "host_permissions": ["https://api.6slides.com/*", "https://6slides.com/*", "http://localhost:3000/*"],
   "oauth2": {
     "client_id": "ai27EuZJRn6jbyot6p4gZMELrTo7_nRPPxFqQ2zTTmE",
     "scopes": ["email", "profile", "openid"]

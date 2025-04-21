@@ -297,8 +297,7 @@ export class TopNavController {
    */
   private handleManageSubscriptionClick(): void {
     loggingService.debug('Manage subscription button clicked');
-    // Open the subscription management website in a new tab
-    chrome.tabs.create({ url: 'https://6slides.com/subscription' });
+    chrome.tabs.create({ url: `${process.env.WEB_URL}/subscription` });
   }
   
   /**
@@ -307,7 +306,7 @@ export class TopNavController {
   private handleSignupClick(): void {
     loggingService.debug('Signup button clicked');
     // Open the signup website in a new tab
-    chrome.tabs.create({ url: 'https://6slides.com/signup' });
+    chrome.tabs.create({ url: `${process.env.WEB_URL}/signup` });
   }
 
   /**

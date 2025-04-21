@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
+import dotenv from 'dotenv';
 
 // Read package.json to get version
 const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
@@ -50,13 +51,20 @@ function copyFiles(sourceDir, destDir) {
 
 // Copy static files excluding those that will be bundled
 function copyStaticFiles() {
-  // Copy manifest.json from src directory and update version
+  // Copy manifest.json from src directory and update version from package.json
   const manifestPath = path.join(SRC_DIR, 'manifest.json');
   const manifestContent = fs.readFileSync(manifestPath, 'utf8');
+  
+  // Use VERSION from package.json (already defined at the top of the file)
   const updatedManifest = manifestContent.replace(
     /"version":\s*"[^"]+"/,
     `"version": "${VERSION}"`
   );
+  
+  // Log that we're updating the version
+  console.log(`Setting extension version to ${VERSION} in manifest.json`);
+  
+  // Write the updated manifest to the dist directory
   fs.writeFileSync(path.join(DIST_DIR, 'manifest.json'), updatedManifest);
   
   // Copy HTML files from src/views to dist root
@@ -116,8 +124,28 @@ function copyStaticFiles() {
 // Run rollup to bundle JavaScript modules
 function runRollup() {
   return new Promise((resolve, reject) => {
-    // Set NODE_ENV to production for the build
-    const env = { ...process.env, NODE_ENV: 'production' };
+    // Determine environment from command line or default to production
+    const nodeEnv = process.env.NODE_ENV || 'production';
+    console.log(`Building for environment: ${nodeEnv}`);
+    
+    // Load environment variables from the correct .env file
+    dotenv.config({ path: `.env.${nodeEnv}` });
+    
+    // Create environment variables for the Rollup process
+    // This ensures the dotenv variables are passed to the Rollup process
+    const env = { 
+      ...process.env,
+      NODE_ENV: nodeEnv,
+      API_URL: process.env.API_URL,
+      WEB_URL: process.env.WEB_URL,
+      // Pass the version from package.json to make it available in the code
+      EXTENSION_VERSION: VERSION
+    };
+    
+    // Log the URLs being used (without sensitive data)
+    console.log(`Using API_URL: ${env.API_URL}`);
+    console.log(`Using WEB_URL: ${env.WEB_URL}`);
+    
     const rollup = spawn('npx', ['rollup', '-c'], { env });
     
     // Capture output but don't show it unless there's an error
@@ -184,11 +212,24 @@ async function build() {
   // Use QUIET_BUILD=true for CI/production builds with no output
   const quietBuild = process.env.QUIET_BUILD === 'true';
   
-  if (!quietBuild) {
-    console.log('Building Six Slides extension...');
+  // Get NODE_ENV from command line arguments or process.env
+  // Find the --env=xxx argument if it exists
+  const envArg = process.argv.find(arg => arg.startsWith('--env='));
+  if (envArg) {
+    // Extract the environment name after the equals sign
+    const envValue = envArg.split('=')[1];
+    // Set it in process.env
+    process.env.NODE_ENV = envValue;
   }
   
-  // Clean dist directory - add debug message
+  // Use process.env.NODE_ENV or default to production
+  const nodeEnv = process.env.NODE_ENV || 'production';
+  
+  if (!quietBuild) {
+    console.log(`Building Six Slides extension v${VERSION} for ${nodeEnv} environment...`);
+  }
+  
+  // Clean dist directory
   console.log('Cleaning dist directory for a fresh build...');
   if (fs.existsSync(DIST_DIR)) {
     fs.rmSync(DIST_DIR, { recursive: true, force: true });
@@ -208,7 +249,7 @@ async function build() {
     updateHtmlFiles();
     
     if (!quietBuild) {
-      console.log('Build complete!');
+      console.log(`Build complete for ${nodeEnv} environment!`);
     }
   } catch (error) {
     console.error('Build failed:', error);
