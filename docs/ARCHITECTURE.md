@@ -402,7 +402,7 @@ class ContentController {
 
 Domain models represent the core business entities and encapsulate both data and behavior.
 
-```javascript
+```typescript
 // src/models/domain/Slide.ts
 import { SlideMetadata } from './types';
 
@@ -439,6 +439,49 @@ export class Slide {
     };
   }
 }
+
+// src/models/domain/config.ts
+export enum SubscriptionLevel {
+  FREE = 'free',
+  PRO = 'pro',
+  VIP = 'vip'
+}
+
+export interface Config {
+  // Presentation settings
+  theme: string;
+  transition: string;
+  slideNumber: boolean;
+  center: boolean;
+  
+  // Extension settings
+  debugLogging: boolean;
+  extractionTimeout: number;
+  
+  // Subscription settings
+  subscriptionLevel: SubscriptionLevel;
+  subscriptionExpiry: number | null;
+  
+  // User authentication
+  userEmail: string | null;
+  userToken: string | null;
+  
+  [key: string]: any;
+}
+
+// Default configuration values
+export const DEFAULT_CONFIG: Config = {
+  theme: 'default',
+  transition: 'slide',
+  slideNumber: false,
+  center: true,
+  debugLogging: false,
+  extractionTimeout: 30,
+  subscriptionLevel: SubscriptionLevel.FREE,
+  subscriptionExpiry: null,
+  userEmail: null,
+  userToken: null
+};
 ```
 
 ### 7. Logging Service
@@ -871,6 +914,21 @@ The following diagram shows the key domain models and their relationships:
 │  Storage Service    │                │ Persistence Layer │
 │                     │───────────────►│                   │
 └─────────────────────┘     saves      └───────────────────┘
+
+
+┌─────────────────────┐     imports    ┌───────────────────┐
+│                     │◄───────────────┤                   │
+│  Config Manager     │                │  Domain Config    │
+│                     │                │                   │
+└─────────────────────┘                └───────────────────┘
+        ▲                                      ▲
+        │ uses                                 │
+        │                                      │ imports
+┌───────┴─────────┐                    ┌───────┴─────────┐
+│                 │                    │                 │
+│    Storage      │─────imports────────►    Components   │
+│                 │                    │                 │
+└─────────────────┘                    └─────────────────┘
 ```
 
 ---
@@ -889,8 +947,10 @@ This architecture enables Six Slides to support multiple content sources while m
 10. **Service-Oriented Architecture** - Common utilities like messaging are implemented as services to promote better dependency management
 11. **Comprehensive Testing** - TypeScript-based unit tests with Jest provide high code coverage for core components
 12. **Service Worker Awareness** - Environment detection for cross-context compatibility (browser vs. service worker)
+13. **Domain Configuration** - Configuration types and defaults live in the domain folder, ensuring proper separation of concerns
+14. **Dependency Resolution** - Careful handling of module imports to avoid circular dependencies
 
-By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked). The TypeScript integration ensures type safety across the entire codebase, reducing runtime errors and improving developer productivity.
+By combining these patterns, the codebase is highly extensible (new content sources can be added with minimal changes), maintainable (components have clear responsibilities), and testable (dependencies can be easily mocked). The TypeScript integration ensures type safety across the entire codebase, reducing runtime errors and improving developer productivity. The domain-driven organization of configuration types also ensures that changes to configuration can be made safely without introducing circular dependencies.
 
 ## Testing Architecture
 

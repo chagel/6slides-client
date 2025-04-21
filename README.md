@@ -54,12 +54,11 @@ src/
   │   ├── data/              # Data files (changelog, etc.)
   │   ├── icons/             # Icon assets
   │   └── styles/            # CSS stylesheets
-  ├── common/                # Shared utilities
-  │   └── utils.ts           # Utility functions
   ├── models/                # Business logic and data models
   │   ├── domain/            # Domain models
   │   │   ├── slide.ts       # Slide domain model
   │   │   ├── presentation.ts # Presentation domain model
+  │   │   ├── config.ts      # Configuration types and defaults
   │   │   └── types.ts       # Domain type definitions
   │   ├── config_manager.ts  # Configuration management
   │   ├── content_extractor.ts # Content extraction coordination
@@ -73,23 +72,26 @@ src/
   │       └── notion/        # Notion extractors
   ├── services/              # Application services
   │   ├── dependency_container.ts # Dependency injection
-  │   ├── error_service.ts   # Centralized error handling
+  │   ├── debug_service.ts   # Debug utilities and visuals
+  │   ├── auth_service.ts    # Authentication management
   │   ├── logging_service.ts # Centralized logging
-  │   ├── messaging_service.ts # Component communication (formerly in common/)
+  │   ├── messaging_service.ts # Component communication
   │   └── service_registry.ts # Service registration
   ├── controllers/           # Controllers connecting models and views
   │   ├── content_controller.ts # Content orchestration
   │   ├── popup/             # Extension popup controller
-  │   ├── settings/          # Settings controller
+  │   ├── about/             # About page controllers
   │   └── viewer/            # Presentation viewer controller
   ├── types/                 # TypeScript type definitions
   │   ├── index.ts           # Type exports
   │   └── storage.ts         # Storage-related types
   ├── views/                 # HTML views
-  ├── content/               # Content script
-  │   └── entry.ts           # Content script entry point
-  └── background/            # Background script
-      └── index.ts           # Service worker
+  │   ├── components/        # HTML components and templates
+  │   ├── popup.html         # Popup UI
+  │   ├── about.html         # About and settings page
+  │   └── viewer.html        # Presentation viewer page
+  └── services/              # Service workers
+      └── worker.ts          # Extension service worker
 ```
 
 ### Setup
@@ -153,7 +155,15 @@ The build process:
 
 ## Version History
 
-### Version 1.5.0 (Current)
+### Version 1.5.1 (Current)
+- Fixed circular dependencies between modules
+- Moved configuration types to domain folder
+- Optimized module loading for better performance
+- Enhanced security with better code obfuscation
+- Improved developer tools with better diagnostics
+- Fixed dynamic import error in about page
+
+### Version 1.5.0
 - Improved code organization with external CSS files
 - Added minimalistic design improvements
 - Restructured assets directory for better organization
