@@ -224,9 +224,13 @@ async function build() {
   
   // Use process.env.NODE_ENV or default to production
   const nodeEnv = process.env.NODE_ENV || 'production';
+  const isProduction = nodeEnv === 'production';
   
   if (!quietBuild) {
     console.log(`Building Six Slides extension v${VERSION} for ${nodeEnv} environment...`);
+    if (isProduction) {
+      console.log('⚠️ Production build: Code will be minified and obfuscated for security!');
+    }
   }
   
   // Clean dist directory

@@ -3,6 +3,8 @@ import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
 import dotenv from 'dotenv';
 import json from '@rollup/plugin-json';
+import terser from '@rollup/plugin-terser';
+import obfuscator from 'rollup-plugin-obfuscator';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 // Determine the environment and load env variables
@@ -26,7 +28,8 @@ const entries = [
     input: 'src/services/worker.ts',
     output: {
       file: 'dist/services/worker.js',
-      format: 'esm', // Service worker supports ES modules
+      format: 'iife',
+      name: 'notionSlidesWorker'
     }
   },
   
@@ -105,9 +108,77 @@ export default entries.map(entry => {
           // Add the version from package.json
           'process.env.EXTENSION_VERSION': JSON.stringify(process.env.npm_package_version || ''),
         }
+      }),
+      // Minify with Terser in production
+      !isDevelopment && terser({
+        compress: {
+          drop_console: true, // Remove console statements
+          drop_debugger: true, // Remove debugger statements
+          pure_funcs: ['console.debug', 'console.log', 'console.info'] // Remove specific console functions
+        }
+      }),
+      // Obfuscate code in production only (not in development)
+      !isDevelopment && 
+      obfuscator({
+        options: entry.input.includes('worker.ts') ? 
+        // Service worker obfuscation settings - more conservative to avoid window references
+        {
+          compact: true,
+          controlFlowFlattening: false, // Disable for service workers
+          deadCodeInjection: false, // Disable for service workers
+          debugProtection: false, // Disable for service workers
+          debugProtectionInterval: 0, // Set to 0 instead of false
+          disableConsoleOutput: false, // Keep console output for service workers
+          identifierNamesGenerator: 'hexadecimal',
+          log: false,
+          numbersToExpressions: false, // Disable complex transformations
+          renameGlobals: false,
+          selfDefending: false, // Disable for service workers
+          simplify: true,
+          splitStrings: false, // Disable for service workers
+          stringArray: false, // Disable string array transformations that may use window
+          transformObjectKeys: false, // Disable for service workers
+          unicodeEscapeSequence: false
+        } : 
+        // UI code obfuscation settings - more aggressive (for code that has window access)
+        {
+          compact: true,
+          controlFlowFlattening: true,
+          controlFlowFlatteningThreshold: 0.5,
+          deadCodeInjection: true,
+          deadCodeInjectionThreshold: 0.3,
+          debugProtection: true,
+          debugProtectionInterval: 1000,
+          disableConsoleOutput: true,
+          identifierNamesGenerator: 'hexadecimal',
+          log: false,
+          numbersToExpressions: true,
+          renameGlobals: false,
+          selfDefending: true,
+          simplify: true,
+          splitStrings: true,
+          splitStringsChunkLength: 5,
+          stringArray: true,
+          stringArrayCallsTransform: true,
+          stringArrayEncoding: ['rc4'],
+          stringArrayIndexShift: true,
+          stringArrayRotate: true,
+          stringArrayShuffle: true,
+          stringArrayWrappersCount: 5,
+          stringArrayWrappersChainedCalls: true,
+          stringArrayWrappersParametersMaxCount: 5,
+          stringArrayWrappersType: 'function',
+          stringArrayThreshold: 0.8,
+          transformObjectKeys: true,
+          unicodeEscapeSequence: false
+        }
       })
-    ],
+    ].filter(Boolean),
     external: ['chrome'],
+    // Ensure globals for externals are properly defined
+    globals: {
+      chrome: 'chrome'
+    },
     onwarn(warning, warn) {
       if (warning.code === 'CIRCULAR_DEPENDENCY') return;
       warn(warning);

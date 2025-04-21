@@ -5,6 +5,7 @@
  */
 
 import { loggingService } from '../services/logging_service';
+import { DEFAULT_CONFIG } from './domain';
 import { Slide } from '../types/index';
 import { Settings } from '../types/storage';
 
@@ -95,7 +96,7 @@ class Storage {
    * @returns Promise resolving to Settings object
    */
   async getSettings(): Promise<Settings> {
-    const { DEFAULT_CONFIG } = await import('./config_manager');
+    // Use statically imported DEFAULT_CONFIG
     try {
       const settings = await this._getFromIndexedDB(SETTINGS_STORE, 'current') as Settings;
       if (settings) {

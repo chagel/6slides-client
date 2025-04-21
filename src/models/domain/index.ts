@@ -7,3 +7,4 @@
 export { Slide } from '../domain/slide.js';
 export { Presentation } from '../domain/presentation.js';
 export * from './types.js';
+export { Config, DEFAULT_CONFIG, PresentationSettings, SubscriptionLevel } from './config.js';
