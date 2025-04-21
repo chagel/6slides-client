@@ -30,7 +30,7 @@ body {
 
 /* Header styles */
 h1 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
   color: var(--text-primary);
