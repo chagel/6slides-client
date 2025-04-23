@@ -72,6 +72,7 @@ const entries = [
 
 // Configure the build based on environment
 const isDevelopment = env === 'development';
+const needObfuscation = false;
 
 // Apply plugins to each bundle
 export default entries.map(entry => {
@@ -118,8 +119,7 @@ export default entries.map(entry => {
         }
       }),
       // Obfuscate code in production only (not in development)
-      !isDevelopment && 
-      obfuscator({
+      !isDevelopment && needObfuscation && obfuscator({
         options: entry.input.includes('worker.ts') ? 
         // Service worker obfuscation settings - more conservative to avoid window references
         {
