@@ -238,31 +238,6 @@ export class ListExtractor extends BaseExtractor implements IListExtractor {
     return listGroups;
   }
 
-  /**
-   * Find and extract all lists in the document
-   * @returns Array of list elements
-   */
-  extractLists(): Element[] {
-    // Get standard HTML lists
-    const htmlLists = [
-      ...this.findElements('ul'),
-      ...this.findElements('ol')
-    ];
-    
-    // Get Notion-specific lists
-    const notionLists = this.findElements([
-      '.notion-bulleted_list-block',
-      '.notion-numbered_list-block',
-      '.notion-to_do-block',
-      '.notion-toggle-block',
-      '.notion-list-block'
-    ].join(', '));
-    
-    const allLists = [...htmlLists, ...notionLists];
-    this.debug(`Found ${allLists.length} lists`);
-    
-    return allLists;
-  }
   
   /**
    * Extract method implementation

@@ -95,26 +95,4 @@ describe('CodeBlockExtractor', () => {
     });
   });
 
-  describe('extractCodeBlocks', () => {
-    test('should find all code blocks in the document', () => {
-      document.body.innerHTML = `
-        <div class="notion-code-block">const a = 1;</div>
-        <pre>function test() {}</pre>
-        <div><code>let x = 10;</code></div>
-        <p>Not a code block</p>
-      `;
-      
-      const codeBlocks = extractor.extractCodeBlocks();
-      expect(codeBlocks.length).toBe(3);
-    });
-
-    test('should avoid duplicate code elements', () => {
-      document.body.innerHTML = `
-        <pre><code>This should only be counted once</code></pre>
-      `;
-      
-      const codeBlocks = extractor.extractCodeBlocks();
-      expect(codeBlocks.length).toBe(1);
-    });
-  });
 });

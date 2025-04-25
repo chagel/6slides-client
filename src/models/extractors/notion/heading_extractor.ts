@@ -9,7 +9,7 @@ import { IHeadingExtractor } from './types';
 
 export class HeadingExtractor extends BaseExtractor implements IHeadingExtractor {
   /**
-   * Extract headings of a specific level
+   * Extract headings of a specific level - for testing only, not used in the application
    * @param level - Heading level (1, 2, or 3)
    * @returns Array of heading elements
    */
@@ -37,7 +37,6 @@ export class HeadingExtractor extends BaseExtractor implements IHeadingExtractor
     
     return headings;
   }
-  
   /**
    * Check if an element is a heading of a specific level
    * @param element - Element to check

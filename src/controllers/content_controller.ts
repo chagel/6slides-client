@@ -134,7 +134,13 @@ You're doing great! Most stories are best told in 6 slides - but if yours needs 
       // Ensure all slides have required properties and preserve subslides
       const validSlides = processedSlides.map(slide => {
         // Create base slide with required properties
-        const validSlide = {
+        const validSlide: { 
+          title: string; 
+          content: string; 
+          sourceType: string; 
+          metadata: any; 
+          subslides?: any[] 
+        } = {
           title: slide.title || 'Untitled Slide',
           content: slide.content || '',
           sourceType: slide.sourceType || sourceType.toString(),

@@ -52,19 +52,6 @@ export class BlockquoteExtractor extends BaseExtractor {
     return quotedLines.join('\n');
   }
   
-  /**
-   * Find all blockquotes in the document
-   * @returns Array of blockquote elements
-   */
-  extractBlockquotes(): Element[] {
-    const htmlBlockquotes = this.findElements('blockquote');
-    const notionBlockquotes = this.findElements('.notion-quote-block, .notion-quote');
-    
-    const allBlockquotes = [...htmlBlockquotes, ...notionBlockquotes];
-    this.debug(`Found ${allBlockquotes.length} blockquotes`);
-    
-    return allBlockquotes;
-  }
   
   /**
    * Extract method implementation

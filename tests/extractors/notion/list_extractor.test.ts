@@ -310,54 +310,6 @@ describe('ListExtractor', () => {
       expect(groups.length).toBe(0);
     });
   });
-
-  describe('extractLists', () => {
-    test('should find all HTML list elements', () => {
-      document.body.innerHTML = `
-        <ul><li>UL Item 1</li><li>UL Item 2</li></ul>
-        <ol><li>OL Item 1</li><li>OL Item 2</li></ol>
-        <p>Not a list</p>
-      `;
-      
-      const lists = extractor.extractLists();
-      expect(lists.length).toBe(2);
-    });
-
-    test('should find all Notion list elements', () => {
-      document.body.innerHTML = `
-        <div class="notion-bulleted_list-block">Bullet 1</div>
-        <div class="notion-numbered_list-block">Number 1</div>
-        <div class="notion-to_do-block">Todo item</div>
-        <div class="notion-toggle-block">Toggle item</div>
-        <div class="notion-list-block">List item</div>
-        <p>Not a list</p>
-      `;
-      
-      const lists = extractor.extractLists();
-      expect(lists.length).toBe(5);
-    });
-
-    test('should find both HTML and Notion list elements', () => {
-      document.body.innerHTML = `
-        <ul><li>UL Item</li></ul>
-        <div class="notion-bulleted_list-block">Bullet 1</div>
-        <p>Not a list</p>
-      `;
-      
-      const lists = extractor.extractLists();
-      expect(lists.length).toBe(2);
-    });
-
-    test('should return empty array when no lists exist', () => {
-      document.body.innerHTML = `
-        <p>Just a paragraph</p>
-        <div>Just a div</div>
-      `;
-      
-      const lists = extractor.extractLists();
-      expect(lists.length).toBe(0);
-    });
-  });
 });
 
 // Helper function to create an element with text content

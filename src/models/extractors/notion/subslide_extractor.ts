@@ -126,10 +126,10 @@ export class SubslideExtractor extends BaseExtractor implements ISubslideExtract
    * @returns The cleaned title text
    */
   getSubslideTitle(element: Element): string {
-    let originalTitle = this.getElementText(element).trim();
+    const originalTitle = this.getElementText(element).trim();
     
     // Handle Notion's "Heading 2:" prefix in subheadings
-    let cleanedTitle = originalTitle.replace(/^Heading\s+2\s*[:]*\s*/i, '');
+    const cleanedTitle = originalTitle.replace(/^Heading\s+2\s*[:]*\s*/i, '');
     
     loggingService.debug(`Cleaned subslide title: "${cleanedTitle}"`);    
     
