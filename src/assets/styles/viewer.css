@@ -67,8 +67,9 @@
   background-color: transparent !important;
 }
 
-/* Print Back Notice - Only displayed in browser, not in print */
-.print-back-notice {
+/* Shared styles for notices */
+.print-back-notice,
+.keyboard-hints {
   position: fixed;
   bottom: 20px;
   left: 50%;
@@ -85,21 +86,68 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.print-notice-content h3 {
+/* Keyboard hints specific styling */
+.keyboard-hints {
+  max-width: 350px;
+}
+
+.keyboard-hints ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  text-align: left;
+}
+
+.keyboard-hints li {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.keyboard-hints .key {
+  display: inline-block;
+  background-color: #f1f1f1;
+  border: 1px solid #d5d5d5;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: monospace;
+  font-size: 12px;
+  margin-right: 8px;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+/* Animation for fading out */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* Shared notice content styles */
+.print-notice-content h3,
+.hints-content h3 {
   margin: 0 0 12px 0;
   color: #333;
   font-size: 18px;
   font-weight: 600;
 }
 
-.print-notice-content p {
+.print-notice-content p,
+.hints-content p {
   margin: 0 0 16px 0;
   font-size: 14px;
   line-height: 1.5;
   color: #555;
 }
 
-#backToPresentationBtn {
+/* Button styles */
+#backToPresentationBtn,
+#gotItBtn {
   background-color: #7C63F6; /* Same as the primary color from popup.css */
   color: white;
   border: none;
@@ -111,47 +159,57 @@
   transition: all 0.2s ease;
 }
 
-#backToPresentationBtn:hover {
+#backToPresentationBtn:hover,
+#gotItBtn:hover {
   background-color: #6A50E0;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(124, 99, 246, 0.3);
 }
 
-#backToPresentationBtn:active {
+#backToPresentationBtn:active,
+#gotItBtn:active {
   transform: translateY(0);
 }
 
-/* Dark mode for the Back Notice */
-.reveal.has-dark-background .print-back-notice {
+/* Dark mode for notices */
+.reveal.has-dark-background .print-back-notice,
+.reveal.has-dark-background .keyboard-hints {
   background-color: #2D3748;
   color: #F7FAFC;
   border-color: #4A5568;
 }
 
-.reveal.has-dark-background .print-notice-content h3 {
+.reveal.has-dark-background .print-notice-content h3,
+.reveal.has-dark-background .hints-content h3 {
   color: #F7FAFC;
 }
 
-.reveal.has-dark-background .print-notice-content p {
+.reveal.has-dark-background .print-notice-content p,
+.reveal.has-dark-background .hints-content p {
   color: #CBD5E0;
 }
 
-.reveal.has-dark-background #backToPresentationBtn {
+.reveal.has-dark-background #backToPresentationBtn,
+.reveal.has-dark-background #gotItBtn {
   background-color: #8B78F9;
 }
 
-.reveal.has-dark-background #backToPresentationBtn:hover {
+.reveal.has-dark-background #backToPresentationBtn:hover,
+.reveal.has-dark-background #gotItBtn:hover {
   background-color: #9F8CFB;
 }
 
-/* Don't print the back notice */
+.reveal.has-dark-background .keyboard-hints .key {
+  background-color: #4A5568;
+  border-color: #2D3748;
+  color: #F7FAFC;
+}
+
+/* Don't print the notices */
 @media print {
-  .print-back-notice {
-    display: none !important;
-  }
-  
-  /* In print mode, hide the logo as well */
-  .logo-container {
+  #debug-mode-indicator,
+  .print-back-notice,
+  .keyboard-hints {
     display: none !important;
   }
 }

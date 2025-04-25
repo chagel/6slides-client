@@ -103,6 +103,50 @@ async function initialize(): Promise<void> {
     // Single log to indicate completion
     loggingService.debug('Viewer ready', null, 'viewer');
     
+    // Show keyboard shortcut hints for new presentation
+    if (!window.location.search.includes('print-pdf') && !sessionStorage.getItem('keyboardHintsShown')) {
+      // Create keyboard hints overlay
+      const keyboardHints = document.createElement('div');
+      keyboardHints.className = 'keyboard-hints';
+      keyboardHints.innerHTML = `
+        <div class="hints-content">
+          <h3>Keyboard Controls</h3>
+          <ul>
+            <li><span class="key">&rightarrow;</span> / <span class="key">Space</span> Next slide</li>
+            <li><span class="key">&leftarrow;</span> Previous slide</li>
+            <li><span class="key">&downarrow;</span> Next vertical slide</li>
+            <li><span class="key">&uparrow;</span> Previous vertical slide</li>
+            <li><span class="key">F</span> Fullscreen</li>
+            <li><span class="key">ESC</span> Overview</li>
+          </ul>
+          <button id="gotItBtn">Got it!</button>
+        </div>
+      `;
+      document.body.appendChild(keyboardHints);
+      
+      // Add event listener to the Got It button
+      document.getElementById('gotItBtn')?.addEventListener('click', () => {
+        keyboardHints.classList.add('fade-out');
+        setTimeout(() => {
+          keyboardHints.remove();
+        }, 300);
+        // Remember that we've shown the hints for this session
+        sessionStorage.setItem('keyboardHintsShown', 'true');
+      });
+      
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        if (document.body.contains(keyboardHints)) {
+          keyboardHints.classList.add('fade-out');
+          setTimeout(() => {
+            if (document.body.contains(keyboardHints)) {
+              keyboardHints.remove();
+            }
+          }, 300);
+        }
+      }, 15000);
+    }
+    
     // Check if URL has print-pdf parameter and trigger print automatically
     const isPrintMode = window.location.search.includes('print-pdf');
     if (isPrintMode) {
