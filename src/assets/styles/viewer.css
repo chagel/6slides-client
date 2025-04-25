@@ -62,3 +62,7 @@
   max-height: 500px;
   display: block;
 }
+
+.reveal .pdf-page {
+  background-color: transparent !important;
+}

@@ -49,13 +49,13 @@ describe('CodeBlockExtractor', () => {
   });
 
   describe('codeBlockToMarkdown', () => {
-    test('should convert code block to markdown with language', () => {
+    test('should convert code block to HTML with language', () => {
       const pre = document.createElement('pre');
       pre.className = 'language-javascript';
       pre.textContent = 'function test() {\n  return true;\n}';
       
       const result = extractor.codeBlockToMarkdown(pre);
-      expect(result).toBe('```javascript\nfunction test() {\n  return true;\n}\n```');
+      expect(result).toBe('<pre><code data-trim data-noescape class="language-javascript">function test() {\n  return true;\n}</code></pre>');
     });
 
     test('should extract code from nested code element', () => {
@@ -65,7 +65,7 @@ describe('CodeBlockExtractor', () => {
       div.appendChild(pre);
       
       const result = extractor.codeBlockToMarkdown(div);
-      expect(result).toBe('```\nSELECT * FROM users;\n```');
+      expect(result).toBe('<pre><code data-trim data-noescape class="language-">SELECT * FROM users;</code></pre>');
     });
 
     test('should handle Notion language indicator', () => {
@@ -83,7 +83,7 @@ describe('CodeBlockExtractor', () => {
       div.appendChild(code);
       
       const result = extractor.codeBlockToMarkdown(div);
-      expect(result).toBe('```python\ndef hello():\n    print("Hello")\n```');
+      expect(result).toBe('<pre><code data-trim data-noescape class="language-python">def hello():\n    print("Hello")</code></pre>');
     });
 
     test('should return empty string for empty code blocks', () => {
