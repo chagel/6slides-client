@@ -43,7 +43,9 @@ tests/
   │       ├── imageExtractor.test.js / .ts
   │       ├── listExtractor.test.js / .ts
   │       ├── notionExtractor.test.js / .ts
+  │       ├── notionExtractor_subslides.test.js / .ts  # Tests for subslide integration
   │       ├── paragraphExtractor.test.js / .ts
+  │       ├── subslideExtractor.test.js / .ts  # Tests for subslide extraction
   │       └── tableExtractor.test.js / .ts
   ├── mocks/                  # Mock implementations
   │   └── services.ts         # Mock services for testing
@@ -281,6 +283,47 @@ describe('HeadingExtractor', () => {
     const markdown: string = extractor.headingToMarkdown(h1, 1);
     expect(markdown).toBe('# Test Heading');
   });
+});
+```
+
+## Testing Vertical Subslides
+
+To test vertical subslides:
+
+1. **SubslideExtractor Tests**: Test the basic functionality of the subslide extractor
+   - Test detection of H2 elements in various formats (HTML, Notion classes)
+   - Test finding all subslide headings between two elements
+   - Test title extraction with prefixes removed
+
+2. **Integration Tests**: Test how subslides are integrated with the main extraction process
+   - Check that subslides are properly attached to their parent slides
+   - Verify nested slide structure is maintained
+   - Test markdown conversion of slides with subslides
+
+```typescript
+// Example test for subslide extraction
+test('should extract subslides from H2 elements', () => {
+  // Create mock DOM with H1 and H2 elements
+  document.body.innerHTML = `
+    <h1>Main Slide</h1>
+    <p>Main content</p>
+    <h2>Subslide 1</h2>
+    <p>Subslide 1 content</p>
+    <h2>Subslide 2</h2>
+    <p>Subslide 2 content</p>
+    <h1>Next Slide</h1>
+  `;
+  
+  // Run extractor
+  const notionExtractor = new NotionExtractor(document);
+  const slides = notionExtractor.extract();
+  
+  // Verify results
+  expect(slides.length).toBe(2);
+  expect(slides[0].title).toBe('Main Slide');
+  expect(slides[0].subslides.length).toBe(2);
+  expect(slides[0].subslides[0].title).toBe('Subslide 1');
+  expect(slides[0].subslides[1].title).toBe('Subslide 2');
 });
 ```
 

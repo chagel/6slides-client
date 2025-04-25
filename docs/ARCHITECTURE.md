@@ -410,18 +410,52 @@ export class Slide {
   title: string;
   content: string;
   sourceType: string;
-  metadata?: SlideMetadata;
+  metadata: SlideMetadata;
+  subslides: Slide[];
   
-  constructor(data: Partial<Slide> = {}) {
+  constructor(data: Partial<SlideData> = {}) {
     this.title = data.title || '';
     this.content = data.content || '';
     this.sourceType = data.sourceType || 'unknown';
     this.metadata = data.metadata || {};
+    this.subslides = [];
+    
+    // Initialize subslides if provided
+    if (Array.isArray(data.subslides)) {
+      this.subslides = data.subslides.map(subslide => new Slide(subslide));
+    }
+  }
+  
+  // Add a subslide to this slide
+  addSubslide(subslide: Slide): void {
+    this.subslides.push(subslide);
+  }
+  
+  // Check if this slide has any subslides
+  hasSubslides(): boolean {
+    return this.subslides.length > 0;
   }
   
   // Convert to markdown for presentation
   toMarkdown(): string {
-    return `# ${this.title}\n\n${this.content}`;
+    // Start with title as H1
+    let markdown = `# ${this.title}\n\n`;
+    
+    // Add content
+    if (this.content) {
+      markdown += this.content;
+    }
+    
+    // Add subslides as H2
+    if (this.hasSubslides()) {
+      markdown += '\n\n';
+      
+      this.subslides.forEach(subslide => {
+        markdown += `## ${subslide.title}\n\n${subslide.content}\n\n`;
+      });
+    }
+    
+    return markdown;
   }
   
   // Validation logic
@@ -430,12 +464,13 @@ export class Slide {
   }
   
   // Serialization for storage
-  toObject(): Record<string, unknown> {
+  toObject(): SlideData {
     return {
       title: this.title,
       content: this.content,
       sourceType: this.sourceType,
-      metadata: { ...this.metadata }
+      metadata: { ...this.metadata },
+      subslides: this.subslides.map(subslide => subslide.toObject())
     };
   }
 }
@@ -667,6 +702,7 @@ src/
   │   │       ├── list_extractor.ts       # List extraction
   │   │       ├── notion_extractor.ts     # Notion extraction coordinator
   │   │       ├── paragraph_extractor.ts  # Paragraph extraction
+  │   │       ├── subslide_extractor.ts   # Vertical subslide extraction
   │   │       └── table_extractor.ts      # Table extraction
   │   ├── renderer.ts         # Presentation rendering
   │   ├── source_manager.ts   # Source type detection and management
@@ -702,6 +738,24 @@ The architecture supports extension in the following ways:
 3. **Enhanced Rendering**: Modify the Slide Renderer for different presentation styles
 4. **Additional Features**: Add new controllers for new extension features
 
+## Recent Enhancements
+
+### Vertical Subslides
+
+The extension now supports vertical subslides in presentations. This feature allows for hierarchical organization of slide content:
+
+1. **Domain Model Enhancement**: The `Slide` class now includes a `subslides` property, which is an array of child slides. This enables a hierarchical slide structure.
+
+2. **Subslide Extractor**: A new `SubslideExtractor` class detects and extracts H2 headings as subslides, handling both standard HTML elements and Notion-specific formats.
+
+3. **Markdown Nested Subslides**: The system now supports nesting subslides in markdown content, maintaining the hierarchical structure when rendering.
+
+4. **Reveal.js Integration**: Vertical subslides are rendered using reveal.js's vertical slide capabilities, allowing users to navigate both horizontally between main slides and vertically within a slide to see its subslides.
+
+5. **Improved Code Formatting**: Enhanced code block detection and rendering with better syntax highlighting.
+
+6. **CSS and HTML Improvements**: Better styling and structure for all slide types.
+
 ## Future Enhancements
 
 1. **GitHub/GitLab Integration**: Direct extraction from markdown on these platforms
@@ -709,6 +763,8 @@ The architecture supports extension in the following ways:
 3. **Export Functionality**: Export presentations to different formats
 4. **Collaboration Features**: Share and collaborate on presentations
 5. **Theming Engine**: More customization options for presentations
+6. **Custom Slide Transitions**: Support for different transition types between slides
+7. **Speaker Notes**: Add support for speaker notes in presentations
 
 ## Sequence Flow
 
@@ -880,17 +936,17 @@ The following diagram shows the key domain models and their relationships:
 ```
 ┌────────────────┐     contains     ┌──────────────┐
 │                │◄───────────────────             │
-│  Presentation  │                  │    Slide     │
-│                │                  │              │
-└───────┬────────┘                  └──────┬───────┘
-        │                                  │
-        │ has                              │ has
-        │                                  │
-        ▼                                  ▼
-┌────────────────┐                ┌──────────────┐
-│   Source Type  │                │   Content    │
-│  (notion, md)  │                │  (markdown)  │
-└────────────────┘                └──────────────┘
+│  Presentation  │                  │    Slide     │──────────┐
+│                │                  │              │          │
+└───────┬────────┘                  └──────┬───────┘          │
+        │                                  │                   │
+        │ has                              │ has               │ contains
+        │                                  │                   │ (vertical)
+        ▼                                  ▼                   ▼
+┌────────────────┐                ┌──────────────┐    ┌──────────────┐
+│   Source Type  │                │   Content    │    │   Subslides   │
+│  (notion, md)  │                │  (markdown)  │    │ (H2 headings) │
+└────────────────┘                └──────────────┘    └──────────────┘
 
 
 ┌─────────────────────────────────────────────────┐

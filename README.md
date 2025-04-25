@@ -10,6 +10,7 @@ A Chrome extension that converts Notion pages to beautiful presentations using r
 - Convert to reveal.js presentations with markdown support
 - Multiple themes: Default (Dark), Catppuccin Latte (Light), and Catppuccin Mocha (Dark)
 - Support for Notion blocks: headings, lists, code blocks, tables, images, quotes, and more
+- Vertical subslides for structured content organization
 - Offline usage with no data sent to external servers
 - Minimalist design focused on content readability
 
@@ -18,21 +19,35 @@ A Chrome extension that converts Notion pages to beautiful presentations using r
 1. Navigate to a Notion page you want to convert
 2. Make sure your page follows the template format:
    - H1 headings (#) define slide titles and start new slides
-   - H2/H3 headings (##/###) for subtitles within slides
+   - H2 headings (##) create vertical subslides within the main slide
+   - H3 headings (###) for subtitles within slides
    - Content between H1s belongs to the previous H1
 3. Click the extension icon to open the popup
 4. Select your preferred theme
 5. Click "Convert This Page"
 6. The slides will open in a new tab
 
+### Presentation Navigation
+
+- Use **arrow keys** or **spacebar** to navigate between slides
+  - **Right arrow** or **down arrow**: advance to the next slide
+  - **Left arrow** or **up arrow**: go back to the previous slide
+- For slides with vertical subslides:
+  - **Down arrow**: go to the subslide (vertical navigation)
+  - **Right arrow**: skip subslides and go to the next main slide
+  - **Up arrow**: go back up to the parent slide
+- Press **ESC** to see an overview of all slides
+- Press **F** to enter fullscreen mode
+- Press **S** to enter speaker notes mode
+
 ## Template Format
 
 - **H1 elements (#)** define slide titles and start new slides
-- **H2 elements (##)** are section titles within slides
-- **H3 elements (###)** are subsection titles
+- **H2 elements (##)** create vertical subslides (navigate with down arrow)
+- **H3 elements (###)** are subsection titles within slides
 - **Bullet points** (- or *) are preserved as lists
 - **Paragraphs** become regular text
-- **Code blocks** are formatted appropriately
+- **Code blocks** are formatted appropriately with syntax highlighting
 - **Images** are included with their captions
 - **Tables** are preserved in the slides
 - **Quotes** and other Notion blocks are supported
