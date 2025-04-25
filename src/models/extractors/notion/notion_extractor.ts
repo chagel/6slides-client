@@ -119,17 +119,9 @@ export class NotionExtractor extends BaseExtractor {
             // Get subslide title from the H2 using the specialized extractor
             const subslideTitle = this.subslide_extractor.getSubslideTitle(currentSubHeading);
             
-            console.debug(`Processing subslide ${j+1}/${subslideHeadings.length}: "${subslideTitle}"`);
-            
             // Get content between current H2 and next H2 or H1
-            console.debug(`Extracting content for subslide "${subslideTitle}"`);
             let subslideContent = this.getContentBetweenElements(currentSubHeading, nextSubHeading);
             subslideContent = this.cleanContent(subslideContent);
-            
-            console.debug(`Subslide content summary`, {
-              subslideTitle,
-              contentLength: subslideContent.length
-            });
             
             // Add subslide
             slide.subslides?.push({
@@ -307,9 +299,10 @@ export class NotionExtractor extends BaseExtractor {
       return this.image_extractor.imageToMarkdown(element);
     }
     
-    // 8. Horizontal rule
+    // 8. Horizontal rule - Skip these elements
     else if (element.tagName === 'HR' || this.hasClass(element, 'notion-divider-block')) {
-      return '---';
+      // Return empty string to omit horizontal dividers from the content
+      return '';
     }
     
     // 9. Default case - get text content if it's not empty

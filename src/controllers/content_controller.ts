@@ -75,10 +75,10 @@ class ContentController {
         title: 'You have hit Slide 6',
         content: `
 
-You're doing great! Most stories are best told in 6 slides - but if yours needs more room, consider to unlock and support us.
+Most stories are best told in 6 slides - but if yours needs more room, consider to unlock and support us🩷
 
 <div style="text-align: center; margin-top: 30px;">
-<a href="https://6slides.com/" style="background: #7C63F6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Upgrade to go beyond</a>
+<a href="https://6slides.com/" style="background: #7C63F6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Upgrade to Pro</a>
 </div>`,
         sourceType: 'upgrade'
       };

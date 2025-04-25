@@ -8,7 +8,6 @@ import { loggingService } from '../../services/logging_service';
 import { messagingService } from '../../services/messaging_service';
 import { storage } from '../../models/storage';
 import { configManager } from '../../models/config_manager';
-import { debugService } from '../../services/debug_service';
 import { authService } from '../../services/auth_service';
 import { Slide } from '../../types/index';
 import { showNotification } from '../../utils/notification';
@@ -39,7 +38,6 @@ class PopupController {
   private convertBtn: HTMLButtonElement;
   private statusEl: HTMLElement;
   private instructionsLink: HTMLAnchorElement;
-  // aboutLink removed
   private settingsLink: HTMLAnchorElement;
   // No retry counter needed with recursive approach
   
@@ -50,7 +48,6 @@ class PopupController {
     this.convertBtn = document.getElementById('convertBtn') as HTMLButtonElement;
     this.statusEl = document.getElementById('status') as HTMLElement;
     this.instructionsLink = document.getElementById('instructionsLink') as HTMLAnchorElement;
-    // aboutLink removed
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
     
     this.bindEventHandlers();
@@ -63,29 +60,7 @@ class PopupController {
    * Initialize async operations
    */
   private async initializeAsync(): Promise<void> {
-    // Add debug indicator if debug mode is enabled
-    await this.setupDebugIndicator();
-    
-    // Check current page
     await this.checkCurrentPage();
-  }
-  
-  /**
-   * Setup debug indicator in the bottom right corner
-   */
-  private async setupDebugIndicator(): Promise<void> {
-    try {
-      await debugService.setupDebugIndicator(
-        {
-          position: 'bottom-right',
-          text: 'DEBUG MODE',
-          zIndex: 1000
-        },
-        'popup'  // Context identifier for logging
-      );
-    } catch (_) {
-      // Error handled silently - debug indicator is not critical
-    }
   }
   
   /**
@@ -97,7 +72,6 @@ class PopupController {
     
     // Links
     this.instructionsLink.addEventListener('click', this.handleInstructionsClick.bind(this));
-    // aboutLink removed
     this.settingsLink.addEventListener('click', this.handleSettingsClick.bind(this));
     
     // Account links
@@ -300,8 +274,6 @@ class PopupController {
     e.preventDefault();
     chrome.tabs.create({ url: chrome.runtime.getURL('about.html#help') });
   }
-  
-  // About link handler removed
   
   /**
    * Handle settings link click

@@ -9,6 +9,9 @@ import { PresentationRenderer } from '../../models/renderer';
 import { configManager } from '../../models/config_manager';
 import { debugService } from '../../services/debug_service';
 
+// Get the web URL from environment variables
+const WEB_URL = process.env.WEB_URL || 'https://6slides.com';
+
 /**
  * Show debug indicator if debug mode is enabled
  * @returns Promise that resolves when debug indicator is set up
@@ -60,6 +63,23 @@ async function initialize(): Promise<void> {
     
     // Setup debug indicator and enable debug logs if needed
     await setupDebugIndicator();
+    
+    // Set up the logo link to WEB_URL
+    const logoContainer = document.querySelector('.logo-container');
+    if (logoContainer) {
+      const logoLink = document.createElement('a');
+      logoLink.href = WEB_URL;
+      logoLink.target = '_blank';
+      logoLink.rel = 'noopener noreferrer';
+      
+      // Move the img inside the link
+      const logoImg = logoContainer.querySelector('img');
+      if (logoImg) {
+        logoLink.appendChild(logoImg.cloneNode(true));
+        logoContainer.innerHTML = '';
+        logoContainer.appendChild(logoLink);
+      }
+    }
     
     // Get any renderer settings from the config manager asynchronously
     const config = await configManager.getConfig();

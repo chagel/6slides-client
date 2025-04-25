@@ -51,7 +51,7 @@ export class CodeBlockExtractor extends BaseExtractor implements ICodeBlockExtra
     
     const text = codeContent ? 
       this.getElementText(codeContent) : 
-      this.getElementText(codeElement);
+      codeElement.querySelector('.line-numbers')?.textContent || '';
     
     if (!text) {
       return '';
@@ -72,9 +72,10 @@ export class CodeBlockExtractor extends BaseExtractor implements ICodeBlockExtra
     if (languageElem) {
       language = this.getElementText(languageElem).toLowerCase();
     }
-    
+
     // Format as markdown code block
-    return '```' + language + '\n' + text + '\n```';
+    // return '```' + language + '\n' + text + '\n```';
+    return '<pre><code data-trim data-noescape class="language-' + language + '">' + text + '</code></pre>';
   }
   
   
