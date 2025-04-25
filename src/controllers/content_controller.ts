@@ -131,13 +131,23 @@ You're doing great! Most stories are best told in 6 slides - but if yours needs 
       // Process content to normalize it
       const processedSlides = content_processor.process(slidesWithSourceType);
       
-      // Ensure all slides have required properties
-      const validSlides = processedSlides.map(slide => ({
-        title: slide.title || 'Untitled Slide',
-        content: slide.content || '',
-        sourceType: slide.sourceType || sourceType.toString(),
-        metadata: slide.metadata
-      }));
+      // Ensure all slides have required properties and preserve subslides
+      const validSlides = processedSlides.map(slide => {
+        // Create base slide with required properties
+        const validSlide = {
+          title: slide.title || 'Untitled Slide',
+          content: slide.content || '',
+          sourceType: slide.sourceType || sourceType.toString(),
+          metadata: slide.metadata
+        };
+        
+        // Preserve subslides if they exist
+        if (slide.subslides && Array.isArray(slide.subslides) && slide.subslides.length > 0) {
+          validSlide.subslides = slide.subslides;
+        }
+        
+        return validSlide;
+      });
       
       // Apply the single, authoritative slide limit
       const limitedSlides = await this.applyFreeUserSlideLimit(validSlides);

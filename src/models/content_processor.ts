@@ -60,10 +60,13 @@ class ContentProcessor {
       sourceType: slide.sourceType || 'unknown'
     };
     
+    // Handle subslides if they exist
+    if (slide.subslides && Array.isArray(slide.subslides) && slide.subslides.length > 0) {
+      // Normalize each subslide
+      normalized.subslides = slide.subslides.map((subslide) => this.normalizeSlide(subslide));
+    }
+    
     // Normalize markdown content
-    // - Ensure proper spacing
-    // - Standardize heading formats
-    // - Standardize list formats
     if (normalized.content) {
       // Ensure proper spacing between elements
       normalized.content = normalized.content

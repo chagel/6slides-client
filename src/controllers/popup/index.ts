@@ -261,6 +261,8 @@ class PopupController {
         
         // Store slides
         await storage.saveSlides(response.slides);
+
+        // return; // debug breakpoint
         
         // Open viewer in the current tab
         if ((pageInfo.tab as chrome.tabs.Tab).id) {

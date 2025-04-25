@@ -64,3 +64,12 @@ export interface IImageExtractor {
   imageToMarkdown(element: Element): string;
   extractImages?(): Element[];
 }
+
+/**
+ * Interface for subslide extractor methods
+ */
+export interface ISubslideExtractor {
+  isSubslideHeading(element: Element): boolean;
+  findSubslideHeadings(startElement: Element, endElement: Element | null): Element[];
+  getSubslideTitle(element: Element): string;
+}

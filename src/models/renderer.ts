@@ -77,7 +77,12 @@ export class PresentationRenderer {
       loggingService.debug(`Rendering with ${level?.toUpperCase() || 'FREE'} plan. Total slides: ${rawSlides.length}`, null, 'viewer');
       
       // Log the raw slides data from storage (debug only)
-      loggingService.debug('Raw slides loaded from storage', { rawSlides }, 'viewer');
+      loggingService.debug('Raw slides loaded from storage', { 
+        slidesCount: rawSlides.length,
+        hasSubslides: rawSlides.some(slide => slide.subslides && slide.subslides.length > 0),
+        subslidesCount: rawSlides.reduce((count, slide) => 
+          count + (Array.isArray(slide.subslides) ? slide.subslides.length : 0), 0)
+      }, 'viewer');
       
       // Get settings from config manager asynchronously
       const settings = await configManager.getPresentationSettings();
@@ -98,12 +103,24 @@ export class PresentationRenderer {
       // Log subscription status - we already have hasPro from above, no need to call again
       loggingService.debug(`Rendering with ${hasPro ? 'PRO' : 'FREE'} plan. Total slides: ${presentation.slideCount}`, null, 'viewer');
       
-      loggingService.debug(`Creating presentation with ${presentation.slideCount} slides`, null, 'viewer');
+      // Count total subslides for debugging
+      let totalSubslides = 0;
+      presentation.slides.forEach(slide => {
+        if (slide.subslides && slide.subslides.length > 0) {
+          totalSubslides += slide.subslides.length;
+        }
+      });
+      
+      loggingService.debug(`Creating presentation with ${presentation.slideCount} slides and ${totalSubslides} subslides`, null, 'viewer');
       
       // Create slides from the presentation model
       presentation.slides.forEach((slide, index) => {
-        loggingService.debug(`Creating slide ${index + 1}/${presentation.slideCount}: "${slide.title}"`, null, 'viewer');
-        this.createMarkdownSlide(slide.toObject());
+        loggingService.debug(`Creating slide ${index + 1}/${presentation.slideCount}: "${slide.title}" ${slide.hasSubslides() ? `with ${slide.subslides.length} subslides` : ''}`, null, 'viewer');
+        
+        // Convert slide to a plain object for rendering
+        const slideObject = slide.toObject();
+        
+        this.createMarkdownSlide(slideObject);
       });
       
       // Initialize reveal.js
@@ -248,6 +265,9 @@ export class PresentationRenderer {
       // Behavior
       keyboard: true,
       touch: true,
+      
+      // Enable vertical slides navigation
+      embedded: false,
       
       // Plugins
       plugins: plugins,
