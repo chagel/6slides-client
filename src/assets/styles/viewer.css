@@ -147,7 +147,8 @@
 
 /* Button styles */
 #backToPresentationBtn,
-#gotItBtn {
+#gotItBtn,
+#upgradeBtn {
   background-color: #7C63F6; /* Same as the primary color from popup.css */
   color: white;
   border: none;
@@ -160,15 +161,22 @@
 }
 
 #backToPresentationBtn:hover,
-#gotItBtn:hover {
+#gotItBtn:hover,
+#upgradeBtn:hover {
   background-color: #6A50E0;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(124, 99, 246, 0.3);
 }
 
 #backToPresentationBtn:active,
-#gotItBtn:active {
+#gotItBtn:active,
+#upgradeBtn:active {
   transform: translateY(0);
+}
+
+/* PRO required notice styles */
+.pro-required-notice {
+  z-index: 20000; /* Higher z-index to ensure it's on top */
 }
 
 /* Dark mode for notices */

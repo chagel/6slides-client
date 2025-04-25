@@ -147,10 +147,49 @@ async function initialize(): Promise<void> {
       }, 15000);
     }
     
-    // Check if URL has print-pdf parameter and trigger print automatically
+    // Check if URL has print-pdf parameter
     const isPrintMode = window.location.search.includes('print-pdf');
     if (isPrintMode) {
-      loggingService.info('Detected print-pdf in URL, preparing for PDF export', null, 'viewer');
+      loggingService.info('Detected print-pdf in URL, checking subscription status', null, 'viewer');
+      
+      // Check subscription status first
+      const hasPro = await configManager.hasPro();
+      
+      if (!hasPro) {
+        // User doesn't have PRO, show upgrade message
+        loggingService.warn('Non-PRO user attempted to access PDF export', null, 'viewer');
+        
+        // Create a subscription required notice
+        const proRequiredNotice = document.createElement('div');
+        proRequiredNotice.className = 'print-back-notice pro-required-notice';
+        proRequiredNotice.innerHTML = `
+          <div class="print-notice-content">
+            <h3>PRO Subscription Required</h3>
+            <p>PDF export is a PRO feature. Please upgrade to access this feature.</p>
+            <button id="upgradeBtn">Upgrade to PRO</button>
+            <button id="backToPresentationBtn" style="margin-left: 8px; background-color: #f5f5f5; color: #333;">Back to Presentation</button>
+          </div>
+        `;
+        document.body.appendChild(proRequiredNotice);
+        
+        // Add event listeners to buttons
+        document.getElementById('upgradeBtn')?.addEventListener('click', () => {
+          window.open(`${WEB_URL}/subscription`, '_blank');
+        });
+        
+        document.getElementById('backToPresentationBtn')?.addEventListener('click', () => {
+          // Remove print-pdf from URL and reload
+          const url = new URL(window.location.href);
+          url.searchParams.delete('print-pdf');
+          window.location.href = url.toString();
+        });
+        
+        // Don't proceed with printing
+        return;
+      }
+      
+      // User has PRO, proceed with print mode
+      loggingService.info('PRO user confirmed, preparing for PDF export', null, 'viewer');
       
       // Create a "Back to Presentation" notice that won't be printed
       const backNotice = document.createElement('div');

@@ -330,7 +330,7 @@ class PopupController {
   }
   
   /**
-   * Update presentation stats
+   * Update presentation stats and manage export button visibility
    * @param slides - The slides to display stats for
    */
   private async updatePresentationStats(slides: Slide[] = []): Promise<void> {
@@ -338,6 +338,7 @@ class PopupController {
       const slideCountEl = document.getElementById('slide-count');
       const subslideCountEl = document.getElementById('subslide-count');
       const presentationThemeEl = document.getElementById('presentation-theme');
+      const exportBtn = document.getElementById('exportBtn');
       
       if (!slideCountEl || !subslideCountEl || !presentationThemeEl) {
         return;
@@ -369,6 +370,23 @@ class PopupController {
       subslideCountEl.textContent = String(subslideCount);
       presentationThemeEl.textContent = theme;
       
+      // Check subscription status for export feature
+      if (exportBtn) {
+        const hasPro = await configManager.hasPro();
+        
+        if (!hasPro) {
+          // Show PRO upgrade message on export button for free users, but don't disable
+          exportBtn.classList.add('pro-feature-btn');
+          exportBtn.innerHTML = `
+            <span>PDF Export</span> <span class="pro-badge">PRO</span>
+          `;
+          
+          // Add click handler to upgrade
+          exportBtn.removeEventListener('click', this.handleExportClick.bind(this));
+          exportBtn.addEventListener('click', this.handleProUpgradeClick.bind(this));
+        }
+      }
+      
       loggingService.debug('Updated presentation stats', {
         slideCount,
         subslideCount,
@@ -384,6 +402,15 @@ class PopupController {
    */
   private async handleExportClick(): Promise<void> {
     try {
+      // First check if the user has PRO subscription
+      const hasPro = await configManager.hasPro();
+      
+      if (!hasPro) {
+        // User doesn't have PRO, redirect to upgrade page instead
+        this.handleProUpgradeClick(new MouseEvent('click'));
+        return;
+      }
+      
       // Get the current active tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       
@@ -618,6 +645,17 @@ class PopupController {
   private handleSubscriptionLinkClick(e: MouseEvent): void {
     e.preventDefault();
     chrome.tabs.create({ url: `${process.env.WEB_URL}` });
+  }
+  
+  /**
+   * Handle click on PRO feature for free users
+   * @param e - Click event
+   */
+  private handleProUpgradeClick(e: MouseEvent): void {
+    e.preventDefault();
+    // Redirect to subscription page
+    chrome.tabs.create({ url: `${process.env.WEB_URL}/subscription` });
+    loggingService.info('User clicked on PRO feature upgrade (PDF Export)', null, 'popup');
   }
   
   /**
