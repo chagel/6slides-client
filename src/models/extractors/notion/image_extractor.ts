@@ -40,29 +40,6 @@ export class ImageExtractor extends BaseExtractor implements IImageExtractor {
     return `![${alt}](${imgElement.src})`;
   }
   
-  /**
-   * Find all images in the document
-   * @returns Array of image elements
-   */
-  extractImages(): Element[] {
-    const htmlImages = this.findElements('img');
-    const notionImages = this.findElements('.notion-image-block');
-    
-    // Deduplicate (don't include images inside image blocks already found)
-    const allImages = [...htmlImages, ...notionImages].filter((img, index, self) => {
-      // If this is an img element inside a notion-image-block, skip it
-      if (img.tagName === 'IMG' && 
-          img.closest && 
-          img.closest('.notion-image-block') && 
-          self.includes(img.closest('.notion-image-block') as Element)) {
-        return false;
-      }
-      return true;
-    });
-    
-    this.debug(`Found ${allImages.length} images`);
-    return allImages;
-  }
   
   /**
    * Extract method implementation

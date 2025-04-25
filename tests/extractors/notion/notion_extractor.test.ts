@@ -83,6 +83,26 @@ describe('NotionExtractor', () => {
       expect(slides[0].content).toMatch(/Text with\s+space and "quotes"\./);
       // Using regex to handle differences in how JSDOM parses &nbsp;
     });
+    
+    test('should omit horizontal dividers from slide content', () => {
+      document.body.innerHTML = `
+        <h1>Slide with Divider</h1>
+        <p>Content before divider</p>
+        <hr>
+        <p>Content after HR divider</p>
+        <div class="notion-divider-block"></div>
+        <p>Content after Notion divider</p>
+      `;
+      
+      const slides = extractor.extract();
+      expect(slides).toHaveLength(1);
+      expect(slides[0].title).toBe('Slide with Divider');
+      expect(slides[0].content).toContain('Content before divider');
+      expect(slides[0].content).toContain('Content after HR divider');
+      expect(slides[0].content).toContain('Content after Notion divider');
+      // Horizontal rule markdown should NOT be in the content
+      expect(slides[0].content).not.toContain('---');
+    });
   });
 
   describe('processElementToMarkdown', () => {
@@ -116,12 +136,12 @@ describe('NotionExtractor', () => {
       expect(extractor.code_block_extractor.isCodeBlock).toHaveBeenCalledWith(codeBlock);
     });
     
-    test('should handle horizontal rules', () => {
+    test('should skip horizontal rules', () => {
       const hr = document.createElement('hr');
       document.body.appendChild(hr);
       
       const result = extractor.processElementToMarkdown(hr);
-      expect(result).toBe('---');
+      expect(result).toBe('');
     });
     
     test('should extract text from unknown elements', () => {

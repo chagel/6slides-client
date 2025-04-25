@@ -14,6 +14,7 @@ export class Slide {
   content: string;
   sourceType: string;
   metadata: SlideMetadata;
+  subslides: Slide[];
 
   /**
    * Create a new slide
@@ -24,6 +25,28 @@ export class Slide {
     this.content = data.content || '';
     this.sourceType = data.sourceType || 'unknown';
     this.metadata = data.metadata || {};
+    this.subslides = [];
+    
+    // Initialize subslides if provided
+    if (Array.isArray(data.subslides)) {
+      this.subslides = data.subslides.map(subslide => new Slide(subslide));
+    }
+  }
+  
+  /**
+   * Add a subslide to this slide
+   * @param subslide - The subslide to add
+   */
+  addSubslide(subslide: Slide): void {
+    this.subslides.push(subslide);
+  }
+  
+  /**
+   * Check if this slide has any subslides
+   * @returns Whether the slide has subslides
+   */
+  hasSubslides(): boolean {
+    return this.subslides.length > 0;
   }
   
   /**
@@ -39,6 +62,15 @@ export class Slide {
       markdown += this.content;
     }
     
+    // Add subslides as H2
+    if (this.hasSubslides()) {
+      markdown += '\n\n';
+      
+      this.subslides.forEach(subslide => {
+        markdown += `## ${subslide.title}\n\n${subslide.content}\n\n`;
+      });
+    }
+    
     return markdown;
   }
   
@@ -51,7 +83,8 @@ export class Slide {
       title: this.title,
       content: this.content,
       sourceType: this.sourceType,
-      metadata: { ...this.metadata }
+      metadata: { ...this.metadata },
+      subslides: this.subslides.map(subslide => subslide.toObject())
     };
   }
   

@@ -8,8 +8,6 @@
 export interface IHeadingExtractor {
   isHeadingElement(element: Element, level: number): boolean;
   headingToMarkdown(element: Element, level: number): string;
-  // Optional methods - not all extractors implement all methods
-  extractHeadings?(): Element[];
 }
 
 /**
@@ -18,7 +16,6 @@ export interface IHeadingExtractor {
 export interface IListExtractor {
   isList(element: Element): boolean;
   listToMarkdown(element: Element): string;
-  extractLists?(): Element[];
 }
 
 /**
@@ -27,7 +24,6 @@ export interface IListExtractor {
 export interface ICodeBlockExtractor {
   isCodeBlock(element: Element): boolean;
   codeBlockToMarkdown(element: Element): string;
-  extractCodeBlocks?(): Element[];
 }
 
 /**
@@ -45,7 +41,6 @@ export interface ITableExtractor {
 export interface IBlockquoteExtractor {
   isBlockquote(element: Element): boolean;
   blockquoteToMarkdown(element: Element): string;
-  extractBlockquotes?(): Element[];
 }
 
 /**
@@ -62,5 +57,13 @@ export interface IParagraphExtractor {
 export interface IImageExtractor {
   isImage(element: Element): boolean;
   imageToMarkdown(element: Element): string;
-  extractImages?(): Element[];
+}
+
+/**
+ * Interface for subslide extractor methods
+ */
+export interface ISubslideExtractor {
+  isSubslideHeading(element: Element): boolean;
+  findSubslideHeadings(startElement: Element, endElement: Element | null): Element[];
+  getSubslideTitle(element: Element): string;
 }

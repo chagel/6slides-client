@@ -75,10 +75,10 @@ class ContentController {
         title: 'You have hit Slide 6',
         content: `
 
-You're doing great! Most stories are best told in 6 slides - but if yours needs more room, consider to unlock and support us.
+Most stories are best told in 6 slides - but if yours needs more room, consider to unlock and support us🩷
 
 <div style="text-align: center; margin-top: 30px;">
-<a href="https://6slides.com/" style="background: #7C63F6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Upgrade to go beyond</a>
+<a href="https://6slides.com/" style="background: #7C63F6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Upgrade to Pro</a>
 </div>`,
         sourceType: 'upgrade'
       };
@@ -131,13 +131,29 @@ You're doing great! Most stories are best told in 6 slides - but if yours needs 
       // Process content to normalize it
       const processedSlides = content_processor.process(slidesWithSourceType);
       
-      // Ensure all slides have required properties
-      const validSlides = processedSlides.map(slide => ({
-        title: slide.title || 'Untitled Slide',
-        content: slide.content || '',
-        sourceType: slide.sourceType || sourceType.toString(),
-        metadata: slide.metadata
-      }));
+      // Ensure all slides have required properties and preserve subslides
+      const validSlides = processedSlides.map(slide => {
+        // Create base slide with required properties
+        const validSlide: { 
+          title: string; 
+          content: string; 
+          sourceType: string; 
+          metadata: any; 
+          subslides?: any[] 
+        } = {
+          title: slide.title || 'Untitled Slide',
+          content: slide.content || '',
+          sourceType: slide.sourceType || sourceType.toString(),
+          metadata: slide.metadata
+        };
+        
+        // Preserve subslides if they exist
+        if (slide.subslides && Array.isArray(slide.subslides) && slide.subslides.length > 0) {
+          validSlide.subslides = slide.subslides;
+        }
+        
+        return validSlide;
+      });
       
       // Apply the single, authoritative slide limit
       const limitedSlides = await this.applyFreeUserSlideLimit(validSlides);

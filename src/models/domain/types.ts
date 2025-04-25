@@ -22,6 +22,16 @@ export interface SlideMetadata {
 }
 
 /**
+ * Subslide data interface
+ */
+export interface SubSlideData {
+  title: string;
+  content: string;
+  sourceType: string;
+  metadata?: SlideMetadata;
+}
+
+/**
  * Slide data interface
  */
 export interface SlideData {
@@ -29,6 +39,7 @@ export interface SlideData {
   content: string;
   sourceType: string;
   metadata?: SlideMetadata;
+  subslides?: SlideData[];
 }
 
 /**

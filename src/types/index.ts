@@ -14,6 +14,8 @@ export interface Slide {
   sourceType: 'notion' | 'markdown' | string;
   /** Optional slide metadata */
   metadata?: SlideMetadata;
+  /** Subslides (vertical slides) */
+  subslides?: Slide[];
 }
 
 /**

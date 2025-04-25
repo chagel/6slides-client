@@ -16,6 +16,7 @@ interface MarkdownSlide {
   title: string;
   content: string;
   sourceType: string;
+  subslides?: MarkdownSlide[];
 }
 
 /**
@@ -109,18 +110,65 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
         // Get slide title from the current break
         const title = this.getElementText(currentBreak);
         
-        // Get markdown content between current and next break
-        const rawContent = this.extractContentBetweenHeadings(currentBreak, nextBreak, container);
+        // Find all H2 elements between the current and next H1
+        const subslideHeadings = this.findSubslideHeadings(currentBreak, nextBreak, container);
         
-        // Clean the content for reveal.js compatibility
-        const content = this.cleanMarkdown(rawContent);
-        
-        // Add extracted slide
-        slides.push({
-          title: title.trim(),
-          content,
-          sourceType: 'rendered-markdown'
-        });
+        if (subslideHeadings.length > 0) {
+          // This slide has subslides
+          this.debug(`Found ${subslideHeadings.length} potential subslides (H2 elements) for slide "${title}"`);
+          
+          // Extract content between the H1 and the first H2
+          const mainSlideContent = this.extractContentBetweenHeadings(
+            currentBreak, 
+            subslideHeadings[0], 
+            container
+          );
+          
+          // Create the main slide
+          const mainSlide: MarkdownSlide = {
+            title: title.trim(),
+            content: this.cleanMarkdown(mainSlideContent),
+            sourceType: 'rendered-markdown',
+            subslides: []
+          };
+          
+          // Process each subslide
+          for (let j = 0; j < subslideHeadings.length; j++) {
+            const currentSubHeading = subslideHeadings[j];
+            const nextSubHeading = j < subslideHeadings.length - 1 ? 
+                                  subslideHeadings[j + 1] : 
+                                  nextBreak;
+            
+            // Get subslide title
+            const subslideTitle = this.getElementText(currentSubHeading);
+            
+            // Get content between current and next subheading (or next H1)
+            const subslideContent = this.extractContentBetweenHeadings(
+              currentSubHeading, 
+              nextSubHeading, 
+              container
+            );
+            
+            // Add subslide
+            mainSlide.subslides?.push({
+              title: subslideTitle.trim(),
+              content: this.cleanMarkdown(subslideContent),
+              sourceType: 'rendered-markdown'
+            });
+          }
+          
+          slides.push(mainSlide);
+        } else {
+          // No subslides - handle as a regular slide
+          const rawContent = this.extractContentBetweenHeadings(currentBreak, nextBreak, container);
+          const content = this.cleanMarkdown(rawContent);
+          
+          slides.push({
+            title: title.trim(),
+            content,
+            sourceType: 'rendered-markdown'
+          });
+        }
       }
       
       this.debug(`Extracted ${slides.length} slides from rendered markdown`);
@@ -129,6 +177,31 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
       loggingService.error('Error extracting from rendered markdown', error);
       return [];
     }
+  }
+  
+  /**
+   * Find all H2 elements between two headings
+   * @param startHeading - The starting heading element (H1)
+   * @param endHeading - The ending heading element (next H1) or null
+   * @param container - Parent container
+   * @returns Array of H2 elements
+   */
+  findSubslideHeadings(startHeading: Element, endHeading: Element | null, container: Element): Element[] {
+    const subslideHeadings: Element[] = [];
+    let currentElement = startHeading.nextElementSibling;
+    
+    while (currentElement && 
+          currentElement !== endHeading && 
+          container.contains(currentElement)) {
+      
+      if (currentElement.tagName.toLowerCase() === 'h2') {
+        subslideHeadings.push(currentElement);
+      }
+      
+      currentElement = currentElement.nextElementSibling;
+    }
+    
+    return subslideHeadings;
   }
   
   /**
@@ -143,8 +216,8 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
     let currentElement = currentHeading.nextElementSibling;
     
     while (currentElement && 
-           currentElement !== nextHeading && 
-           container.contains(currentElement)) {
+          currentElement !== nextHeading && 
+          container.contains(currentElement)) {
       
       const tagName = currentElement.tagName.toLowerCase();
       
@@ -175,7 +248,7 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
         markdownParts.push(listItems.join('\n'));
       }
       else if (tagName === 'pre' || tagName === 'code' || 
-               currentElement.querySelector('pre') || currentElement.querySelector('code')) {
+              currentElement.querySelector('pre') || currentElement.querySelector('code')) {
         // Code blocks
         const preElement = tagName === 'pre' ? currentElement : currentElement.querySelector('pre');
         const codeElement = preElement ? preElement.querySelector('code') : 
@@ -313,11 +386,55 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
         const title = slideSegments[i].trim();
         const content = slideSegments[i + 1].trim();
         
-        slides.push({
-          title,
-          content,
-          sourceType: 'raw-markdown'
-        });
+        // Check for H2 headings within this content (subslides)
+        const h2Pattern = /^##\s+(.+)$/gm;
+        const h2Matches = [...content.matchAll(h2Pattern)];
+        
+        if (h2Matches.length > 0) {
+          // This slide has subslides
+          this.debug(`Found ${h2Matches.length} potential subslides (H2 headings) for slide "${title}"`);
+          
+          // Find the index of the first H2 heading
+          const firstH2Index = content.indexOf('## ');
+          
+          // Extract content before the first H2 heading
+          const mainContent = firstH2Index > 0 ? content.substring(0, firstH2Index).trim() : '';
+          
+          // Create the main slide with subslides
+          const mainSlide: MarkdownSlide = {
+            title,
+            content: this.cleanMarkdown(mainContent),
+            sourceType: 'raw-markdown',
+            subslides: []
+          };
+          
+          // Split content by H2 headings
+          const subslideSegments = content.split(/^##\s+(.+)$/m);
+          
+          // Process subslide segments
+          // Skip the first segment (content before first H2)
+          for (let j = 1; j < subslideSegments.length; j += 2) {
+            if (j + 1 >= subslideSegments.length) break;
+            
+            const subslideTitle = subslideSegments[j].trim();
+            const subslideContent = subslideSegments[j + 1].trim();
+            
+            mainSlide.subslides?.push({
+              title: subslideTitle,
+              content: this.cleanMarkdown(subslideContent),
+              sourceType: 'raw-markdown'
+            });
+          }
+          
+          slides.push(mainSlide);
+        } else {
+          // No subslides
+          slides.push({
+            title,
+            content,
+            sourceType: 'raw-markdown'
+          });
+        }
       }
       
       // If no slides were found using the heading approach, try alternative approach
@@ -327,11 +444,28 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
       }
       
       // Process and clean up all slides
-      const processedSlides = slides.map(slide => ({
-        ...slide,
-        title: slide.title.trim(),
-        content: this.cleanMarkdown(slide.content)
-      }));
+      const processedSlides = slides.map(slide => {
+        if (Array.isArray(slide.subslides)) {
+          // Slide with subslides
+          return {
+            ...slide,
+            title: slide.title.trim(),
+            content: this.cleanMarkdown(slide.content),
+            subslides: slide.subslides.map(subslide => ({
+              ...subslide,
+              title: subslide.title.trim(),
+              content: this.cleanMarkdown(subslide.content)
+            }))
+          };
+        } else {
+          // Regular slide
+          return {
+            ...slide,
+            title: slide.title.trim(),
+            content: this.cleanMarkdown(slide.content)
+          };
+        }
+      });
       
       return processedSlides;
     } catch (error) {
@@ -354,11 +488,11 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
     
     return markdown
       .replace(/\n{3,}/g, '\n\n')       // Replace 3+ consecutive newlines with 2
-      .replace(/\&nbsp;/g, ' ')         // Replace HTML non-breaking spaces
-      .replace(/\&lt;/g, '<')           // Decode HTML entities that might be present
-      .replace(/\&gt;/g, '>')
-      .replace(/\&quot;/g, '"')
-      .replace(/\&amp;/g, '&')
+      .replace(/&nbsp;/g, ' ')          // Replace HTML non-breaking spaces
+      .replace(/&lt;/g, '<')            // Decode HTML entities that might be present
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
       .replace(/\\"/g, '"')             // Remove unnecessary escape sequences
       .replace(/\\'/g, "'")
       .replace(/\\\(/g, '(')
@@ -399,16 +533,119 @@ export class MarkdownExtractor extends BaseExtractor implements IMarkdownExtract
             title = titleMatch[1].trim();
           }
           
-          return {
-            title,
-            content,
-            sourceType: 'raw-markdown'
-          };
+          // Check for H2 headings (subslides)
+          const h2Pattern = /^##\s+(.+)$/gm;
+          const h2Matches = [...content.matchAll(h2Pattern)];
+          
+          if (h2Matches.length > 0) {
+            // This slide has subslides
+            this.debug(`Found ${h2Matches.length} potential subslides (H2 headings) for slide "${title}"`);
+            
+            // Find the index of the first H2 heading
+            const firstH2Index = content.indexOf('## ');
+            
+            // Extract content before the first H2 heading
+            const mainContent = firstH2Index > 0 ? content.substring(0, firstH2Index).trim() : '';
+            
+            // Create the main slide with subslides
+            const slide: MarkdownSlide = {
+              title,
+              content: this.cleanMarkdown(mainContent),
+              sourceType: 'raw-markdown',
+              subslides: []
+            };
+            
+            // Split content by H2 headings
+            const subslideSegments = content.split(/^##\s+(.+)$/m);
+            
+            // Process subslide segments
+            // Skip the first segment (content before first H2)
+            for (let j = 1; j < subslideSegments.length; j += 2) {
+              if (j + 1 >= subslideSegments.length) break;
+              
+              const subslideTitle = subslideSegments[j].trim();
+              const subslideContent = subslideSegments[j + 1].trim();
+              
+              slide.subslides?.push({
+                title: subslideTitle,
+                content: this.cleanMarkdown(subslideContent),
+                sourceType: 'raw-markdown'
+              });
+            }
+            
+            return slide;
+          } else {
+            // No subslides
+            return {
+              title,
+              content,
+              sourceType: 'raw-markdown'
+            };
+          }
         });
       }
     }
     
     // If no delimiter was found, create a single slide with all content
+    // Check for H2 headings in the single slide
+    const h2Pattern = /^##\s+(.+)$/gm;
+    const h2Matches = [...rawMarkdown.matchAll(h2Pattern)];
+    
+    if (h2Matches.length > 0) {
+      // There are H2 headings in the single slide
+      // Try to extract a title from the first H1 heading
+      let title = 'Presentation';
+      const titleMatch = rawMarkdown.match(/^#\s+(.+)$/m);
+      if (titleMatch && titleMatch[1]) {
+        title = titleMatch[1].trim();
+      }
+      
+      // Find the index of the first H2 heading
+      const firstH2Index = rawMarkdown.indexOf('## ');
+      
+      // Extract content before the first H2 heading
+      let mainContent = '';
+      if (firstH2Index > 0) {
+        // If there's an H1 heading, start after that
+        const h1Match = rawMarkdown.match(/^#\s+(.+)$/m);
+        if (h1Match && h1Match.index !== undefined) {
+          const h1EndIndex = h1Match.index + h1Match[0].length;
+          mainContent = rawMarkdown.substring(h1EndIndex, firstH2Index).trim();
+        } else {
+          mainContent = rawMarkdown.substring(0, firstH2Index).trim();
+        }
+      }
+      
+      // Create the main slide with subslides
+      const slide: MarkdownSlide = {
+        title,
+        content: this.cleanMarkdown(mainContent),
+        sourceType: 'raw-markdown',
+        subslides: []
+      };
+      
+      // Split content by H2 headings
+      const subslideSegments = rawMarkdown.split(/^##\s+(.+)$/m);
+      
+      // Process subslide segments
+      // Skip the first segment (content before first H2)
+      for (let j = 1; j < subslideSegments.length; j += 2) {
+        if (j + 1 >= subslideSegments.length) break;
+        
+        const subslideTitle = subslideSegments[j].trim();
+        const subslideContent = subslideSegments[j + 1].trim();
+        
+        slide.subslides?.push({
+          title: subslideTitle,
+          content: this.cleanMarkdown(subslideContent),
+          sourceType: 'raw-markdown'
+        });
+      }
+      
+      return [slide];
+    }
+    
+    // No H2 headings, create a single simple slide
     return [{
       title: 'Presentation',
       content: this.cleanMarkdown(rawMarkdown),

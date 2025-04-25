@@ -13,6 +13,7 @@ import { TableExtractor } from './table_extractor';
 import { BlockquoteExtractor } from './blockquote_extractor';
 import { ParagraphExtractor } from './paragraph_extractor';
 import { ImageExtractor } from './image_extractor';
+import { SubslideExtractor } from './subslide_extractor';
 import { 
   IHeadingExtractor, 
   IListExtractor, 
@@ -20,7 +21,8 @@ import {
   ITableExtractor,
   IBlockquoteExtractor,
   IParagraphExtractor,
-  IImageExtractor
+  IImageExtractor,
+  ISubslideExtractor
 } from './types.js';
 import { Slide } from '../../../types/index';
 
@@ -35,6 +37,7 @@ export class NotionExtractor extends BaseExtractor {
   blockquote_extractor: IBlockquoteExtractor;
   paragraph_extractor: IParagraphExtractor;
   image_extractor: IImageExtractor;
+  subslide_extractor: ISubslideExtractor;
 
   /**
    * Constructor
@@ -51,6 +54,7 @@ export class NotionExtractor extends BaseExtractor {
     this.blockquote_extractor = new BlockquoteExtractor(document);
     this.paragraph_extractor = new ParagraphExtractor(document);
     this.image_extractor = new ImageExtractor(document);
+    this.subslide_extractor = new SubslideExtractor(document);
   }
   
   /**
@@ -59,11 +63,11 @@ export class NotionExtractor extends BaseExtractor {
    */
   extract(): Slide[] {
     try {
-      this.debug('Starting extraction from Notion page');
+      loggingService.debug('Starting extraction from Notion page');
       
       // Find all H1 elements (slide breaks)
       const slideBreaks = this.findElements('h1, .notion-header-block');
-      this.debug(`Found ${slideBreaks.length} potential slides (H1 elements)`);
+      loggingService.debug(`Found ${slideBreaks.length} potential slides (H1 elements)`);
       
       if (slideBreaks.length === 0) {
         loggingService.error('No slide breaks (H1 elements) found in the document');
@@ -79,38 +83,173 @@ export class NotionExtractor extends BaseExtractor {
         
         // Get slide title from the current break
         const title = this.getElementText(currentBreak).trim();
+        loggingService.debug(`Processing slide ${i+1}: "${title}"`);
         
-        // Get content between current and next break
-        let content = this.getContentBetweenBreaks(currentBreak, nextBreak);
+        // Find H2 elements between the current and next H1 (for subslides)
+        const subslideHeadings = this.subslide_extractor.findSubslideHeadings(currentBreak, nextBreak);
         
-        // Clean up HTML entities and normalize content
-        content = content
-          .replace(/\n{3,}/g, '\n\n')     // Replace 3+ consecutive newlines with 2
-          .replace(/\&nbsp;/g, ' ')       // Replace HTML non-breaking spaces
-          .replace(/\&lt;/g, '<')         // Decode HTML entities
-          .replace(/\&gt;/g, '>')
-          .replace(/\&quot;/g, '"')
-          .replace(/\&amp;/g, '&')
-          .trim();
-        
-        // Convert "Heading X" to proper markdown headings
-        content = content
-          .replace(/^Heading\s+2\s*[:]*\s*(.*)/gim, '## $1')
-          .replace(/^Heading\s+3\s*[:]*\s*(.*)/gim, '### $1');
-        
-        // Add extracted slide with source type
-        slides.push({
-          title,
-          content,
-          sourceType: 'notion'
-        });
+        if (subslideHeadings.length > 0) {
+          // This slide has subslides
+          loggingService.debug(`Found ${subslideHeadings.length} subslides for slide "${title}"`);
+          
+          // Create main slide content (content before the first H2)
+          const mainContent = this.getContentBetweenElements(currentBreak, subslideHeadings[0]);
+          const cleanedMainContent = this.cleanContent(mainContent);
+          
+          loggingService.debug(`Main slide content summary`, {
+            rawLength: mainContent.length,
+            cleanedLength: cleanedMainContent.length
+          });
+          
+          // Create the main slide with subslides
+          const slide: Slide = {
+            title,
+            content: cleanedMainContent,
+            sourceType: 'notion',
+            subslides: []
+          };
+          
+          // Process each subslide
+          for (let j = 0; j < subslideHeadings.length; j++) {
+            const currentSubHeading = subslideHeadings[j];
+            const nextSubHeading = (j < subslideHeadings.length - 1) ? 
+                                  subslideHeadings[j + 1] : 
+                                  nextBreak;
+            
+            // Get subslide title from the H2 using the specialized extractor
+            const subslideTitle = this.subslide_extractor.getSubslideTitle(currentSubHeading);
+            
+            // Get content between current H2 and next H2 or H1
+            let subslideContent = this.getContentBetweenElements(currentSubHeading, nextSubHeading);
+            subslideContent = this.cleanContent(subslideContent);
+            
+            // Add subslide
+            slide.subslides?.push({
+              title: subslideTitle,
+              content: subslideContent,
+              sourceType: 'notion'
+            });
+          }
+          
+          slides.push(slide);
+        } else {
+          // No subslides - handle as a regular slide
+          loggingService.debug(`No subslides found for slide "${title}", processing as regular slide`);
+          let content = this.getContentBetweenBreaks(currentBreak, nextBreak);
+          content = this.cleanContent(content);
+          
+          loggingService.debug(`Regular slide content summary`, {
+            contentLength: content.length
+          });
+          
+          slides.push({
+            title,
+            content,
+            sourceType: 'notion'
+          });
+        }
       }
       
-      this.debug(`Extraction complete: ${slides.length} slides`);
+      // Final extraction summary focused on subslides  
+      loggingService.debug(`Extraction complete: ${slides.length} slides with ${slides.reduce((count, slide) => count + (slide.subslides?.length || 0), 0)} total subslides`);
+      
       return slides;
     } catch (error) {
       loggingService.error('Error extracting content from Notion page', error);
       return [];
+    }
+  }
+  
+  /**
+   * Clean and normalize content
+   * @param content - Raw content to clean
+   * @returns Cleaned content
+   */
+  cleanContent(content: string): string {
+    // Clean up HTML entities and normalize content
+    content = content
+      .replace(/\n{3,}/g, '\n\n')     // Replace 3+ consecutive newlines with 2
+      .replace(/&nbsp;/g, ' ')        // Replace HTML non-breaking spaces
+      .replace(/&lt;/g, '<')          // Decode HTML entities
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .trim();
+    
+    // Convert "Heading X" to proper markdown headings
+    content = content
+      .replace(/^Heading\s+2\s*[:]*\s*(.*)/gim, '## $1')
+      .replace(/^Heading\s+3\s*[:]*\s*(.*)/gim, '### $1');
+    
+    return content;
+  }
+  
+  /**
+   * Get content between two elements
+   * @param startElement - Starting element
+   * @param endElement - Ending element or null
+   * @returns Combined content as markdown
+   */
+  getContentBetweenElements(startElement: Element, endElement: Element | null): string {
+    try {
+      // Simplified debug of content extraction
+      
+      // Check if the start element is a subheading
+      const isStartElementSubheading = this.subslide_extractor.isSubslideHeading(startElement);
+      
+      // Markdown parts to collect
+      const markdownParts: string[] = [];
+      
+      // Skip the start element itself and start with next sibling
+      let currentElement = startElement.nextElementSibling;
+      
+      // Starting element scan removed for cleaner logs
+      
+      let elementsProcessed = 0;
+      let elementsIncluded = 0;
+      
+      while (currentElement && currentElement !== endElement) {
+        elementsProcessed++;
+        
+        // Simplified element processing logs
+        
+        // Skip nested subheadings when processing a subslide
+        if (isStartElementSubheading && 
+            this.subslide_extractor.isSubslideHeading(currentElement)) {
+          // Skip any nested H2 elements when inside a subslide
+          loggingService.debug('Skipping nested subheading');
+          currentElement = currentElement.nextElementSibling;
+          continue;
+        }
+        
+        const markdown = this.processElementToMarkdown(currentElement);
+        
+        if (markdown) {
+          markdownParts.push(markdown);
+          elementsIncluded++;
+          
+          // We've removed detailed content logging
+        } else {
+          // Empty content handling
+        }
+        
+        currentElement = currentElement.nextElementSibling;
+      }
+      
+      // Join all parts with double newlines for proper markdown spacing
+      const result = markdownParts.join('\n\n');
+      
+      // Simplified content extraction summary
+      loggingService.debug('Content extraction complete', {
+        elementsProcessed,
+        elementsIncluded,
+        contentLength: result.length
+      });
+      
+      return result;
+    } catch (error) {
+      loggingService.error('Error extracting content between elements', error);
+      return '';
     }
   }
   
@@ -160,9 +299,10 @@ export class NotionExtractor extends BaseExtractor {
       return this.image_extractor.imageToMarkdown(element);
     }
     
-    // 8. Horizontal rule
+    // 8. Horizontal rule - Skip these elements
     else if (element.tagName === 'HR' || this.hasClass(element, 'notion-divider-block')) {
-      return '---';
+      // Return empty string to omit horizontal dividers from the content
+      return '';
     }
     
     // 9. Default case - get text content if it's not empty

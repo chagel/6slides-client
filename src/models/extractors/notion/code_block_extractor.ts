@@ -51,7 +51,7 @@ export class CodeBlockExtractor extends BaseExtractor implements ICodeBlockExtra
     
     const text = codeContent ? 
       this.getElementText(codeContent) : 
-      this.getElementText(codeElement);
+      codeElement.querySelector('.line-numbers')?.textContent || '';
     
     if (!text) {
       return '';
@@ -72,33 +72,12 @@ export class CodeBlockExtractor extends BaseExtractor implements ICodeBlockExtra
     if (languageElem) {
       language = this.getElementText(languageElem).toLowerCase();
     }
-    
+
     // Format as markdown code block
-    return '```' + language + '\n' + text + '\n```';
+    // return '```' + language + '\n' + text + '\n```';
+    return '<pre><code data-trim data-noescape class="language-' + language + '">' + text + '</code></pre>';
   }
   
-  /**
-   * Find and extract all code blocks in the document
-   * @returns Array of code block elements
-   */
-  extractCodeBlocks(): Element[] {
-    // Find Notion code blocks
-    const notionCodeBlocks = this.findElements('.notion-code-block');
-    
-    // Find HTML code blocks
-    const htmlCodeBlocks = this.findElements('pre, code').filter(el => {
-      // Skip code elements that are children of pre (to avoid duplication)
-      if (el.tagName === 'CODE' && el.parentElement && el.parentElement.tagName === 'PRE') {
-        return false;
-      }
-      return true;
-    });
-    
-    const allCodeBlocks = [...notionCodeBlocks, ...htmlCodeBlocks];
-    this.debug(`Found ${allCodeBlocks.length} code blocks`);
-    
-    return allCodeBlocks;
-  }
   
   /**
    * Extract method implementation

@@ -21,8 +21,8 @@
         <p>Your Notion page must use this structure:</p>
         <ul>
           <li>H1 (#) elements start new slides</li>
-          <li>H2 (##) elements are section titles</li>
-          <li>H3 (###) elements are subsections</li>
+          <li>H2 (##) elements create vertical subslides</li>
+          <li>H3 (###) elements are subsections within a slide</li>
           <li>Content between H1s belongs to the previous H1</li>
           <li>Lines starting with - or * become bullet points</li>
           <li>Regular text becomes paragraphs</li>
@@ -35,8 +35,12 @@ This paragraph will appear on slide 1.
 - This is a bullet point on slide 1
 - Another bullet on slide 1
 
-## Section on Slide 1
-More content for slide 1...
+## First Subslide
+This creates a vertical subslide under Slide 1.
+- Content for the first subslide
+
+## Second Subslide
+More content for another subslide...
 
 # Slide 2 Title
 This paragraph will appear on slide 2.
@@ -58,12 +62,11 @@ Final slide content...
         
         <h3>Supported Notion Blocks</h3>
         <ul>
-          <li>Code blocks</li>
+          <li>Code blocks (left-aligned for better readability)</li>
           <li>Quote blocks</li>
           <li>Images (with captions)</li>
           <li>Tables</li>
-          <li>Dividers (horizontal rules)</li>
-          <li>To-do and toggle lists</li>
+          <li>Bullet points and numbered lists</li>
           <li>Others</li>
         </ul>
         
@@ -85,8 +88,22 @@ Final slide content...
             <p>Make sure your Notion page follows the template format:</p>
             <ul>
               <li>Each H1 heading creates a new slide</li>
+              <li>H2 headings create vertical subslides</li>
               <li>You need at least one H1 heading to generate slides</li>
               <li>Check if you have proper permissions for the Notion page</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="help-item">
+          <div class="help-question">How do vertical subslides work?</div>
+          <div class="help-answer">
+            <p>Vertical subslides let you organize related content under a main slide:</p>
+            <ul>
+              <li>Add H2 headings between your H1 slide headings</li>
+              <li>Each H2 becomes a vertical subslide under the previous H1</li>
+              <li>Navigate between subslides using the down/up arrow keys</li>
+              <li>Perfect for organizing detailed information under a main topic</li>
             </ul>
           </div>
         </div>
@@ -99,6 +116,20 @@ Final slide content...
               <li>Visit the Settings page to change the theme, transitions, and more</li>
               <li>Use Markdown formatting in your Notion page for text styling</li>
               <li>Add images and other rich content in Notion</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="help-item">
+          <div class="help-question">What's new in version 1.1.0?</div>
+          <div class="help-answer">
+            <p>We've made several improvements to enhance your presentation experience:</p>
+            <ul>
+              <li>Added vertical subslides support using H2 headings</li>
+              <li>Improved code block formatting with left-aligned text</li>
+              <li>Removed horizontal dividers for cleaner slides</li>
+              <li>Simplified bullet point handling</li>
+              <li>Enhanced overall performance and reliability</li>
             </ul>
           </div>
         </div>

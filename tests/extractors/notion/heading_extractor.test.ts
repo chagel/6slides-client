@@ -76,41 +76,4 @@ describe('HeadingExtractor', () => {
     });
   });
 
-  describe('extractHeadingsOfLevel', () => {
-    test('should find all h1 elements', () => {
-      // Add heading elements
-      document.body.innerHTML = `
-        <h1>First Heading</h1>
-        <div class="notion-header-block">Second Heading</div>
-        <div class="notion-h1">Third Heading</div>
-        <h2>Not an H1</h2>
-      `;
-      
-      const headings = extractor.extractHeadingsOfLevel(1);
-      expect(headings.length).toBe(3);
-    });
-
-    test('should find all h2 elements', () => {
-      // Add heading elements
-      document.body.innerHTML = `
-        <h2>First Heading</h2>
-        <div class="notion-sub_header-block">Second Heading</div>
-        <div class="notion-h2">Third Heading</div>
-        <h1>Not an H2</h1>
-      `;
-      
-      const headings = extractor.extractHeadingsOfLevel(2);
-      expect(headings.length).toBe(3);
-    });
-
-    test('should return empty array when no headings exist', () => {
-      document.body.innerHTML = `
-        <p>Just a paragraph</p>
-        <div>Just a div</div>
-      `;
-      
-      const headings = extractor.extractHeadingsOfLevel(1);
-      expect(headings.length).toBe(0);
-    });
-  });
 });

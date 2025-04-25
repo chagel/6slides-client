@@ -72,48 +72,4 @@ describe('BlockquoteExtractor', () => {
     });
   });
 
-  describe('extractBlockquotes', () => {
-    test('should find all HTML blockquote elements', () => {
-      document.body.innerHTML = `
-        <blockquote>First quote</blockquote>
-        <blockquote>Second quote</blockquote>
-        <p>Not a quote</p>
-      `;
-      
-      const quotes = extractor.extractBlockquotes();
-      expect(quotes.length).toBe(2);
-    });
-
-    test('should find all Notion blockquote elements', () => {
-      document.body.innerHTML = `
-        <div class="notion-quote-block">First Notion quote</div>
-        <div class="notion-quote">Second Notion quote</div>
-        <p>Not a quote</p>
-      `;
-      
-      const quotes = extractor.extractBlockquotes();
-      expect(quotes.length).toBe(2);
-    });
-
-    test('should find both HTML and Notion blockquotes', () => {
-      document.body.innerHTML = `
-        <blockquote>HTML quote</blockquote>
-        <div class="notion-quote-block">Notion quote</div>
-        <p>Not a quote</p>
-      `;
-      
-      const quotes = extractor.extractBlockquotes();
-      expect(quotes.length).toBe(2);
-    });
-
-    test('should return empty array when no blockquotes exist', () => {
-      document.body.innerHTML = `
-        <p>Just a paragraph</p>
-        <div>Just a div</div>
-      `;
-      
-      const quotes = extractor.extractBlockquotes();
-      expect(quotes.length).toBe(0);
-    });
-  });
 });
