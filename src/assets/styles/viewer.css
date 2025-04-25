@@ -66,3 +66,92 @@
 .reveal .pdf-page {
   background-color: transparent !important;
 }
+
+/* Print Back Notice - Only displayed in browser, not in print */
+.print-back-notice {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  color: #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px 24px;
+  z-index: 10000;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.print-notice-content h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.print-notice-content p {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+}
+
+#backToPresentationBtn {
+  background-color: #7C63F6; /* Same as the primary color from popup.css */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#backToPresentationBtn:hover {
+  background-color: #6A50E0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(124, 99, 246, 0.3);
+}
+
+#backToPresentationBtn:active {
+  transform: translateY(0);
+}
+
+/* Dark mode for the Back Notice */
+.reveal.has-dark-background .print-back-notice {
+  background-color: #2D3748;
+  color: #F7FAFC;
+  border-color: #4A5568;
+}
+
+.reveal.has-dark-background .print-notice-content h3 {
+  color: #F7FAFC;
+}
+
+.reveal.has-dark-background .print-notice-content p {
+  color: #CBD5E0;
+}
+
+.reveal.has-dark-background #backToPresentationBtn {
+  background-color: #8B78F9;
+}
+
+.reveal.has-dark-background #backToPresentationBtn:hover {
+  background-color: #9F8CFB;
+}
+
+/* Don't print the back notice */
+@media print {
+  .print-back-notice {
+    display: none !important;
+  }
+  
+  /* In print mode, hide the logo as well */
+  .logo-container {
+    display: none !important;
+  }
+}

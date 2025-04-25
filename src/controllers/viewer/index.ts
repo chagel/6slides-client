@@ -107,6 +107,27 @@ async function initialize(): Promise<void> {
     const isPrintMode = window.location.search.includes('print-pdf');
     if (isPrintMode) {
       loggingService.info('Detected print-pdf in URL, preparing for PDF export', null, 'viewer');
+      
+      // Create a "Back to Presentation" notice that won't be printed
+      const backNotice = document.createElement('div');
+      backNotice.className = 'print-back-notice';
+      backNotice.innerHTML = `
+        <div class="print-notice-content">
+          <h3>Print Mode</h3>
+          <p>After printing completes or if you cancel, click the button below to return to your presentation.</p>
+          <button id="backToPresentationBtn">Back to Presentation</button>
+        </div>
+      `;
+      document.body.appendChild(backNotice);
+      
+      // Add event listener to the back button
+      document.getElementById('backToPresentationBtn')?.addEventListener('click', () => {
+        // Remove print-pdf from URL and reload
+        const url = new URL(window.location.href);
+        url.searchParams.delete('print-pdf');
+        window.location.href = url.toString();
+      });
+      
       // Wait a moment for the page to fully render for printing
       setTimeout(() => {
         window.print();

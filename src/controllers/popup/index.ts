@@ -399,17 +399,29 @@ class PopupController {
         return;
       }
       
-      // Create URL with print-pdf parameter
-      let printUrl = tab.url;
-      if (printUrl.includes('?')) {
-        // URL already has parameters
-        if (!printUrl.includes('print-pdf')) {
-          printUrl += '&print-pdf';
-        }
-      } else {
-        // No parameters yet
-        printUrl += '?print-pdf';
+      // Create URL with print-pdf parameter and handle slide anchors properly
+      const url = new URL(tab.url || '');
+      
+      // Save any hash/anchor for slide position (like #/2/3)
+      const slideHash = url.hash;
+      
+      // Remove the hash for the redirection
+      url.hash = '';
+      
+      // Add print-pdf parameter
+      if (!url.searchParams.has('print-pdf')) {
+        url.searchParams.set('print-pdf', 'true');
       }
+      
+      // Get the clean URL without slide position
+      let printUrl = url.toString();
+      
+      // Log the details for debugging
+      loggingService.debug('PDF export URL details', {
+        originalUrl: tab.url,
+        printUrl,
+        slideHash
+      }, 'popup');
       
       // Update the tab URL to include the print-pdf parameter
       await chrome.tabs.update(tab.id, { url: printUrl });
