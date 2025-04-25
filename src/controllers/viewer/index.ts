@@ -102,6 +102,16 @@ async function initialize(): Promise<void> {
     
     // Single log to indicate completion
     loggingService.debug('Viewer ready', null, 'viewer');
+    
+    // Check if URL has print-pdf parameter and trigger print automatically
+    const isPrintMode = window.location.search.includes('print-pdf');
+    if (isPrintMode) {
+      loggingService.info('Detected print-pdf in URL, preparing for PDF export', null, 'viewer');
+      // Wait a moment for the page to fully render for printing
+      setTimeout(() => {
+        window.print();
+      }, 1500);
+    }
   } catch (error) {
     // Log the error
     loggingService.error('Viewer initialization failed', {

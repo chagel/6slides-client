@@ -15,13 +15,14 @@
     </a>
   </div>
   
-  <!-- Info Card -->
-  <div class="template-info">
+  <!-- Info Cards - Dynamic based on mode -->
+  <!-- Template info for regular mode -->
+  <div id="template-info" class="template-info">
     <p>Convert your Notion page to a presentation:</p>
     <ul>
       <li>Organize content with H1 headings</li>
       <li>Each H1 heading becomes a new slide</li>
-      <li>Major Notion blocks are supported</li>
+      <li>H2 headings create vertical subslides</li>
     </ul>
     
     <a href="#" id="instructionsLink" class="instructions-link">
@@ -31,6 +32,36 @@
         <path d="M12 5l7 7-7 7"></path>
       </svg>
     </a>
+  </div>
+  
+  <!-- Presentation stats for presentation mode -->
+  <div id="presentation-stats" class="template-info" style="display: none;">
+    <h2>Presentation Stats</h2>
+    <ul id="stats-list">
+      <li><strong>Slides:</strong> <span id="slide-count">0</span></li>
+      <li><strong>Subslides:</strong> <span id="subslide-count">0</span></li>
+      <li><strong>Theme:</strong> <span id="presentation-theme">Default</span></li>
+    </ul>
+    
+    <div class="action-toolbar">
+      <button id="exportBtn" class="toolbar-button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+          <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+          <path d="M9 15l3 3l3 -3"></path>
+          <path d="M12 12v6"></path>
+        </svg>
+        Export PDF
+      </button>
+      
+      <button id="customizeBtn" class="toolbar-button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        </svg>
+        Customize
+      </button>
+    </div>
   </div>
   
   <!-- Action Button -->
