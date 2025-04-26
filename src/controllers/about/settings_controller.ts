@@ -8,6 +8,7 @@
 import { loggingService } from '../../services/logging_service';
 import { storage } from '../../models/storage';
 import { configManager } from '../../models/config_manager';
+import { PREMIUM_THEMES, PREMIUM_FONTS, THEME_CATEGORIES } from '../../models/domain/config';
 
 /**
  * Settings Controller for the About page
@@ -18,19 +19,13 @@ export class SettingsController {
   private transitionSelector: HTMLSelectElement | null;
   private slideNumberSelector: HTMLSelectElement | null;
   private centerSelector: HTMLSelectElement | null;
+  private headingFontSelector: HTMLSelectElement | null;
+  private contentFontSelector: HTMLSelectElement | null;
   private debugLoggingSelector: HTMLSelectElement | null;
   private saveStatus: HTMLElement | null;
   private clearCacheBtn: HTMLElement | null;
   
-  // Premium themes that require subscription
-  private readonly premiumThemes = [
-    'compass', 
-    'ignite', 
-    'palette', 
-    'pulse', 
-    'scholar', 
-    'summit'
-  ];
+  // Using centrally defined constants for premium themes and fonts
   
   // Event handlers
   private onSettingChanged: (() => void) | null = null;
@@ -43,6 +38,8 @@ export class SettingsController {
     this.transitionSelector = document.getElementById('transitionSelector') as HTMLSelectElement;
     this.slideNumberSelector = document.getElementById('slideNumberSelector') as HTMLSelectElement;
     this.centerSelector = document.getElementById('centerSelector') as HTMLSelectElement;
+    this.headingFontSelector = document.getElementById('headingFontSelector') as HTMLSelectElement;
+    this.contentFontSelector = document.getElementById('contentFontSelector') as HTMLSelectElement;
     this.saveStatus = document.getElementById('saveStatus');
     this.debugLoggingSelector = document.getElementById('debugLoggingSelector') as HTMLSelectElement;
     this.clearCacheBtn = document.getElementById('clearCacheBtn');
@@ -58,12 +55,37 @@ export class SettingsController {
    */
   private async initializeAsync(): Promise<void> {
     try {
+      // Add theme descriptions to selector options
+      this.enhanceThemeSelector();
+      
       await this.loadSettings();
       // Update theme options based on subscription
       await this.updateThemeOptions();
+      // Update font options based on subscription
+      await this.updateFontOptions();
       loggingService.debug('Settings loaded successfully');
     } catch (error) {
       loggingService.error('Error initializing settings', { error }, 'settings_controller');
+    }
+  }
+  
+  /**
+   * Enhance theme selector with descriptions
+   */
+  private enhanceThemeSelector(): void {
+    if (!this.themeSelector) return;
+    
+    // Get all options
+    const options = Array.from(this.themeSelector.options);
+    
+    // Update each option with its description if available
+    for (const option of options) {
+      const themeName = option.value;
+      const description = THEME_CATEGORIES[themeName];
+      
+      if (description) {
+        option.textContent = `${option.textContent} (${description})`;
+      }
     }
   }
   
@@ -99,6 +121,21 @@ export class SettingsController {
       this.centerSelector.addEventListener('change', this.saveSettings.bind(this));
     }
     
+    // Bind font selectors
+    if (this.headingFontSelector) {
+      this.headingFontSelector.addEventListener('change', async () => {
+        await this.handleFontChange('heading');
+        this.saveSettings();
+      });
+    }
+    
+    if (this.contentFontSelector) {
+      this.contentFontSelector.addEventListener('change', async () => {
+        await this.handleFontChange('content');
+        this.saveSettings();
+      });
+    }
+    
     if (this.debugLoggingSelector) {
       this.debugLoggingSelector.addEventListener('change', this.saveSettings.bind(this));
     }
@@ -125,6 +162,10 @@ export class SettingsController {
       if (this.slideNumberSelector) this.slideNumberSelector.value = settings.slideNumber?.toString() || '';
       if (this.centerSelector) this.centerSelector.value = settings.center?.toString() || '';
       
+      // Apply font settings
+      if (this.headingFontSelector) this.headingFontSelector.value = settings.headingFont?.toString() || 'default';
+      if (this.contentFontSelector) this.contentFontSelector.value = settings.contentFont?.toString() || 'default';
+      
       // Set developer settings
       if (this.debugLoggingSelector) {
         const debugLogging = settings.debugLogging?.toString() || 'false';
@@ -134,6 +175,9 @@ export class SettingsController {
         // Apply debug logging setting
         loggingService.setDebugLogging(debugLogging === 'true');
       }
+      
+      // Update font options based on subscription status
+      await this.updateFontOptions();
     } catch (error) {
       loggingService.error('Error loading settings', { error }, 'settings_controller');
     }
@@ -159,6 +203,15 @@ export class SettingsController {
     settings.transition = this.transitionSelector.value;
     settings.slideNumber = this.slideNumberSelector.value;
     settings.center = this.centerSelector.value;
+    
+    // Save font settings if available
+    if (this.headingFontSelector && !this.headingFontSelector.disabled) {
+      settings.headingFont = this.headingFontSelector.value;
+    }
+    
+    if (this.contentFontSelector && !this.contentFontSelector.disabled) {
+      settings.contentFont = this.contentFontSelector.value;
+    }
     
     if (this.debugLoggingSelector) {
       const debugEnabledStr = this.debugLoggingSelector.value;
@@ -212,7 +265,7 @@ export class SettingsController {
     const selectedTheme = this.themeSelector?.value || '';
     
     // If user selects a premium theme without pro, show upsell
-    if (!hasPro && this.premiumThemes.includes(selectedTheme)) {
+    if (!hasPro && PREMIUM_THEMES.includes(selectedTheme)) {
       this.showProFeatureOverlay('Premium Theme', 'Unlock additional beautiful themes to make your presentations stand out.');
       
       // Reset to default theme
@@ -279,16 +332,25 @@ export class SettingsController {
     // If user doesn't have pro, show premium themes with PRO badge but disable selection
     if (!hasPro) {
       options.forEach(option => {
-        if (this.premiumThemes.includes(option.value)) {
+        if (PREMIUM_THEMES.includes(option.value)) {
           option.disabled = true;
-          if (option.textContent && !option.textContent.includes('(PRO)')) {
-            option.textContent += ' (PRO)';
+          
+          // Add PRO label without removing the description
+          if (option.textContent && !option.textContent.includes('PRO')) {
+            // Check if it has a description already
+            if (option.textContent.includes('(')) {
+              // Insert 'PRO' before the description
+              option.textContent = option.textContent.replace('(', '(PRO, ');
+            } else {
+              // Just add the PRO label
+              option.textContent += ' (PRO)';
+            }
           }
         }
       });
       
       // If a pro theme is currently selected, switch to default
-      if (this.premiumThemes.includes(this.themeSelector.value)) {
+      if (PREMIUM_THEMES.includes(this.themeSelector.value)) {
         this.themeSelector.value = 'default';
       }
       
@@ -308,8 +370,13 @@ export class SettingsController {
       // Enable all themes for pro users
       options.forEach(option => {
         option.disabled = false;
-        if (option.textContent && option.textContent.includes('(PRO)')) {
-          option.textContent = option.textContent.replace(' (PRO)', '');
+        if (option.textContent && option.textContent.includes('PRO')) {
+          // Remove just the PRO part but keep any description
+          if (option.textContent.includes('(PRO, ')) {
+            option.textContent = option.textContent.replace('PRO, ', '');
+          } else {
+            option.textContent = option.textContent.replace(' (PRO)', '');
+          }
         }
       });
       
@@ -318,6 +385,76 @@ export class SettingsController {
       if (proMessage && proMessage.parentNode) {
         proMessage.parentNode.removeChild(proMessage);
       }
+    }
+  }
+  
+  /**
+   * Handle font change
+   * @param fontType - Type of font (heading or content)
+   */
+  private async handleFontChange(fontType: 'heading' | 'content'): Promise<void> {
+    const hasPro = await configManager.hasPro();
+    const selector = fontType === 'heading' ? this.headingFontSelector : this.contentFontSelector;
+    
+    if (!selector) return;
+    
+    const selectedFont = selector.value;
+    const premiumFonts = fontType === 'heading' ? PREMIUM_FONTS.heading : PREMIUM_FONTS.content;
+    
+    // If user selects a premium font without pro, show upsell
+    if (!hasPro && premiumFonts.includes(selectedFont)) {
+      this.showProFeatureOverlay('Custom Fonts', 'Upgrade to PRO to use premium fonts for your presentations.');
+      
+      // Reset to default font
+      selector.value = 'default';
+    }
+  }
+  
+  /**
+   * Update font options based on subscription level
+   */
+  async updateFontOptions(): Promise<void> {
+    // Early return if selectors are not available
+    if (!this.headingFontSelector || !this.contentFontSelector) {
+      return;
+    }
+    
+    const hasPro = await configManager.hasPro();
+    
+    if (hasPro) {
+      // For PRO users, enable font selectors
+      this.headingFontSelector.disabled = false;
+      this.contentFontSelector.disabled = false;
+      
+      // Remove any pro-upgrade notices
+      const notices = document.querySelectorAll('.pro-upgrade-notice');
+      notices.forEach(notice => {
+        if (notice.parentNode) {
+          notice.parentNode.removeChild(notice);
+        }
+      });
+      
+      // Update the setting row styles
+      const fontSettingRows = document.querySelectorAll('.pro-feature');
+      fontSettingRows.forEach(row => {
+        row.classList.remove('pro-feature-disabled');
+        row.classList.add('pro-feature-enabled');
+      });
+    } else {
+      // For free users, disable font selectors
+      this.headingFontSelector.disabled = true;
+      this.contentFontSelector.disabled = true;
+      
+      // Make sure both selectors are set to default
+      this.headingFontSelector.value = 'default';
+      this.contentFontSelector.value = 'default';
+      
+      // Update the setting row styles
+      const fontSettingRows = document.querySelectorAll('.pro-feature');
+      fontSettingRows.forEach(row => {
+        row.classList.add('pro-feature-disabled');
+        row.classList.remove('pro-feature-enabled');
+      });
     }
   }
 }
