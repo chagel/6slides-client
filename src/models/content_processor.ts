@@ -36,8 +36,8 @@ class ContentProcessor {
         return [];
       }
       
-      // Normalize each slide
-      const processedSlides = rawSlides.map(this.normalizeSlide);
+      // Normalize each slide - using arrow function to preserve 'this' context
+      const processedSlides = rawSlides.map(slide => this.normalizeSlide(slide));
       
       loggingService.debug('Content processing complete', { processedCount: processedSlides.length });
       return processedSlides;
@@ -62,8 +62,8 @@ class ContentProcessor {
     
     // Handle subslides if they exist
     if (slide.subslides && Array.isArray(slide.subslides) && slide.subslides.length > 0) {
-      // Normalize each subslide
-      normalized.subslides = slide.subslides.map((subslide) => this.normalizeSlide(subslide));
+      // Normalize each subslide - bind 'this' to ensure context is preserved
+      normalized.subslides = slide.subslides.map((subslide) => this.normalizeSlide.bind(this)(subslide));
     }
     
     // Normalize markdown content
