@@ -36,9 +36,13 @@ interface PageInfo {
  */
 class PopupController {
   private convertBtn: HTMLButtonElement;
+  private exportBtn: HTMLButtonElement | null;
+  private customizeBtn: HTMLButtonElement | null;
   private statusEl: HTMLElement;
   private instructionsLink: HTMLAnchorElement;
   private settingsLink: HTMLAnchorElement;
+  private templateInfo: HTMLElement;
+  private presentationStats: HTMLElement;
   // No retry counter needed with recursive approach
   
   /**
@@ -46,9 +50,13 @@ class PopupController {
    */
   constructor() {
     this.convertBtn = document.getElementById('convertBtn') as HTMLButtonElement;
+    this.exportBtn = document.getElementById('exportBtn');
+    this.customizeBtn = document.getElementById('customizeBtn');
     this.statusEl = document.getElementById('status') as HTMLElement;
     this.instructionsLink = document.getElementById('instructionsLink') as HTMLAnchorElement;
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
+    this.templateInfo = document.getElementById('template-info') as HTMLElement;
+    this.presentationStats = document.getElementById('presentation-stats') as HTMLElement;
     
     this.bindEventHandlers();
     
@@ -69,6 +77,16 @@ class PopupController {
   private bindEventHandlers(): void {
     // Convert button
     this.convertBtn.addEventListener('click', this.handleConvertClick.bind(this));
+    
+    // Export button
+    if (this.exportBtn) {
+      this.exportBtn.addEventListener('click', this.handleExportClick.bind(this));
+    }
+    
+    // Customize button
+    if (this.customizeBtn) {
+      this.customizeBtn.addEventListener('click', this.handleCustomizeClick.bind(this));
+    }
     
     // Links
     this.instructionsLink.addEventListener('click', this.handleInstructionsClick.bind(this));
@@ -285,6 +303,18 @@ class PopupController {
   }
   
   /**
+   * Handle customize button click - redirects to presentation settings
+   * @param e - Click event
+   */
+  private handleCustomizeClick(e: MouseEvent): void {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('about.html#settings') });
+    
+    // Log customize action
+    loggingService.info('Customize presentation clicked', null, 'popup');
+  }
+  
+  /**
    * Check if current tab is viewer.html
    * @returns Promise resolving to boolean
    */
@@ -297,6 +327,145 @@ class PopupController {
         resolve(currentTabUrl.includes(viewerUrl));
       });
     });
+  }
+  
+  /**
+   * Update presentation stats and manage export button visibility
+   * @param slides - The slides to display stats for
+   */
+  private async updatePresentationStats(slides: Slide[] = []): Promise<void> {
+    try {
+      const slideCountEl = document.getElementById('slide-count');
+      const subslideCountEl = document.getElementById('subslide-count');
+      const presentationThemeEl = document.getElementById('presentation-theme');
+      const exportBtn = document.getElementById('exportBtn');
+      
+      if (!slideCountEl || !subslideCountEl || !presentationThemeEl) {
+        return;
+      }
+      
+      // If no slides provided, try to load from storage
+      let presentationSlides = slides;
+      if (slides.length === 0) {
+        presentationSlides = await storage.getSlides();
+      }
+      
+      // Calculate stats
+      const slideCount = presentationSlides.length;
+      
+      // Count all subslides from all slides
+      let subslideCount = 0;
+      for (const slide of presentationSlides) {
+        if (slide.subslides && Array.isArray(slide.subslides)) {
+          subslideCount += slide.subslides.length;
+        }
+      }
+      
+      // Get theme from config
+      const config = await configManager.getConfig();
+      const theme = config.theme || 'Default';
+      
+      // Update UI
+      slideCountEl.textContent = String(slideCount);
+      subslideCountEl.textContent = String(subslideCount);
+      presentationThemeEl.textContent = theme;
+      
+      // Check subscription status for export feature
+      if (exportBtn) {
+        const hasPro = await configManager.hasPro();
+        
+        if (!hasPro) {
+          // Show PRO upgrade message on export button for free users, but don't disable
+          exportBtn.classList.add('pro-feature-btn');
+          exportBtn.innerHTML = `
+            <span>PDF Export</span> <span class="pro-badge">PRO</span>
+          `;
+          
+          // Add click handler to upgrade
+          exportBtn.removeEventListener('click', this.handleExportClick.bind(this));
+          exportBtn.addEventListener('click', this.handleProUpgradeClick.bind(this));
+        }
+      }
+      
+      loggingService.debug('Updated presentation stats', {
+        slideCount,
+        subslideCount,
+        theme
+      }, 'popup');
+    } catch (error) {
+      loggingService.error('Error updating presentation stats', error, 'popup');
+    }
+  }
+  
+  /**
+   * Handle export button click to export as PDF
+   */
+  private async handleExportClick(): Promise<void> {
+    try {
+      // First check if the user has PRO subscription
+      const hasPro = await configManager.hasPro();
+      
+      if (!hasPro) {
+        // User doesn't have PRO, redirect to upgrade page instead
+        this.handleProUpgradeClick(new MouseEvent('click'));
+        return;
+      }
+      
+      // Get the current active tab
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      if (!tab || !tab.id) {
+        this.updateStatus('No active presentation tab found', 'not-ready');
+        return;
+      }
+      
+      // Check if we're on the viewer page
+      const viewerUrl = chrome.runtime.getURL('viewer.html');
+      if (!tab.url?.includes(viewerUrl)) {
+        this.updateStatus('Not in presentation mode', 'not-ready');
+        return;
+      }
+      
+      // Create URL with print-pdf parameter and handle slide anchors properly
+      const url = new URL(tab.url || '');
+      
+      // Save any hash/anchor for slide position (like #/2/3)
+      const slideHash = url.hash;
+      
+      // Remove the hash for the redirection
+      url.hash = '';
+      
+      // Add print-pdf parameter
+      if (!url.searchParams.has('print-pdf')) {
+        url.searchParams.set('print-pdf', 'true');
+      }
+      
+      // Get the clean URL without slide position
+      let printUrl = url.toString();
+      
+      // Log the details for debugging
+      loggingService.debug('PDF export URL details', {
+        originalUrl: tab.url,
+        printUrl,
+        slideHash
+      }, 'popup');
+      
+      // Update the tab URL to include the print-pdf parameter
+      await chrome.tabs.update(tab.id, { url: printUrl });
+      this.updateStatus('Opening print dialog...', 'ready');
+      
+      // The print dialog will be automatically triggered by the viewer page
+      // which looks for the print-pdf parameter in the URL on load
+      loggingService.info('PDF export initiated', { url: printUrl }, 'popup');
+      
+      // After a short delay, close the popup to get out of the way of the print dialog
+      setTimeout(() => {
+        window.close();
+      }, 1500);
+    } catch (error) {
+      loggingService.error('Error exporting slides as PDF', error, 'popup');
+      this.updateStatus('Error exporting slides', 'not-ready');
+    }
   }
   
   /**
@@ -479,6 +648,17 @@ class PopupController {
   }
   
   /**
+   * Handle click on PRO feature for free users
+   * @param e - Click event
+   */
+  private handleProUpgradeClick(e: MouseEvent): void {
+    e.preventDefault();
+    // Redirect to subscription page
+    chrome.tabs.create({ url: `${process.env.WEB_URL}/subscription` });
+    loggingService.info('User clicked on PRO feature upgrade (PDF Export)', null, 'popup');
+  }
+  
+  /**
    * Check the current page and update UI accordingly
    */
   private async checkCurrentPage(): Promise<void> {
@@ -495,15 +675,28 @@ class PopupController {
       ]);
       
       if (isViewer) {
-        // We are currently on the viewer.html page
+        // We are currently on the viewer.html page - show presentation stats
+        this.templateInfo.style.display = 'none';
+        this.presentationStats.style.display = 'block';
+        
+        // Update button state
         this.updateStatus('Currently in presentation mode', 'ready');
         this.convertBtn.disabled = true;
         this.convertBtn.textContent = 'Presenting...';
-      } else if (!pageInfo.compatible) {
-        this.updateStatus('Not on a Notion page.', 'not-ready');
-        this.convertBtn.disabled = true;
+        
+        // Update presentation stats
+        await this.updatePresentationStats();
       } else {
-        this.updateStatus('Ready! Ensure Notion page with required format.', 'ready');
+        // Not in presentation mode - show template info
+        this.templateInfo.style.display = 'block';
+        this.presentationStats.style.display = 'none';
+        
+        if (!pageInfo.compatible) {
+          this.updateStatus('Not on a Notion page.', 'not-ready');
+          this.convertBtn.disabled = true;
+        } else {
+          this.updateStatus('Ready! Ensure Notion page with required format.', 'ready');
+        }
       }
     } catch (error) {
       loggingService.error('Error checking current page', error, 'popup');

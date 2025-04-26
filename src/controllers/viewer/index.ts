@@ -102,6 +102,120 @@ async function initialize(): Promise<void> {
     
     // Single log to indicate completion
     loggingService.debug('Viewer ready', null, 'viewer');
+    
+    // Show keyboard shortcut hints for new presentation
+    if (!window.location.search.includes('print-pdf') && !sessionStorage.getItem('keyboardHintsShown')) {
+      // Create keyboard hints overlay
+      const keyboardHints = document.createElement('div');
+      keyboardHints.className = 'keyboard-hints';
+      keyboardHints.innerHTML = `
+        <div class="hints-content">
+          <h3>Keyboard Controls</h3>
+          <ul>
+            <li><span class="key">&rightarrow;</span> / <span class="key">Space</span> Next slide</li>
+            <li><span class="key">&leftarrow;</span> Previous slide</li>
+            <li><span class="key">&downarrow;</span> Next vertical slide</li>
+            <li><span class="key">&uparrow;</span> Previous vertical slide</li>
+            <li><span class="key">F</span> Fullscreen</li>
+            <li><span class="key">ESC</span> Overview</li>
+          </ul>
+          <button id="gotItBtn">Got it!</button>
+        </div>
+      `;
+      document.body.appendChild(keyboardHints);
+      
+      // Add event listener to the Got It button
+      document.getElementById('gotItBtn')?.addEventListener('click', () => {
+        keyboardHints.classList.add('fade-out');
+        setTimeout(() => {
+          keyboardHints.remove();
+        }, 300);
+        // Remember that we've shown the hints for this session
+        sessionStorage.setItem('keyboardHintsShown', 'true');
+      });
+      
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        if (document.body.contains(keyboardHints)) {
+          keyboardHints.classList.add('fade-out');
+          setTimeout(() => {
+            if (document.body.contains(keyboardHints)) {
+              keyboardHints.remove();
+            }
+          }, 300);
+        }
+      }, 15000);
+    }
+    
+    // Check if URL has print-pdf parameter
+    const isPrintMode = window.location.search.includes('print-pdf');
+    if (isPrintMode) {
+      loggingService.info('Detected print-pdf in URL, checking subscription status', null, 'viewer');
+      
+      // Check subscription status first
+      const hasPro = await configManager.hasPro();
+      
+      if (!hasPro) {
+        // User doesn't have PRO, show upgrade message
+        loggingService.warn('Non-PRO user attempted to access PDF export', null, 'viewer');
+        
+        // Create a subscription required notice
+        const proRequiredNotice = document.createElement('div');
+        proRequiredNotice.className = 'print-back-notice pro-required-notice';
+        proRequiredNotice.innerHTML = `
+          <div class="print-notice-content">
+            <h3>PRO Subscription Required</h3>
+            <p>PDF export is a PRO feature. Please upgrade to access this feature.</p>
+            <button id="upgradeBtn">Upgrade to PRO</button>
+            <button id="backToPresentationBtn" style="margin-left: 8px; background-color: #f5f5f5; color: #333;">Back to Presentation</button>
+          </div>
+        `;
+        document.body.appendChild(proRequiredNotice);
+        
+        // Add event listeners to buttons
+        document.getElementById('upgradeBtn')?.addEventListener('click', () => {
+          window.open(`${WEB_URL}/subscription`, '_blank');
+        });
+        
+        document.getElementById('backToPresentationBtn')?.addEventListener('click', () => {
+          // Remove print-pdf from URL and reload
+          const url = new URL(window.location.href);
+          url.searchParams.delete('print-pdf');
+          window.location.href = url.toString();
+        });
+        
+        // Don't proceed with printing
+        return;
+      }
+      
+      // User has PRO, proceed with print mode
+      loggingService.info('PRO user confirmed, preparing for PDF export', null, 'viewer');
+      
+      // Create a "Back to Presentation" notice that won't be printed
+      const backNotice = document.createElement('div');
+      backNotice.className = 'print-back-notice';
+      backNotice.innerHTML = `
+        <div class="print-notice-content">
+          <h3>Print Mode</h3>
+          <p>After printing completes or if you cancel, click the button below to return to your presentation.</p>
+          <button id="backToPresentationBtn">Back to Presentation</button>
+        </div>
+      `;
+      document.body.appendChild(backNotice);
+      
+      // Add event listener to the back button
+      document.getElementById('backToPresentationBtn')?.addEventListener('click', () => {
+        // Remove print-pdf from URL and reload
+        const url = new URL(window.location.href);
+        url.searchParams.delete('print-pdf');
+        window.location.href = url.toString();
+      });
+      
+      // Wait a moment for the page to fully render for printing
+      setTimeout(() => {
+        window.print();
+      }, 1500);
+    }
   } catch (error) {
     // Log the error
     loggingService.error('Viewer initialization failed', {
