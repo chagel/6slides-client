@@ -253,48 +253,9 @@ button:hover {
 }
 
 /* Settings specific styles */
-.setting-section {
-  background-color: white;
-  border-radius: 4px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
+/* Removed settings styles - now in common.css */
 
-.setting-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.setting-row:last-child {
-  border-bottom: none;
-}
-
-.setting-label {
-  font-weight: 500;
-}
-
-.setting-description {
-  color: #666;
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-.setting-control {
-  min-width: 150px;
-}
-
-select, input {
-  padding: 8px;
-  border-radius: 3px;
-  border: 1px solid var(--border-color);
-  font-family: inherit;
-  font-size: 14px;
-  width: 100%;
-}
+/* Removed setting-control styling - now in common.css */
 
 /* About specific styles */
 .about-section {

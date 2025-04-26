@@ -159,89 +159,16 @@ button:hover {
 /* Settings specific styles */
 /* Setting section styles now combined with about-section and help-section */
 
-.setting-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-  width: 100%;
-  box-sizing: border-box;
-}
+/* Removed settings styles - now in common.css */
 
-.setting-row:last-child {
-  border-bottom: none;
-}
+/* Removed subscription-badge.pro styling - now in common.css */
 
-.setting-label {
-  font-weight: 500;
-}
+/* Removed PRO feature styles - now in common.css */
 
-.setting-description {
-  color: #666;
-  font-size: 13px;
-  margin-top: 2px;
-}
+/* Removed select/input styling - now in common.css */
 
-.setting-control {
-  min-width: 150px;
-}
-
-/* PRO feature styles */
-.pro-feature .setting-label {
-  display: flex;
-  align-items: center;
-}
-
-.subscription-badge.pro {
-  background-color: #7C63F6;
-  color: white;
-  border-radius: 4px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.pro-feature select:disabled {
-  background-color: #f8f9fa;
-  color: #999;
-  border-color: #e2e8f0;
-  cursor: not-allowed;
-}
-
-.pro-upgrade-notice {
-  font-size: 11px;
-  color: #7C63F6;
-  margin-top: 5px;
-}
-
-.pro-feature-enabled {
-  background-color: rgba(124, 99, 246, 0.04);
-  border-radius: 4px;
-  padding: 12px 15px;
-  margin: 10px 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.pro-feature-disabled {
-  opacity: 0.85;
-}
-
-select, input {
-  padding: 8px;
-  border-radius: 3px;
-  border: 1px solid var(--border-color);
-  font-family: inherit;
-  font-size: 14px;
-  width: 100%;
-}
-
-/* About specific styles */
+/* About specific styles - base styling moved to common.css */
 .about-section, .setting-section, .help-section, .developer-section {
-  background-color: white;
-  border-radius: 4px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   width: 860px; /* 900px - 20px padding on each side */
   box-sizing: border-box;
   max-width: 860px;
