@@ -3,8 +3,10 @@ import { getService } from './services/dependency_container';
 import { ExtractionResult } from './controllers/content_controller';
 import { Slide } from './types/index';
 import './services/service_registry';
+import { loggingService } from './services/logging_service';
 
 async function extractContent(): Promise<Slide[]> {
+  loggingService.debug('Extracting content from the page', null, 'content_script');
   try {
     const controller = getService('content_controller');
     const result = await controller.extractContent(document, window.location.href) as ExtractionResult;
@@ -25,6 +27,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
   
   messagingService.addMessageListener((message: {action: string, [key: string]: any}) => {
     if (message.action === 'ping') {
+      loggingService.debug('Content script ping received', null, 'content_script');
       return { status: 'content_script_ready' };
     }
     

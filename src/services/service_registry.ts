@@ -33,7 +33,7 @@ export function registerServices(): void {
   loggingService.initialize({
     debugEnabled: true, 
     prefix: '[Six Slides]',
-    maxStoredLogs: 500
+    maxStoredLogs: 1000
   });
   
   // Register content_controller directly instead of the factory function

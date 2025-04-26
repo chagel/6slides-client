@@ -172,6 +172,7 @@ class PopupController {
         chrome.tabs.sendMessage(tab.id as number, { action: 'ping' }, response => {
           // Check for runtime error (happens when content script is not loaded)
           if (chrome.runtime.lastError || !response) {
+            loggingService.warn('Content script not loaded, injecting...', null, 'popup');
             // Script not loaded, try to inject it
             chrome.scripting.executeScript({
               target: { tabId: tab.id as number },
@@ -501,6 +502,7 @@ class PopupController {
    * Shows/hides the appropriate login UI elements based on login status
    */
   private async updateLoginStatus(): Promise<void> {
+    loggingService.debug('Begin updating login status', null, 'popup');
     try {
       // Get account section elements
       const accountSection = document.getElementById('account-status');
@@ -638,6 +640,7 @@ class PopupController {
    * Check the current page and update UI accordingly
    */
   private async checkCurrentPage(): Promise<void> {
+    loggingService.debug('Checking current page for compatibility', null, 'popup');
     try {
       // Update subscription badge and login status (async now)
       await Promise.all([

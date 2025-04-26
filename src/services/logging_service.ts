@@ -65,7 +65,7 @@ class LoggingService {
     this._debugEnabled = true;  // Debug-level logging enabled for development
     this._logLevel = LogLevel.DEBUG;
     this._prefix = '[Six Slides]';
-    this._maxStoredLogs = 100;    // Maximum number of logs to keep in storage
+    this._maxStoredLogs = 10000;    // Maximum number of logs to keep in storage
   }
 
   /**
@@ -395,17 +395,6 @@ class LoggingService {
       if (typeof chrome !== 'undefined' && chrome.storage) {
         chrome.storage.local.get(['logs'], (result) => {
           let logs: LogEntry[] = result.logs || [];
-          
-          // Apply filters
-          if (options.level) {
-            logs = logs.filter((log: LogEntry) => log.level === options.level);
-          }
-          
-          if (options.context) {
-            logs = logs.filter((log: LogEntry) => 
-              log.metadata && log.metadata.context === options.context
-            );
-          }
           
           // Sort by timestamp (newest first)
           logs.sort((a: LogEntry, b: LogEntry) => {

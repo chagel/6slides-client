@@ -98,11 +98,13 @@ Most stories are best told in 6 slides - but if yours needs more room, consider 
    * @returns Extraction result with slides or error
    */
   async extractContent(document: Document, url: string): Promise<ExtractionResult> {
+    loggingService.debug('Extracting content from the page', url, 'content_extraction');
     try {
       // Detect content source
       const sourceType = source_manager.detectSource(document, url);
       
       if (!sourceType) {
+        loggingService.error('Unsupported content source', { url }, 'content_extraction');
         return {
           error: 'Unsupported content source. Please use a Notion page or Markdown file.',
           sourceType: null
@@ -116,6 +118,7 @@ Most stories are best told in 6 slides - but if yours needs more room, consider 
       const rawSlides = extractor.extract();
       
       if (!rawSlides || rawSlides.length === 0) {
+        loggingService.error('No slides found', { url, sourceType }, 'content_extraction');
         return {
           error: 'No slides found. Make sure your page has at least one H1 heading.',
           sourceType
@@ -130,6 +133,8 @@ Most stories are best told in 6 slides - but if yours needs more room, consider 
       
       // Process content to normalize it
       const processedSlides = content_processor.process(slidesWithSourceType);
+
+      loggingService.debug('Processed slides', { processedSlides }, 'content_extraction');
       
       // Ensure all slides have required properties and preserve subslides
       const validSlides = processedSlides.map(slide => {
@@ -154,20 +159,25 @@ Most stories are best told in 6 slides - but if yours needs more room, consider 
         
         return validSlide;
       });
+
+      loggingService.debug('Valid slides', { validSlides }, 'content_extraction');
       
       // Apply the single, authoritative slide limit
       const limitedSlides = await this.applyFreeUserSlideLimit(validSlides);
-      
+
+      loggingService.debug('Limited slides', { limitedSlides }, 'content_extraction');
       // Create a domain presentation model
       const presentation = Presentation.fromSlides(limitedSlides, sourceType.toString());
       
+      loggingService.debug('Created presentation model', { presentation }, 'content_extraction');
+
       // Clear existing slides and save the new ones
       // This ensures no "upgrade" slides remain in storage from previous extractions
       await storage.clearSlides();
       await storage.saveSlides(presentation.toObject().slides);
       
       // Log debug info
-      loggingService.debug('Content extraction complete', {
+      loggingService.debug('Content extraction complete and slides are saved', {
         sourceType: sourceType.toString(),
         url,
         slideCount: presentation.slideCount,
