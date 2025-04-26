@@ -6,28 +6,29 @@
   --content-font: inherit;
 }
 
-/* Only apply custom fonts when explicitly selected */
-.custom-fonts-active .reveal h1,
-.custom-fonts-active .reveal h2,
-.custom-fonts-active .reveal h3,
-.custom-fonts-active .reveal h4,
-.custom-fonts-active .reveal h5,
-.custom-fonts-active .reveal h6 {
-  font-family: var(--heading-font) !important;
+/* Custom heading font styling */
+.custom-heading-font .reveal h1,
+.custom-heading-font .reveal h2,
+.custom-heading-font .reveal h3,
+.custom-heading-font .reveal h4,
+.custom-heading-font .reveal h5,
+.custom-heading-font .reveal h6 {
+  font-family: var(--heading-font, inherit) !important;
 }
 
-.custom-fonts-active .reveal,
-.custom-fonts-active .reveal p,
-.custom-fonts-active .reveal div,
-.custom-fonts-active .reveal span,
-.custom-fonts-active .reveal ul,
-.custom-fonts-active .reveal ol,
-.custom-fonts-active .reveal li,
-.custom-fonts-active .reveal blockquote,
-.custom-fonts-active .reveal table,
-.custom-fonts-active .reveal td, 
-.custom-fonts-active .reveal th {
-  font-family: var(--content-font) !important;
+/* Custom content font styling */
+.custom-content-font .reveal,
+.custom-content-font .reveal p,
+.custom-content-font .reveal div,
+.custom-content-font .reveal span,
+.custom-content-font .reveal ul,
+.custom-content-font .reveal ol,
+.custom-content-font .reveal li,
+.custom-content-font .reveal blockquote,
+.custom-content-font .reveal table,
+.custom-content-font .reveal td, 
+.custom-content-font .reveal th {
+  font-family: var(--content-font, inherit) !important;
 }
 
 /* Logo container styles */

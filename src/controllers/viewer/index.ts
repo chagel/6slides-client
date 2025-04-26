@@ -25,8 +25,16 @@ const WEB_URL = process.env.WEB_URL || 'https://6slides.com';
  */
 async function applyCustomFonts(headingFont?: string, contentFont?: string, theme?: string): Promise<void> {
   try {
-    // Remove custom fonts class if it exists
-    document.body.classList.remove('custom-fonts-active');
+    // Load any web fonts required by the theme
+    if (theme && PREMIUM_THEMES.includes(theme) && THEMES_WITH_WEB_FONTS[theme]) {
+      for (const fontKey of THEMES_WITH_WEB_FONTS[theme]) {
+        loadFontIfNeeded(fontKey, 'viewer');
+        loggingService.debug(`Loaded theme font: ${fontKey} for theme: ${theme}`, null, 'viewer');
+      }
+    }
+    
+    // Remove all custom font classes to start with default theme fonts
+    document.body.classList.remove('custom-heading-font', 'custom-content-font');
     
     // For default fonts, let the theme's built-in styles take precedence
     if ((!headingFont || headingFont === 'default') && 
@@ -36,41 +44,37 @@ async function applyCustomFonts(headingFont?: string, contentFont?: string, them
       document.documentElement.style.removeProperty('--heading-font');
       document.documentElement.style.removeProperty('--content-font');
       
-      // Load any web fonts required by the theme
-      if (theme && PREMIUM_THEMES.includes(theme) && THEMES_WITH_WEB_FONTS[theme]) {
-        for (const fontKey of THEMES_WITH_WEB_FONTS[theme]) {
-          loadFontIfNeeded(fontKey, 'viewer');
-          loggingService.debug(`Loaded theme font: ${fontKey} for theme: ${theme}`, null, 'viewer');
-        }
-      }
-      
       loggingService.debug(`Using theme default fonts for: ${theme || 'default'}`, null, 'viewer');
       return;
     }
 
-    // Custom fonts are being used - add the class
-    document.body.classList.add('custom-fonts-active');
+    // Process each font type independently
+    const customHeadingFont = headingFont && headingFont !== 'default';
+    const customContentFont = contentFont && contentFont !== 'default';
     
-    loggingService.debug(`Applying custom fonts: headings=${headingFont}, content=${contentFont}`, null, 'viewer');
-    
-    // Load fonts if needed
-    if (headingFont && headingFont !== 'default') {
-      loadFontIfNeeded(headingFont, 'viewer');
+    // Handle heading font if customized
+    if (customHeadingFont) {
+      loadFontIfNeeded(headingFont as string, 'viewer');
+      const headingFontFamily = getFontFamily(headingFont as string);
+      document.documentElement.style.setProperty('--heading-font', headingFontFamily || 'inherit');
+      document.body.classList.add('custom-heading-font');
+      loggingService.debug(`Applied custom heading font: ${headingFont}`, null, 'viewer');
+    } else {
+      document.documentElement.style.removeProperty('--heading-font');
     }
     
-    if (contentFont && contentFont !== 'default') {
-      loadFontIfNeeded(contentFont, 'viewer');
+    // Handle content font if customized
+    if (customContentFont) {
+      loadFontIfNeeded(contentFont as string, 'viewer');
+      const contentFontFamily = getFontFamily(contentFont as string);
+      document.documentElement.style.setProperty('--content-font', contentFontFamily || 'inherit');
+      document.body.classList.add('custom-content-font');
+      loggingService.debug(`Applied custom content font: ${contentFont}`, null, 'viewer');
+    } else {
+      document.documentElement.style.removeProperty('--content-font');
     }
     
-    // Get font families
-    const headingFontFamily = getFontFamily(headingFont || '');
-    const contentFontFamily = getFontFamily(contentFont || '');
-    
-    // Apply styles via CSS variables
-    document.documentElement.style.setProperty('--heading-font', headingFontFamily || 'inherit');
-    document.documentElement.style.setProperty('--content-font', contentFontFamily || 'inherit');
-    
-    loggingService.debug('Custom fonts applied with custom-fonts-active class', null, 'viewer');
+    loggingService.debug(`Font customization complete: headings=${customHeadingFont ? headingFont : 'theme default'}, content=${customContentFont ? contentFont : 'theme default'}`, null, 'viewer');
   } catch (error) {
     loggingService.error('Failed to apply custom fonts', error, 'viewer');
   }

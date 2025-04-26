@@ -28,7 +28,7 @@ export class KeyboardHints {
       <div class="hints-content">
         <h3>Keyboard Controls</h3>
         <ul>
-          <li><span class="key">&rightarrow;</span> / <span class="key">Space</span> Next slide</li>
+          <li><span class="key">&rightarrow;</span> or &nbsp;<span class="key">Space</span> Next slide</li>
           <li><span class="key">&leftarrow;</span> Previous slide</li>
           <li><span class="key">&downarrow;</span> Next vertical slide</li>
           <li><span class="key">&uparrow;</span> Previous vertical slide</li>
