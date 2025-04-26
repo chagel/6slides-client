@@ -33,6 +33,7 @@ export interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
+  sequence?: number;
   errorMessage?: string;
   stack?: string;
   errorProps?: Record<string, unknown>;
@@ -58,6 +59,9 @@ class LoggingService {
   private _logLevel: LogLevel;
   private _prefix: string;
   private _maxStoredLogs: number;
+  private _sequenceCounter: number = 0;
+  private _logQueue: LogEntry[] = [];
+  private _isProcessingQueue: boolean = false;
 
   constructor() {
     // Default configuration
@@ -302,8 +306,8 @@ class LoggingService {
   }
 
   /**
-   * Store a log entry using chrome.storage.local
-   * @param logEntry - Log entry to store
+   * Add a log entry to the processing queue
+   * @param logEntry - Log entry to queue
    * @private
    */
   private _storeLog(logEntry: LogEntry): void {
@@ -311,9 +315,40 @@ class LoggingService {
       // Ensure the entry has a timestamp
       logEntry.timestamp = logEntry.timestamp || new Date().toISOString();
       
-      // Generate a unique ID for the log entry
-      const id = `log_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      // Assign a sequence number
+      logEntry.sequence = ++this._sequenceCounter;
       
+      // Add to queue
+      this._logQueue.push(logEntry);
+      
+      // Process the queue if not already processing
+      if (!this._isProcessingQueue) {
+        this._processLogQueue();
+      }
+    } catch (_) {
+      console.error('Error queuing log entry', _);
+    }
+  }
+  
+  /**
+   * Process the log queue in sequence
+   * @private
+   */
+  private _processLogQueue(): void {
+    if (this._logQueue.length === 0) {
+      this._isProcessingQueue = false;
+      return;
+    }
+    
+    this._isProcessingQueue = true;
+    
+    // Take the next log entry
+    const logEntry = this._logQueue[0];
+    
+    // Generate a unique ID for the log entry
+    const id = `log_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    try {
       // Use chrome.storage.local to store the log
       if (typeof chrome !== 'undefined' && chrome.storage) {
         // First, get existing logs
@@ -333,12 +368,24 @@ class LoggingService {
           
           // Save back to storage
           chrome.storage.local.set({ logs }, () => {
-            // Errors handled silently - this is the logging system itself
+            // Remove the processed entry from the queue
+            this._logQueue.shift();
+            
+            // Continue processing the queue
+            setTimeout(() => this._processLogQueue(), 0);
           });
         });
+      } else {
+        // If chrome storage is not available, just remove from queue and continue
+        this._logQueue.shift();
+        setTimeout(() => this._processLogQueue(), 0);
       }
     } catch (_) {
-      // No further logging here to avoid potential infinite loops
+      console.error('Error storing log entry', _);
+      
+      // On error, remove from queue and continue
+      this._logQueue.shift();
+      setTimeout(() => this._processLogQueue(), 0);
     }
   }
 
@@ -396,8 +443,14 @@ class LoggingService {
         chrome.storage.local.get(['logs'], (result) => {
           let logs: LogEntry[] = result.logs || [];
           
-          // Sort by timestamp (newest first)
+          // Sort by sequence number if available, otherwise fall back to timestamp
           logs.sort((a: LogEntry, b: LogEntry) => {
+            // If both have sequence numbers, use those
+            if (a.sequence !== undefined && b.sequence !== undefined) {
+              return b.sequence - a.sequence; // Higher sequence = newer
+            }
+            
+            // Fall back to timestamp if sequence unavailable
             const aTime = a.timestamp || '';
             const bTime = b.timestamp || '';
             return bTime.localeCompare(aTime);

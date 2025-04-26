@@ -16,6 +16,7 @@ function openViewer(): Promise<{success: boolean}> {
 // Handle authentication request
 async function handleAuth(request: any): Promise<any> {
   loggingService.debug('Auth request received in worker', { authAction: request?.authAction }, 'service_worker');
+  console.debug('Auth request received in worker', { authAction: request?.authAction });
   
   try {
     switch (request.authAction) {
@@ -38,6 +39,7 @@ async function handleAuth(request: any): Promise<any> {
         const subscription = await configManager.getSubscription();
         
         loggingService.debug('Auth check', { isLoggedIn, subscription: subscription?.level }, 'service_worker');
+        console.debug('Auth check', { isLoggedIn, subscription: subscription?.level });
         return { 
           isLoggedIn, 
           currentUser,
