@@ -159,50 +159,16 @@ button:hover {
 /* Settings specific styles */
 /* Setting section styles now combined with about-section and help-section */
 
-.setting-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-  width: 100%;
-  box-sizing: border-box;
-}
+/* Removed settings styles - now in common.css */
 
-.setting-row:last-child {
-  border-bottom: none;
-}
+/* Removed subscription-badge.pro styling - now in common.css */
 
-.setting-label {
-  font-weight: 500;
-}
+/* Removed PRO feature styles - now in common.css */
 
-.setting-description {
-  color: #666;
-  font-size: 13px;
-  margin-top: 2px;
-}
+/* Removed select/input styling - now in common.css */
 
-.setting-control {
-  min-width: 150px;
-}
-
-select, input {
-  padding: 8px;
-  border-radius: 3px;
-  border: 1px solid var(--border-color);
-  font-family: inherit;
-  font-size: 14px;
-  width: 100%;
-}
-
-/* About specific styles */
+/* About specific styles - base styling moved to common.css */
 .about-section, .setting-section, .help-section, .developer-section {
-  background-color: white;
-  border-radius: 4px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   width: 860px; /* 900px - 20px padding on each side */
   box-sizing: border-box;
   max-width: 860px;
@@ -625,6 +591,8 @@ select, input {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
+
+/* Legacy styles for backwards compatibility */
 .help-item {
   margin-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
@@ -644,7 +612,7 @@ select, input {
   color: #444;
 }
 
-/* Tab styles */
+/* Tab styles (kept for compatibility with other pages) */
 .help-tabs {
   margin-bottom: 30px;
   width: 100%;

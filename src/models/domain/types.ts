@@ -73,5 +73,7 @@ export interface PresentationSettings {
   slideNumber?: string | boolean;
   controls?: boolean;
   progress?: boolean;
+  headingFont?: string; // Font for slide titles and headings
+  contentFont?: string; // Font for slide content and body text
   [key: string]: any;
 }

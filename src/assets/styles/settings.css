@@ -24,48 +24,9 @@ h2 {
   margin-bottom: 10px;
 }
 
-.setting-section {
-  background-color: #f7f6f3;
-  border-radius: 4px;
-  padding: 15px;
-  margin-bottom: 20px;
-}
+/* Removed settings styles - now in common.css */
 
-.setting-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.setting-row:last-child {
-  border-bottom: none;
-}
-
-.setting-label {
-  font-weight: 500;
-}
-
-.setting-description {
-  color: #666;
-  font-size: 13px;
-  margin-top: 2px;
-  margin-bottom: 8px;
-}
-
-.setting-control {
-  min-width: 120px;
-}
-
-select, input {
-  padding: 6px;
-  border-radius: 3px;
-  border: 1px solid #ddd;
-  font-family: inherit;
-  font-size: 14px;
-  width: 100%;
-}
+/* Removed select/input styling - now in common.css */
 
 button {
   padding: 8px 16px;
@@ -110,7 +71,9 @@ button:hover {
   margin-bottom: 15px;
 }
 
-/* Removed subscription badge styles - using common.css instead */
+/* Removed save status styling - now in common.css */
+
+/* Removed PRO badge styles - now in common.css */
 
 .subscription-limits {
   flex-grow: 1;

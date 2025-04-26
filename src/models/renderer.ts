@@ -243,11 +243,17 @@ export class PresentationRenderer {
     const transition = settings.transition || 'slide';
     const slideNumber = settings.slideNumber === 'true';
     const center = settings.center !== 'false' ? 'true' : 'false';
+    const headingFont = settings.headingFont || 'default';
+    const contentFont = settings.contentFont || 'default';
     
     // Set the theme
     const themeStylesheet = document.getElementById('theme-stylesheet') as HTMLLinkElement;
     if (themeStylesheet) {
       themeStylesheet.href = `lib/reveal.js/theme/${theme}.css`;
+      
+      // Add theme class to body for additional theme-specific styling
+      document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
+      document.body.classList.add(`theme-${theme}`);
     }
     
     // Configure and initialize reveal.js
@@ -307,4 +313,6 @@ export class PresentationRenderer {
     
     Reveal.initialize({ controls: true });
   }
+  
+  /* Custom fonts handling moved to viewer/index.ts */
 }

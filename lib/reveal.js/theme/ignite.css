@@ -35,7 +35,8 @@ body {
 }
 
 .reveal {
-  font-family:      "Source Sans Pro", Helvetica, sans-serif;
+  /* Roboto for startup/tech presentations */
+  font-family:      "Roboto", "Open Sans", Helvetica, sans-serif;
   font-size:        42px;
   color:            var(--text);
   background-color: var(--base);
@@ -50,6 +51,23 @@ body {
   line-height:      1.3;
   color:            var(--text);
   background-color: transparent;
+}
+
+/* Heading styles */
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  /* Montserrat for impactful startup headings */
+  font-family:     "Montserrat", sans-serif;
+  font-weight:     600;
+  line-height:     1.2;
+  letter-spacing:  normal;
+  margin:          0 0 20px 0;
+  text-transform:  none;
+  word-wrap:       break-word;
 }
 
 .reveal h1 {

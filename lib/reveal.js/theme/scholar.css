@@ -35,7 +35,8 @@ body {
 }
 
 .reveal {
-  font-family:      "Source Sans Pro", Helvetica, sans-serif;
+  /* Calibri for academic presentations - readable at smaller sizes */
+  font-family:      "Calibri", "Segoe UI", sans-serif;
   font-size:        42px;
   color:            var(--text);
   background-color: var(--base);
@@ -50,6 +51,23 @@ body {
   line-height:      1.3;
   color:            var(--text);
   background-color: transparent;
+}
+
+/* Heading styles */
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  /* Georgia for scholarly, authoritative headings */
+  font-family:     "Georgia", serif;
+  font-weight:     600;
+  line-height:     1.2;
+  letter-spacing:  normal;
+  margin:          0 0 20px 0;
+  text-transform:  none;
+  word-wrap:       break-word;
 }
 
 .reveal h1 {

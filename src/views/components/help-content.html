@@ -9,14 +9,9 @@
   </div>
 
   <div class="help-section">
-    <!-- Tab navigation system -->
-    <div class="tab-container">
-      <div class="tab-nav">
-        <button class="tab-button active" data-tab="instructions">Instructions</button>
-        <button class="tab-button" data-tab="faq">FAQ</button>
-      </div>
-      
-      <div id="instructions" class="tab-content active">
+    <div class="content-container">
+      <!-- Instructions Section -->
+      <div class="help-item">
         <h2>Instructions</h2>
         <p>Your Notion page must use this structure:</p>
         <ul>
@@ -27,126 +22,45 @@
           <li>Lines starting with - or * become bullet points</li>
           <li>Regular text becomes paragraphs</li>
         </ul>
+        <p>Check out this <a href="https://gchen.notion.site/Why-Six-Slides-1e02dc134fb780c2b31bed433cf282ef?pvs=4" target="_blank">Notion page</a> for a detailed example.</p>
         
-        <h3>Example Format</h3>
-        <div style="background-color: #f0f0f0; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-line; margin-top: 10px; margin-bottom: 15px; font-size: 14px;">
-# Slide 1 Title
-This paragraph will appear on slide 1.
-- This is a bullet point on slide 1
-- Another bullet on slide 1
-
-## First Subslide
-This creates a vertical subslide under Slide 1.
-- Content for the first subslide
-
-## Second Subslide
-More content for another subslide...
-
-# Slide 2 Title
-This paragraph will appear on slide 2.
-- Bullet on slide 2
-
-```
-// Some code block
-function helloWorld() {
-  console.log("Hello from slide 2!");
-}
-```
-
-# Slide 3 Title
-> This is a quote block on slide 3
-
-### Subsection on Slide 3
-Final slide content...
-        </div>
-        
+      </div>
+      
+      <!-- Supported Blocks Section -->
+      <div class="help-item">
         <h3>Supported Notion Blocks</h3>
         <ul>
-          <li>Code blocks (left-aligned for better readability)</li>
+          <li>Code blocks</li>
           <li>Quote blocks</li>
-          <li>Images (with captions)</li>
+          <li>Images</li>
           <li>Tables</li>
           <li>Bullet points and numbered lists</li>
           <li>Others</li>
         </ul>
-        
-        <h3>How to Use</h3>
-        <ol>
-          <li>Navigate to a Notion page</li>
-          <li>Click the extension icon</li>
-          <li>Click "Present"</li>
-          <li>The slides will open in the current tab</li>
-        </ol>
       </div>
       
-      <div id="faq" class="tab-content">
-        <h2>Frequently Asked Questions</h2>
+      <!-- How to Report Issues Section -->
+      <div class="help-item">
+        <h3>How to Report Issues</h3>
+        <p>If you encounter any problems or have suggestions for improving Six Slides:</p>
         
-        <div class="help-item">
-          <div class="help-question">Why isn't my Notion page converting correctly?</div>
-          <div class="help-answer">
-            <p>Make sure your Notion page follows the template format:</p>
-            <ul>
-              <li>Each H1 heading creates a new slide</li>
-              <li>H2 headings create vertical subslides</li>
-              <li>You need at least one H1 heading to generate slides</li>
-              <li>Check if you have proper permissions for the Notion page</li>
-            </ul>
-          </div>
-        </div>
+        <h4>Option 1: Email Support</h4>
+        <ol>
+          <li>Email us at <a href="mailto:support@6slides.com">support@6slides.com</a> with details about the issue(and your subscription account if any)</li>
+          <li>Include steps to reproduce the problem if possible</li>
+          <li>Mention which browser and version you're using</li>
+          <li>For feature requests, describe the functionality you'd like to see</li>
+        </ol>
         
-        <div class="help-item">
-          <div class="help-question">How do vertical subslides work?</div>
-          <div class="help-answer">
-            <p>Vertical subslides let you organize related content under a main slide:</p>
-            <ul>
-              <li>Add H2 headings between your H1 slide headings</li>
-              <li>Each H2 becomes a vertical subslide under the previous H1</li>
-              <li>Navigate between subslides using the down/up arrow keys</li>
-              <li>Perfect for organizing detailed information under a main topic</li>
-            </ul>
-          </div>
-        </div>
+        <h4>Option 2: Use Debug Mode</h4>
+        <ol>
+          <li>Go to the About page and enable Debug Mode in the Developer section</li>
+          <li>Reproduce the issue you're experiencing</li>
+          <li>Click the expand button on the sidebar to view debug logs</li>
+          <li>Click the "Report" button to automatically send logs and issue details</li>
+        </ol>
         
-        <div class="help-item">
-          <div class="help-question">How do I customize my presentation?</div>
-          <div class="help-answer">
-            <p>You can customize your presentation in several ways:</p>
-            <ul>
-              <li>Visit the Settings page to change the theme, transitions, and more</li>
-              <li>Use Markdown formatting in your Notion page for text styling</li>
-              <li>Add images and other rich content in Notion</li>
-            </ul>
-          </div>
-        </div>
-        
-        <div class="help-item">
-          <div class="help-question">What's new in version 1.1.0?</div>
-          <div class="help-answer">
-            <p>We've made several improvements to enhance your presentation experience:</p>
-            <ul>
-              <li>Added vertical subslides support using H2 headings</li>
-              <li>Improved code block formatting with left-aligned text</li>
-              <li>Removed horizontal dividers for cleaner slides</li>
-              <li>Simplified bullet point handling</li>
-              <li>Enhanced overall performance and reliability</li>
-            </ul>
-          </div>
-        </div>
-        
-        <div class="help-item">
-          <div class="help-question">Is my data secure?</div>
-          <div class="help-answer">
-            <p>Yes! Six Slides processes everything locally in your browser. No data is sent to external servers or stored anywhere except in your browser's local storage.</p>
-          </div>
-        </div>
-        
-        <div class="help-item">
-          <div class="help-question">How do I report a bug or request a feature?</div>
-          <div class="help-answer">
-            <p>Please email us at <a href="mailto:support@6slides.com">support@6slides.com</a> with any bugs, feature requests, or feedback. We're constantly working to improve the extension!</p>
-          </div>
-        </div>
+        <p>We value your feedback and are committed to making Six Slides better with each update!</p>
       </div>
     </div>
   </div>

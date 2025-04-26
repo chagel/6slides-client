@@ -1,5 +1,36 @@
 /* Viewer styles for Six Slides */
 
+/* Font variables - only used when custom fonts are selected */
+:root {
+  --heading-font: inherit;
+  --content-font: inherit;
+}
+
+/* Custom heading font styling */
+.custom-heading-font .reveal h1,
+.custom-heading-font .reveal h2,
+.custom-heading-font .reveal h3,
+.custom-heading-font .reveal h4,
+.custom-heading-font .reveal h5,
+.custom-heading-font .reveal h6 {
+  font-family: var(--heading-font, inherit) !important;
+}
+
+/* Custom content font styling */
+.custom-content-font .reveal,
+.custom-content-font .reveal p,
+.custom-content-font .reveal div,
+.custom-content-font .reveal span,
+.custom-content-font .reveal ul,
+.custom-content-font .reveal ol,
+.custom-content-font .reveal li,
+.custom-content-font .reveal blockquote,
+.custom-content-font .reveal table,
+.custom-content-font .reveal td, 
+.custom-content-font .reveal th {
+  font-family: var(--content-font, inherit) !important;
+}
+
 /* Logo container styles */
 .logo-container {
   position: fixed;

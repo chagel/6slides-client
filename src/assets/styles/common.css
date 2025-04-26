@@ -106,3 +106,128 @@ button:disabled {
   margin-left: 3px;
   text-transform: uppercase;
 }
+
+/* Settings styles - consolidated from sidebar.css, about.css, and settings.css */
+.setting-section, 
+.about-section, 
+.help-section, 
+.developer-section {
+  background-color: white;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.setting-row:last-child {
+  border-bottom: none;
+}
+
+.setting-row > div:first-child {
+  flex: 1;
+  padding-right: 20px;
+}
+
+.setting-label {
+  font-weight: 500;
+}
+
+.setting-description {
+  color: #666;
+  font-size: 13px;
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+.setting-control {
+  min-width: 250px;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* PRO feature styles */
+.pro-feature .setting-label {
+  display: flex;
+  align-items: center;
+}
+
+.setting-label .subscription-badge.pro {
+  font-size: 9px;
+  padding: 2px 6px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+.pro-feature select:disabled {
+  background-color: #f8f9fa;
+  color: #999;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+/* Removed pro-feature-enabled as requested */
+
+.pro-feature-disabled {
+  opacity: 0.85;
+}
+
+/* Ensure all selects are left-aligned */
+select {
+  text-align: left !important;
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  font-family: inherit;
+  font-size: 14px;
+  width: 100%;
+}
+
+input {
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  font-family: inherit;
+  font-size: 14px;
+  width: 100%;
+}
+
+/* Save status styling */
+.save-status-container {
+  text-align: center;
+  margin: 10px 0 20px;
+}
+
+#saveStatus {
+  color: green;
+  display: none;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: rgba(0, 128, 0, 0.1);
+}
+
+/* Upgrade notice styling */
+.pro-upgrade-notice {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #7C63F6;
+  text-align: left;
+  padding-left: 1px;
+  width: 100%;
+}
+
+.pro-upgrade-notice a {
+  color: #7C63F6;
+  text-decoration: underline;
+}
