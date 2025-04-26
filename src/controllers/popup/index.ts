@@ -11,6 +11,7 @@ import { configManager } from '../../models/config_manager';
 import { authService } from '../../services/auth_service';
 import { Slide } from '../../types/index';
 import { showNotification } from '../../utils/notification';
+import { PdfExporter } from '../../models/pdf_exporter';
 
 /**
  * Response from content script
@@ -50,8 +51,8 @@ class PopupController {
    */
   constructor() {
     this.convertBtn = document.getElementById('convertBtn') as HTMLButtonElement;
-    this.exportBtn = document.getElementById('exportBtn');
-    this.customizeBtn = document.getElementById('customizeBtn');
+    this.exportBtn = document.getElementById('exportBtn') as HTMLButtonElement;
+    this.customizeBtn = document.getElementById('customizeBtn') as HTMLButtonElement;
     this.statusEl = document.getElementById('status') as HTMLElement;
     this.instructionsLink = document.getElementById('instructionsLink') as HTMLAnchorElement;
     this.settingsLink = document.getElementById('settingsLink') as HTMLAnchorElement;
@@ -426,37 +427,12 @@ class PopupController {
         return;
       }
       
-      // Create URL with print-pdf parameter and handle slide anchors properly
-      const url = new URL(tab.url || '');
-      
-      // Save any hash/anchor for slide position (like #/2/3)
-      const slideHash = url.hash;
-      
-      // Remove the hash for the redirection
-      url.hash = '';
-      
-      // Add print-pdf parameter
-      if (!url.searchParams.has('print-pdf')) {
-        url.searchParams.set('print-pdf', 'true');
-      }
-      
-      // Get the clean URL without slide position
-      let printUrl = url.toString();
-      
-      // Log the details for debugging
-      loggingService.debug('PDF export URL details', {
-        originalUrl: tab.url,
-        printUrl,
-        slideHash
-      }, 'popup');
-      
-      // Update the tab URL to include the print-pdf parameter
-      await chrome.tabs.update(tab.id, { url: printUrl });
+      // Redirect to PDF export mode
+      await PdfExporter.redirectToPdfMode(tab.id, tab.url || '');
       this.updateStatus('Opening print dialog...', 'ready');
       
-      // The print dialog will be automatically triggered by the viewer page
-      // which looks for the print-pdf parameter in the URL on load
-      loggingService.info('PDF export initiated', { url: printUrl }, 'popup');
+      // Log the export action
+      loggingService.info('PDF export initiated via popup', null, 'popup');
       
       // After a short delay, close the popup to get out of the way of the print dialog
       setTimeout(() => {

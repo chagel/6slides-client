@@ -35,7 +35,8 @@ body {
 }
 
 .reveal {
-  font-family:      "Source Sans Pro", Helvetica, sans-serif;
+  /* Helvetica Neue for executive boardroom style */
+  font-family:      "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size:        42px;
   font-weight:      normal;
   color:            var(--text);
@@ -61,7 +62,8 @@ body {
 .reveal h5,
 .reveal h6 {
   margin:           0 0 20px 0;
-  font-family:      "Source Sans Pro", Helvetica, sans-serif;
+  /* Using Segoe UI for headings with executive presence */
+  font-family:      "Segoe UI", Tahoma, Geneva, sans-serif;
   font-weight:      600;
   line-height:      1.2;
   letter-spacing:   normal;

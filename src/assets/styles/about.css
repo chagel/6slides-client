@@ -187,6 +187,45 @@ button:hover {
   min-width: 150px;
 }
 
+/* PRO feature styles */
+.pro-feature .setting-label {
+  display: flex;
+  align-items: center;
+}
+
+.subscription-badge.pro {
+  background-color: #7C63F6;
+  color: white;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pro-feature select:disabled {
+  background-color: #f8f9fa;
+  color: #999;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+.pro-upgrade-notice {
+  font-size: 11px;
+  color: #7C63F6;
+  margin-top: 5px;
+}
+
+.pro-feature-enabled {
+  background-color: rgba(124, 99, 246, 0.04);
+  border-radius: 4px;
+  padding: 12px 15px;
+  margin: 10px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.pro-feature-disabled {
+  opacity: 0.85;
+}
+
 select, input {
   padding: 8px;
   border-radius: 3px;
@@ -625,6 +664,8 @@ select, input {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
+
+/* Legacy styles for backwards compatibility */
 .help-item {
   margin-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
@@ -644,7 +685,7 @@ select, input {
   color: #444;
 }
 
-/* Tab styles */
+/* Tab styles (kept for compatibility with other pages) */
 .help-tabs {
   margin-bottom: 30px;
   width: 100%;
