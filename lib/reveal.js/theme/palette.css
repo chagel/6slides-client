@@ -160,6 +160,15 @@ body {
   margin:     0 0 0 1em;
   text-align: left;
 }
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display:      block;
+  margin-left:  40px;
+}
+
 .reveal ul li,
 .reveal ol li {
   margin-bottom: 0.5em;
