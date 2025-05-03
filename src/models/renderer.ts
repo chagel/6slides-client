@@ -243,8 +243,6 @@ export class PresentationRenderer {
     const transition = settings.transition || 'slide';
     const slideNumber = settings.slideNumber === 'true';
     const center = settings.center !== 'false' ? 'true' : 'false';
-    const headingFont = settings.headingFont || 'default';
-    const contentFont = settings.contentFont || 'default';
     
     // Set the theme
     const themeStylesheet = document.getElementById('theme-stylesheet') as HTMLLinkElement;
@@ -259,6 +257,7 @@ export class PresentationRenderer {
     // Configure and initialize reveal.js
     Reveal.initialize({
       // Presentation features
+      controlsTutorial: true,
       controls: true,
       progress: true,
       center: center === 'true',
@@ -314,5 +313,4 @@ export class PresentationRenderer {
     Reveal.initialize({ controls: true });
   }
   
-  /* Custom fonts handling moved to viewer/index.ts */
 }

@@ -16,6 +16,9 @@ export interface IHeadingExtractor {
 export interface IListExtractor {
   isList(element: Element): boolean;
   listToMarkdown(element: Element): string;
+  getIndentationLevel(element: Element): number;
+  isOrderedListItem(element: Element): boolean;
+  getDirectListText(element: Element): string;
 }
 
 /**

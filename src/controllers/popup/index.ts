@@ -45,7 +45,6 @@ class PopupController {
   private settingsLink: HTMLAnchorElement;
   private templateInfo: HTMLElement;
   private presentationStats: HTMLElement;
-  // No retry counter needed with recursive approach
   
   /**
    * Constructor for the popup controller
@@ -258,7 +257,6 @@ class PopupController {
         // Store slides
         await storage.saveSlides(response.slides);
 
-        // return; // debug breakpoint
         
         // Open viewer in the current tab
         if ((pageInfo.tab as chrome.tabs.Tab).id) {

@@ -77,7 +77,7 @@ class ContentProcessor {
       normalized.content = normalized.content
         .replace(/^(#+)(?!\s)/gm, '$1 '); // Ensure space after # in headings
       
-      // Standardize list formats
+      // Standardize list formats - preserve indentation for nested lists
       normalized.content = normalized.content
         .replace(/^(\s*)[*+-](?!\s)/gm, '$1- '); // Standardize list markers with space
     }

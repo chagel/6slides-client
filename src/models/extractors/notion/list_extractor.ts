@@ -7,13 +7,6 @@
 import { BaseExtractor } from '../base_extractor';
 import { IListExtractor } from './types';
 
-/**
- * List group interface 
- */
-interface ListGroup {
-  type: 'ordered' | 'unordered';
-  elements: Element[];
-}
 
 export class ListExtractor extends BaseExtractor implements IListExtractor {
   /**
@@ -22,37 +15,15 @@ export class ListExtractor extends BaseExtractor implements IListExtractor {
    * @returns True if element is a list
    */
   isList(element: Element): boolean {
-    // Check standard list elements
-    if (element.tagName === 'UL' || 
-        element.tagName === 'OL' || 
-        (element.className && (
-          this.hasClass(element, 'notion-bulleted_list-block') ||
-          this.hasClass(element, 'notion-numbered_list-block') ||
-          this.hasClass(element, 'notion-to_do-block') ||
-          this.hasClass(element, 'notion-toggle-block') ||
-          this.hasClass(element, 'notion-list-block')
-        ))) {
+    // Check Notion list block elements
+    if (element.className && (
+      this.hasClass(element, 'notion-bulleted_list-block') ||
+      this.hasClass(element, 'notion-numbered_list-block') ||
+      this.hasClass(element, 'notion-to_do-block') ||
+      this.hasClass(element, 'notion-toggle-block') ||
+      this.hasClass(element, 'notion-list-block')
+    )) {
       return true;
-    }
-    
-    // Also check paragraph-like elements that might contain list items
-    if (element.tagName === 'P' || element.tagName === 'DIV') {
-      const text = this.getElementText(element).trim();
-      
-      // Check for numbered list pattern (e.g., "1. Item text")
-      if (/^\d+\.?\s+.*/.test(text)) {
-        return true;
-      }
-      
-      // Check for "item X" pattern which is a common notation for list items
-      if (/^item\s+\d+\s*.*$/i.test(text)) {
-        return true;
-      }
-      
-      // Check for bullet points
-      if (text.startsWith('- ') || text.startsWith('* ')) {
-        return true;
-      }
     }
     
     return false;
@@ -64,29 +35,44 @@ export class ListExtractor extends BaseExtractor implements IListExtractor {
    * @returns True if element is an ordered list item
    */
   isOrderedListItem(element: Element): boolean {
-    if (element.tagName === 'OL') {
-      return true;
-    }
-    
     if (this.hasClass(element, 'notion-numbered_list-block')) {
       return true;
-    }
-    
-    // Check paragraph-like elements for numbered list pattern
-    if ((element.tagName === 'P' || element.tagName === 'DIV')) {
-      const text = this.getElementText(element).trim();
-      if (/^\d+\.?\s+.*/.test(text)) {
-        return true;
-      }
     }
     
     return false;
   }
   
   /**
+   * Get the indentation level of a Notion list item by checking parent elements
+   * @param element - The list element to check
+   * @returns The indentation level (0-based)
+   */
+  getIndentationLevel(element: Element): number {
+    // Calculate indentation based on the parent structure
+    let level = 0;
+    let current = element;
+    
+    // Count how many list block parents we have
+    while (current.parentElement) {
+      current = current.parentElement;
+      
+      // Check if parent is also a list block
+      if (this.hasClass(current, 'notion-bulleted_list-block') || 
+          this.hasClass(current, 'notion-numbered_list-block')) {
+        level++;
+      }
+    }
+    
+    // Return the calculated indentation level
+    return level;
+  }
+  
+  /**
    * Process multiple elements that form a list
+   * NOTE: This method is used only for testing purposes and is not used in the actual extraction
+   * 
    * @param listElements - Array of elements that form a list
-   * @param isOrdered - Whether this is an ordered list
+   * @param isOrdered - Whether this is an ordered list (not actually used)
    * @returns Markdown list with proper formatting
    */
   processList(listElements: Element[], isOrdered = false): string {
@@ -94,19 +80,9 @@ export class ListExtractor extends BaseExtractor implements IListExtractor {
       return '';
     }
     
-    this.debug(`Processing list with ${listElements.length} items, ordered: ${isOrdered}`);
-    
-    // Extract text from each element
-    const textItems = listElements.map(element => this.getElementText(element).trim());
-    
-    // Format as markdown list items
-    const listItems = textItems.map((text, index) => {
-      // For ordered lists, use sequential numbers
-      if (isOrdered) {
-        return `${index + 1}. ${text}`;
-      } else {
-        return `- ${text}`;
-      }
+    // Process each list element individually with its proper indentation
+    const listItems = listElements.map(element => {
+      return this.listToMarkdown(element);
     });
     
     // Join with newlines for proper list formatting
@@ -114,129 +90,164 @@ export class ListExtractor extends BaseExtractor implements IListExtractor {
   }
 
   /**
-   * Process a list element and convert to markdown
-   * @param listElement - The list element (ul, ol, or Notion list block)
-   * @returns Markdown formatted list
+   * Find the element containing the actual list item text
+   * Optimized for the structure of Notion's list items based on the provided HTML
+   * 
+   * @param element List block element
+   * @returns The element containing the text content or null if not found
    */
-  listToMarkdown(listElement: Element): string {
-    // Process standard list elements (UL, OL)
-    if (listElement.tagName === 'UL' || listElement.tagName === 'OL') {
-      const items = Array.from(listElement.querySelectorAll('li'));
-      
-      if (!items.length) {
-        return '';
-      }
-      
-      // Check if this is an ordered list
-      const isOrdered = listElement.tagName === 'OL';
-      
-      // Process each list item and join with newlines
-      const listItems = items.map((item, index) => {
-        const text = this.getElementText(item);
+  findTextElement(element: Element): Element | null {
+    // First look for the data-content-editable-leaf="true" element (newer Notion format)
+    // This is the most specific selector that targets just the text node
+    const editableLeaf = element.querySelector('[data-content-editable-leaf="true"]');
+    if (editableLeaf) {
+      return editableLeaf;
+    }
+    
+    // Next try to find any contenteditable=true element (also common in Notion)
+    const contentEditables = element.querySelectorAll('[contenteditable="true"]');
+    if (contentEditables.length > 0) {
+      // In case there are multiple, prefer the first one that's not inside a nested list
+      for (let i = 0; i < contentEditables.length; i++) {
+        const editable = contentEditables[i];
+        let parent = editable.parentElement;
+        let isInNestedList = false;
         
-        // Use numbers for ordered lists, bullets for unordered
-        return isOrdered ? 
-          `${index + 1}. ${text}` : 
-          `- ${text}`;
-      });
-      
-      // Join with single newlines to ensure proper list formatting
-      return listItems.join('\n');
-    }
-    
-    // Process Notion-specific list blocks
-    if (listElement.className && (
-      this.hasClass(listElement, 'notion-bulleted_list-block') ||
-      this.hasClass(listElement, 'notion-to_do-block') ||
-      this.hasClass(listElement, 'notion-toggle-block') ||
-      this.hasClass(listElement, 'notion-list-block')
-    )) {
-      return `- ${this.getElementText(listElement)}`;
-    }
-    
-    if (this.hasClass(listElement, 'notion-numbered_list-block')) {
-      return `1. ${this.getElementText(listElement)}`;
-    }
-    
-    // Handle paragraph or div elements that contain list-like content
-    if (listElement.tagName === 'P' || listElement.tagName === 'DIV') {
-      const text = this.getElementText(listElement).trim();
-      
-      // Check for numbered list item (e.g., "1. Item text")
-      const numberedMatch = text.match(/^(\d+)\.?\s+(.*)/);
-      if (numberedMatch) {
-        return `1. ${numberedMatch[2].trim()}`;  // Always use 1. for proper markdown ordered lists
+        // Check if this editable is inside a nested list
+        while (parent && parent !== element) {
+          if (this.isList(parent)) {
+            isInNestedList = true;
+            break;
+          }
+          parent = parent.parentElement;
+        }
+        
+        if (!isInNestedList) {
+          return editable;
+        }
       }
       
-      // Check for "item X" pattern (convert to bullet point)
-      const itemMatch = text.match(/^item\s+\d+\s*(.*)/i);
-      if (itemMatch) {
-        // If there's content after "item X", include it
-        const content = itemMatch[1] ? itemMatch[1].trim() : text.trim();
-        return `- ${content}`;
-      }
-      
-      // Check for existing bullet points
-      if (text.startsWith('- ') || text.startsWith('* ')) {
-        return text;
-      }
+      // If all are in nested lists, return the first one anyway
+      return contentEditables[0];
     }
     
-    // Fallback: treat as a bullet point
-    return `- ${this.getElementText(listElement)}`;
+    // If there are no contenteditable elements, look for elements with specific classes
+    // In current Notion layouts, list text is often in specific div structures
+    const notionTextElements = element.querySelectorAll('div[style*="flex: 1"]');
+    if (notionTextElements.length > 0) {
+      return notionTextElements[0];
+    }
+    
+    // As a fallback, return the element itself
+    return element;
   }
   
   /**
-   * Finds groups of consecutive list elements in a section
-   * @param startElement - First element to check
-   * @param endElement - Last element to check or null
-   * @returns Array of list groups with type and elements
+   * Get direct text content from a list element, excluding child element text
+   * Based on Notion's actual DOM structure
+   * 
+   * @param element - The element to get text from
+   * @returns Direct text content
    */
-  findListGroups(startElement: Element, endElement: Element | null = null): ListGroup[] {
-    const listGroups: ListGroup[] = [];
-    let currentElement: Element | null = startElement;
-    
-    // Variables to track the current list group
-    let currentGroup: ListGroup | null = null;
-    
-    while (currentElement && currentElement !== endElement) {
-      if (this.isList(currentElement)) {
-        // Determine list type
-        const isOrdered = this.isOrderedListItem(currentElement);
-        const listType = isOrdered ? 'ordered' : 'unordered';
-        
-        // Check if we need to start a new group or continue the current one
-        if (!currentGroup || currentGroup.type !== listType) {
-          // End previous group if it exists
-          if (currentGroup) {
-            listGroups.push(currentGroup);
-          }
-          
-          // Start a new group
-          currentGroup = {
-            type: listType,
-            elements: [currentElement]
-          };
-        } else {
-          // Continue current group
-          currentGroup.elements.push(currentElement);
+  getDirectListText(element: Element): string {
+    // Find the element containing the text
+    const textElement = this.findTextElement(element);
+    if (!textElement) {
+      // Fallback to trying to get just text nodes from the element
+      let directText = '';
+      for (let i = 0; i < element.childNodes.length; i++) {
+        const node = element.childNodes[i];
+        if (node.nodeType === Node.TEXT_NODE) {
+          directText += node.textContent || '';
         }
-      } else if (currentGroup) {
-        // End the current group when we hit a non-list element
-        listGroups.push(currentGroup);
-        currentGroup = null;
+      }
+      return directText.trim();
+    }
+    
+    // Get the text from the found element
+    const text = textElement.textContent || '';
+    
+    // Clean up text further by removing any nested list content
+    let cleanedText = text.trim();
+    
+    // Find any child list elements within this one and remove their text
+    const childLists = [];
+    for (let i = 0; i < element.children.length; i++) {
+      const child = element.children[i];
+      if (this.isList(child as Element)) {
+        childLists.push(child);
+      }
+    }
+    
+    // Subtract text from child lists
+    if (childLists.length > 0) {
+      for (const childList of childLists) {
+        const childText = childList.textContent || '';
+        if (childText) {
+          cleanedText = cleanedText.replace(childText, '').trim();
+        }
+      }
+    }
+    
+    // Never return empty text from a list item
+    if (!cleanedText) {
+      return '';
+    }
+    
+    return cleanedText;
+  }
+  
+  /**
+   * Process a list element and convert to markdown
+   * @param listElement - The list element (Notion list block)
+   * @returns Markdown formatted list or empty string for empty items
+   */
+  listToMarkdown(listElement: Element): string {
+    // Get direct text content without child element text
+    const text = this.getDirectListText(listElement);
+    
+    // Skip list items with empty or whitespace-only text
+    if (!text || text.trim() === '') {
+      return '';
+    }
+    
+    // Get indentation level for nested lists
+    const level = this.getIndentationLevel(listElement);
+    
+    // Add correct indentation (2 spaces per level) for nested list items
+    // Using the proper indent amount (2 spaces per level) is crucial for reveal.js
+    const indent = '  '.repeat(level);
+    
+    let result = '';
+    
+    // Process Notion-specific list blocks
+    if (listElement.className) {
+      // Unordered lists
+      if (this.hasClass(listElement, 'notion-bulleted_list-block') || 
+          this.hasClass(listElement, 'notion-to_do-block') ||
+          this.hasClass(listElement, 'notion-toggle-block') ||
+          this.hasClass(listElement, 'notion-list-block')) {
+        result = `${indent}- ${text}`;
+        return result;
       }
       
-      currentElement = currentElement.nextElementSibling;
+      // Ordered lists
+      if (this.hasClass(listElement, 'notion-numbered_list-block')) {
+        result = `${indent}1. ${text}`;
+        return result;
+      }
     }
     
-    // Add the last group if it exists
-    if (currentGroup) {
-      listGroups.push(currentGroup);
+    // Fallback: treat as a bullet point, but only if there's actual content
+    if (text.trim()) {
+      result = `- ${text}`;
+      return result;
     }
     
-    return listGroups;
+    // If we reach here, there was no usable content
+    return '';
   }
+  
 
   
   /**
