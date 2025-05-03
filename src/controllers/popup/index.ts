@@ -36,6 +36,7 @@ interface PageInfo {
  * PopupController class to handle popup UI logic
  */
 class PopupController {
+  private productTitle: HTMLElement;
   private convertBtn: HTMLButtonElement;
   private exportBtn: HTMLButtonElement | null;
   private customizeBtn: HTMLButtonElement | null;
@@ -50,6 +51,7 @@ class PopupController {
    * Constructor for the popup controller
    */
   constructor() {
+    this.productTitle = document.getElementById('productTitle') as HTMLElement;
     this.convertBtn = document.getElementById('convertBtn') as HTMLButtonElement;
     this.exportBtn = document.getElementById('exportBtn') as HTMLButtonElement;
     this.customizeBtn = document.getElementById('customizeBtn') as HTMLButtonElement;
@@ -666,6 +668,14 @@ class PopupController {
         // Update presentation stats
         await this.updatePresentationStats();
       } else {
+
+        if (process.env.NODE_ENV === 'production') {
+          this.productTitle.textContent = 'Six Slides';
+        }
+        else {
+          this.productTitle.textContent = `Six Slides (${process.env.NODE_ENV})`;
+        }
+
         // Not in presentation mode - show template info
         this.templateInfo.style.display = 'block';
         this.presentationStats.style.display = 'none';

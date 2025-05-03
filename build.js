@@ -124,7 +124,7 @@ function copyStaticFiles() {
 // Run rollup to bundle JavaScript modules
 function runRollup() {
   return new Promise((resolve, reject) => {
-    // Determine environment from command line or default to production
+    // Determine environment from command line 
     const nodeEnv = process.env.NODE_ENV || 'production';
     console.log(`Building for environment: ${nodeEnv}`);
     
@@ -143,6 +143,7 @@ function runRollup() {
     };
     
     // Log the URLs being used (without sensitive data)
+    console.log(`Using API_URL: ${env.NODE_ENV}`);
     console.log(`Using API_URL: ${env.API_URL}`);
     console.log(`Using WEB_URL: ${env.WEB_URL}`);
     
@@ -222,15 +223,10 @@ async function build() {
     process.env.NODE_ENV = envValue;
   }
   
-  // Use process.env.NODE_ENV or default to production
   const nodeEnv = process.env.NODE_ENV || 'production';
-  const isProduction = nodeEnv === 'production';
   
   if (!quietBuild) {
     console.log(`Building Six Slides extension v${VERSION} for ${nodeEnv} environment...`);
-    if (isProduction) {
-      console.log('⚠️ Production build: Code will be minified and obfuscated for security!');
-    }
   }
   
   // Clean dist directory

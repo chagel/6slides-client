@@ -72,7 +72,8 @@ const entries = [
 
 // Configure the build based on environment
 const isDevelopment = env === 'development';
-const needObfuscation = false;
+const needObfuscation = env === 'beta';
+const needMinification = env === 'production' || env === 'beta';
 
 // Apply plugins to each bundle
 export default entries.map(entry => {
@@ -110,16 +111,16 @@ export default entries.map(entry => {
           'process.env.EXTENSION_VERSION': JSON.stringify(process.env.npm_package_version || ''),
         }
       }),
-      // Minify with Terser in production
-      !isDevelopment && terser({
+      // Minify with Terser 
+      needMinification && terser({
         compress: {
           drop_console: true, // Remove console statements
           drop_debugger: true, // Remove debugger statements
           pure_funcs: ['console.debug', 'console.log', 'console.info'] // Remove specific console functions
         }
       }),
-      // Obfuscate code in production only (not in development)
-      !isDevelopment && needObfuscation && obfuscator({
+      // Obfuscate code 
+      needObfuscation && obfuscator({
         options: entry.input.includes('worker.ts') ? 
         // Service worker obfuscation settings - more conservative to avoid window references
         {
