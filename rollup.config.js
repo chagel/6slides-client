@@ -67,6 +67,191 @@ const entries = [
       format: 'iife',
       name: 'notionSlidesViewer'
     }
+  },
+  
+  // Models
+  {
+    input: 'src/models/storage.ts',
+    output: {
+      file: 'dist/models/storage.js',
+      format: 'es',
+      name: 'storage'
+    }
+  },
+  {
+    input: 'src/models/renderer.ts',
+    output: {
+      file: 'dist/models/renderer.js',
+      format: 'es',
+      name: 'renderer'
+    }
+  },
+  {
+    input: 'src/models/content_processor.ts',
+    output: {
+      file: 'dist/models/content_processor.js',
+      format: 'es',
+      name: 'contentProcessor'
+    }
+  },
+  {
+    input: 'src/models/config_manager.ts',
+    output: {
+      file: 'dist/models/config_manager.js',
+      format: 'es',
+      name: 'configManager'
+    }
+  },
+  {
+    input: 'src/models/pdf_exporter.ts', 
+    output: {
+      file: 'dist/models/pdf_exporter.js',
+      format: 'es',
+      name: 'pdfExporter'
+    }
+  },
+  
+  // Domain models
+  {
+    input: 'src/models/domain/config.ts',
+    output: {
+      file: 'dist/models/domain/config.js',
+      format: 'es',
+      name: 'config'
+    }
+  },
+  {
+    input: 'src/models/domain/presentation.ts',
+    output: {
+      file: 'dist/models/domain/presentation.js',
+      format: 'es',
+      name: 'presentation'
+    }
+  },
+  {
+    input: 'src/models/domain/slide.ts',
+    output: {
+      file: 'dist/models/domain/slide.js',
+      format: 'es',
+      name: 'slide'
+    }
+  },
+  {
+    input: 'src/models/domain/types.ts',
+    output: {
+      file: 'dist/models/domain/types.js',
+      format: 'es',
+      name: 'domainTypes'
+    }
+  },
+  
+  // Extractors
+  {
+    input: 'src/models/extractors/base_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/base_extractor.js',
+      format: 'es',
+      name: 'baseExtractor'
+    }
+  },
+  // Notion Extractors
+  {
+    input: 'src/models/extractors/notion/notion_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/notion_extractor.js',
+      format: 'es',
+      name: 'notionExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/blockquote_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/blockquote_extractor.js',
+      format: 'es',
+      name: 'blockquoteExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/code_block_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/code_block_extractor.js',
+      format: 'es',
+      name: 'codeBlockExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/heading_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/heading_extractor.js',
+      format: 'es',
+      name: 'headingExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/image_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/image_extractor.js',
+      format: 'es',
+      name: 'imageExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/list_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/list_extractor.js',
+      format: 'es',
+      name: 'listExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/paragraph_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/paragraph_extractor.js',
+      format: 'es',
+      name: 'paragraphExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/subslide_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/subslide_extractor.js',
+      format: 'es',
+      name: 'subslideExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/notion/table_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/notion/table_extractor.js',
+      format: 'es',
+      name: 'tableExtractor'
+    }
+  },
+  // Types
+  {
+    input: 'src/models/extractors/notion/types.ts',
+    output: {
+      file: 'dist/models/extractors/notion/types.js',
+      format: 'es',
+      name: 'notionTypes'
+    }
+  },
+  // Markdown extractors
+  {
+    input: 'src/models/extractors/markdown/markdown_extractor.ts',
+    output: {
+      file: 'dist/models/extractors/markdown/markdown_extractor.js',
+      format: 'es',
+      name: 'markdownExtractor'
+    }
+  },
+  {
+    input: 'src/models/extractors/markdown/types.ts',
+    output: {
+      file: 'dist/models/extractors/markdown/types.js',
+      format: 'es',
+      name: 'markdownTypes'
+    }
   }
 ];
 
@@ -93,6 +278,11 @@ export default entries.map(entry => {
       typescript({
         tsconfig: './tsconfig.json',
         sourceMap: isDevelopment, // Only generate source maps in development
+        compilerOptions: {
+          // Make sure all module imports have .js extension in output files
+          moduleResolution: 'node',
+          outDir: 'dist'
+        }
       }),
       nodeResolve(),
       json(),

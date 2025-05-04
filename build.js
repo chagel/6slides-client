@@ -89,10 +89,34 @@ function copyStaticFiles() {
     fs.mkdirSync(servicesDestDir, { recursive: true });
   }
   
-  // Create directories for models
+  // Create directories for models and all subdirectories
   const modelsDestDir = path.join(DIST_DIR, 'models');
   if (!fs.existsSync(modelsDestDir)) {
     fs.mkdirSync(modelsDestDir, { recursive: true });
+  }
+  
+  // Create directories for domain models
+  const domainDestDir = path.join(DIST_DIR, 'models', 'domain');
+  if (!fs.existsSync(domainDestDir)) {
+    fs.mkdirSync(domainDestDir, { recursive: true });
+  }
+  
+  // Create directories for extractors
+  const extractorsDestDir = path.join(DIST_DIR, 'models', 'extractors');
+  if (!fs.existsSync(extractorsDestDir)) {
+    fs.mkdirSync(extractorsDestDir, { recursive: true });
+  }
+  
+  // Create directories for notion extractors
+  const notionExtractorsDir = path.join(DIST_DIR, 'models', 'extractors', 'notion');
+  if (!fs.existsSync(notionExtractorsDir)) {
+    fs.mkdirSync(notionExtractorsDir, { recursive: true });
+  }
+  
+  // Create directories for markdown extractors
+  const markdownExtractorsDir = path.join(DIST_DIR, 'models', 'extractors', 'markdown');
+  if (!fs.existsSync(markdownExtractorsDir)) {
+    fs.mkdirSync(markdownExtractorsDir, { recursive: true });
   }
   
   // Create directories for controllers
@@ -101,16 +125,8 @@ function copyStaticFiles() {
     fs.mkdirSync(controllersDestDir, { recursive: true });
   }
   
-  // Copy models/extractors - these will be imported by the bundled modules
-  const extractorsDir = path.join(SRC_DIR, 'models', 'extractors');
-  const extractorsDestDir = path.join(DIST_DIR, 'models', 'extractors');
-  
-  if (!fs.existsSync(extractorsDestDir)) {
-    fs.mkdirSync(extractorsDestDir, { recursive: true });
-  }
-  
-  // Copy extractors directory with subdirectories
-  copyFiles(extractorsDir, extractorsDestDir);
+  // Models directory structure is now created by Rollup
+  // We don't need to copy TypeScript source files manually
   
   // Icons are now in src/assets/icons - no need to copy them separately
   
