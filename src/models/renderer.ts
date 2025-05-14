@@ -122,6 +122,9 @@ export class PresentationRenderer {
         
         this.createMarkdownSlide(slideObject);
       });
+
+      // Update the document title
+      document.title = presentation.title + ' - 6Slides.com';
       
       // Initialize reveal.js
       this.initReveal(settings);
