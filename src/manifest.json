@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Six Slides",
+  "name": "Six Slides - Your Notion Slides Generator",
   "version": "1.1.0",
-  "description": "Transform your Notion pages into slides with a single click.",
+  "description": "Build slides from Notion pages and Markdown files.",
   "icons": {
     "16": "assets/icons/icon16.png",
     "48": "assets/icons/icon48.png",
