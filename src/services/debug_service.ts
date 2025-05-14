@@ -404,9 +404,8 @@ class DebugService {
     // Add each log entry
     const fragment = document.createDocumentFragment();
     
-    logs.forEach((log, index) => {
+    logs.forEach((log) => {
       const logElement = document.createElement('div');
-      const logIndex = logs.length - index;
       
       // Set basic styles for the log entry
       logElement.style.cssText = `
@@ -439,19 +438,6 @@ class DebugService {
           break;
       }
       
-      // Add index number
-      const indexNumber = document.createElement('div');
-      indexNumber.textContent = String(logIndex);
-      indexNumber.style.cssText = `
-        position: absolute;
-        left: 8px;
-        top: 8px;
-        font-size: 10px;
-        color: #666;
-        font-weight: bold;
-      `;
-      logElement.appendChild(indexNumber);
-      
       // Add header with level, context, and timestamp
       const header = document.createElement('div');
       header.style.cssText = `
@@ -469,7 +455,7 @@ class DebugService {
       const context = log.metadata?.context || '';
       levelAndContext.textContent = `[${log.level}]${context ? ' [' + context + ']' : ''}`;
       
-      const timestamp = new Date(log.timestamp).toLocaleTimeString();
+      const timestamp = log.sequence?.toString() || "";
       const time = document.createElement('span');
       time.style.color = '#666';
       time.textContent = timestamp;

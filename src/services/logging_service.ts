@@ -315,8 +315,17 @@ class LoggingService {
       // Ensure the entry has a timestamp
       logEntry.timestamp = logEntry.timestamp || new Date().toISOString();
       
-      // Assign a sequence number
-      logEntry.sequence = ++this._sequenceCounter;
+      // Create a datetime-based sequence base (format: yymmddhhmm0000)
+      const now = new Date();
+      const year = now.getFullYear().toString().slice(-2);
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const day = now.getDate().toString().padStart(2, '0');
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const datetimeBase = parseInt(`${year}${month}${day}${hours}${minutes}0000`);
+      
+      // Assign a sequence number with datetime prefix
+      logEntry.sequence = datetimeBase + (++this._sequenceCounter);
       
       // Add to queue
       this._logQueue.push(logEntry);
