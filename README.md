@@ -4,6 +4,12 @@
 
 A Chrome extension that converts Notion pages to beautiful presentations using reveal.js.
 
+## Demo Video
+
+[![Six Slides Demo](https://img.youtube.com/vi/KWsiDKZTN9w/maxresdefault.jpg)](https://www.youtube.com/watch?v=KWsiDKZTN9w)
+
+Watch the [demo video](https://www.youtube.com/watch?v=KWsiDKZTN9w) to see Six Slides in action.
+
 ## Features
 
 - Extract content from Notion pages using a template format
